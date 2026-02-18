@@ -1,11 +1,21 @@
 <script setup lang="ts">
-import { usePage } from '@inertiajs/vue3';
-import { ChevronsUpDown } from 'lucide-vue-next';
-import UserInfo from '@/components/app/common/UserInfo.vue';
-import UserMenuContent from '@/components/app/common/UserMenuContent.vue';
+import {
+    BadgeCheck,
+    Bell,
+    ChevronsUpDown,
+    CreditCard,
+    LogOut,
+    Sparkles,
+} from 'lucide-vue-next';
+
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     DropdownMenu,
     DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -15,9 +25,15 @@ import {
     useSidebar,
 } from '@/components/ui/sidebar';
 
-const page = usePage();
-const user = page.props.auth.user;
-const { isMobile, state } = useSidebar();
+const props = defineProps<{
+    user: {
+        name: string;
+        email: string;
+        avatar: string;
+    };
+}>();
+
+const { isMobile } = useSidebar();
 </script>
 
 <template>
@@ -28,25 +44,84 @@ const { isMobile, state } = useSidebar();
                     <SidebarMenuButton
                         size="lg"
                         class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                        data-test="sidebar-menu-button"
                     >
-                        <UserInfo :user="user" />
+                        <Avatar class="h-8 w-8 rounded-lg">
+                            <AvatarImage :src="user.avatar" :alt="user.name" />
+                            <AvatarFallback class="rounded-lg">
+                                CN
+                            </AvatarFallback>
+                        </Avatar>
+                        <div
+                            class="grid flex-1 text-left text-sm leading-tight"
+                        >
+                            <span class="truncate font-medium">{{
+                                user.name
+                            }}</span>
+                            <span class="truncate text-xs">{{
+                                user.email
+                            }}</span>
+                        </div>
                         <ChevronsUpDown class="ml-auto size-4" />
                     </SidebarMenuButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                    class="w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-                    :side="
-                        isMobile
-                            ? 'bottom'
-                            : state === 'collapsed'
-                              ? 'left'
-                              : 'bottom'
-                    "
+                    class="w-[--reka-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                    :side="isMobile ? 'bottom' : 'right'"
                     align="end"
                     :side-offset="4"
                 >
-                    <UserMenuContent :user="user" />
+                    <DropdownMenuLabel class="p-0 font-normal">
+                        <div
+                            class="flex items-center gap-2 px-1 py-1.5 text-left text-sm"
+                        >
+                            <Avatar class="h-8 w-8 rounded-lg">
+                                <AvatarImage
+                                    :src="user.avatar"
+                                    :alt="user.name"
+                                />
+                                <AvatarFallback class="rounded-lg">
+                                    CN
+                                </AvatarFallback>
+                            </Avatar>
+                            <div
+                                class="grid flex-1 text-left text-sm leading-tight"
+                            >
+                                <span class="truncate font-semibold">{{
+                                    user.name
+                                }}</span>
+                                <span class="truncate text-xs">{{
+                                    user.email
+                                }}</span>
+                            </div>
+                        </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                        <DropdownMenuItem>
+                            <Sparkles />
+                            Upgrade to Pro
+                        </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                        <DropdownMenuItem>
+                            <BadgeCheck />
+                            Account
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                            <CreditCard />
+                            Billing
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                            <Bell />
+                            Notifications
+                        </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>
+                        <LogOut />
+                        Log out
+                    </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
         </SidebarMenuItem>

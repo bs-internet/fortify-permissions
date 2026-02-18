@@ -1,66 +1,175 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-vue-next';
-import AppLogo from '@/components/app/common/AppLogo.vue';
-import NavFooter from '@/components/app/common/NavFooter.vue';
+import {
+    AudioWaveform,
+    BookOpen,
+    Bot,
+    Command,
+    Frame,
+    GalleryVerticalEnd,
+    Map,
+    PieChart,
+    Settings2,
+    SquareTerminal,
+} from 'lucide-vue-next';
+import TeamSwitcher from '@/components/app/common/TeamSwitcher.vue';
 import NavMain from '@/components/app/NavMain.vue';
 import NavUser from '@/components/app/NavUser.vue';
+import type { SidebarProps } from '@/components/ui/sidebar';
+
 import {
     Sidebar,
     SidebarContent,
     SidebarFooter,
     SidebarHeader,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
+    SidebarRail,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
-import { type NavItem } from '@/types';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
+const props = withDefaults(defineProps<SidebarProps>(), {
+    collapsible: 'icon',
+});
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Github Repo',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: Folder,
+// This is sample data.
+const data = {
+    user: {
+        name: 'shadcn',
+        email: 'm@example.com',
+        avatar: '/avatars/shadcn.jpg',
     },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
-        icon: BookOpen,
-    },
-];
+    teams: [
+        {
+            name: 'Acme Inc',
+            logo: GalleryVerticalEnd,
+            plan: 'Enterprise',
+        },
+        {
+            name: 'Acme Corp.',
+            logo: AudioWaveform,
+            plan: 'Startup',
+        },
+        {
+            name: 'Evil Corp.',
+            logo: Command,
+            plan: 'Free',
+        },
+    ],
+    navMain: [
+        {
+            title: 'Playground',
+            url: '#',
+            icon: SquareTerminal,
+            isActive: true,
+            items: [
+                {
+                    title: 'History',
+                    url: '#',
+                },
+                {
+                    title: 'Starred',
+                    url: '#',
+                },
+                {
+                    title: 'Settings',
+                    url: '#',
+                },
+            ],
+        },
+        {
+            title: 'Models',
+            url: '#',
+            icon: Bot,
+            items: [
+                {
+                    title: 'Genesis',
+                    url: '#',
+                },
+                {
+                    title: 'Explorer',
+                    url: '#',
+                },
+                {
+                    title: 'Quantum',
+                    url: '#',
+                },
+            ],
+        },
+        {
+            title: 'Documentation',
+            url: '#',
+            icon: BookOpen,
+            items: [
+                {
+                    title: 'Introduction',
+                    url: '#',
+                },
+                {
+                    title: 'Get Started',
+                    url: '#',
+                },
+                {
+                    title: 'Tutorials',
+                    url: '#',
+                },
+                {
+                    title: 'Changelog',
+                    url: '#',
+                },
+            ],
+        },
+        {
+            title: 'Settings',
+            url: '#',
+            icon: Settings2,
+            items: [
+                {
+                    title: 'General',
+                    url: '#',
+                },
+                {
+                    title: 'Team',
+                    url: '#',
+                },
+                {
+                    title: 'Billing',
+                    url: '#',
+                },
+                {
+                    title: 'Limits',
+                    url: '#',
+                },
+            ],
+        },
+    ],
+    projects: [
+        {
+            name: 'Design Engineering',
+            url: '#',
+            icon: Frame,
+        },
+        {
+            name: 'Sales & Marketing',
+            url: '#',
+            icon: PieChart,
+        },
+        {
+            name: 'Travel',
+            url: '#',
+            icon: Map,
+        },
+    ],
+};
 </script>
 
 <template>
-    <Sidebar collapsible="icon" variant="inset">
+    <Sidebar v-bind="props">
         <SidebarHeader>
-            <SidebarMenu>
-                <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" as-child>
-                        <Link :href="dashboard()">
-                            <AppLogo />
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            </SidebarMenu>
+            <TeamSwitcher :teams="data.teams" />
         </SidebarHeader>
-
         <SidebarContent>
-            <NavMain :items="mainNavItems" />
+            <NavMain :items="data.navMain" />
         </SidebarContent>
-
         <SidebarFooter>
-            <NavFooter :items="footerNavItems" />
-            <NavUser />
+            <NavUser :user="data.user" />
         </SidebarFooter>
+        <SidebarRail />
     </Sidebar>
-    <slot />
 </template>
