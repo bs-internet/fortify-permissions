@@ -30,36 +30,43 @@ Route::middleware(['auth', 'auth.session', 'verified'])->group(function () {
         return Inertia::render('app/Dashboard');
     })->name('dashboard');
 
+    /*
+    |--------------------------------------------------------------------------
+    | Settings
+    |--------------------------------------------------------------------------
+    */    
+
 
     /*
     |--------------------------------------------------------------------------
     | Profile
     |--------------------------------------------------------------------------
     */
+    Route::name('profile.')->prefix('profile')->group(function () {
 
-    Route::redirect('/profile', '/profile/edit');
+        // Profile
+        Route::controller(ProfileController::class)->group(function () {
+            Route::get('/edit', 'edit')->name('edit');
+            Route::patch('/edit', 'update')->name('update');            
+        });
 
-    // Profile
-    Route::get('/profile/edit', [ProfileController::class, 'edit'])
-        ->name('profile.edit');
+        // Password
+        Route::controller(PasswordController::class)->group(function () {
+            Route::get('/password', 'edit')->name('password.edit');
+            Route::put('/password', 'update')
+                ->middleware('throttle:6,1')
+                ->name('password.update');
+        });
 
-    Route::patch('/profile/edit', [ProfileController::class, 'update'])
-        ->name('profile.update');
+        // Two Factor
+        Route::controller(TwoFactorAuthenticationController::class)->group(function () {
+            Route::get('/two-factor', 'show')->name('twofactor.show');
+        });
 
-    // Password
-    Route::get('/profile/password', [PasswordController::class, 'edit'])
-        ->name('user-password.edit');
+        // Appearance
+        Route::get('/appearance', function () {
+            return Inertia::render('app/profile/Appearance');
+        })->name('appearance.edit');
 
-    Route::put('/profile/password', [PasswordController::class, 'update'])
-        ->middleware('throttle:6,1')
-        ->name('user-password.update');
-
-    // Appearance
-    Route::get('/profile/appearance', function () {
-        return Inertia::render('app/profile/Appearance');
-    })->name('appearance.edit');
-
-    // Two Factor
-    Route::get('/profile/two-factor', [TwoFactorAuthenticationController::class, 'show'])
-        ->name('two-factor.show');
+    });
 });
