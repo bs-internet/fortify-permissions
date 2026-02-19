@@ -21,6 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
+
+        $middleware->alias([
+            'GeoIP' => \Torann\GeoIP\Facades\GeoIP::class,
+        ]);      
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

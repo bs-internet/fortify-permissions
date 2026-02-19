@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Profile\PasswordController;
 use App\Http\Controllers\Profile\ProfileController;
+use App\Http\Controllers\Profile\SessionController;
 use App\Http\Controllers\Profile\TwoFactorAuthenticationController;
 
 /*
@@ -34,7 +35,7 @@ Route::middleware(['auth', 'auth.session', 'verified'])->group(function () {
     |--------------------------------------------------------------------------
     | Settings
     |--------------------------------------------------------------------------
-    */    
+    */
 
 
     /*
@@ -47,7 +48,7 @@ Route::middleware(['auth', 'auth.session', 'verified'])->group(function () {
         // Profile
         Route::controller(ProfileController::class)->group(function () {
             Route::get('/edit', 'edit')->name('edit');
-            Route::patch('/edit', 'update')->name('update');            
+            Route::patch('/edit', 'update')->name('update');
         });
 
         // Password
@@ -61,6 +62,13 @@ Route::middleware(['auth', 'auth.session', 'verified'])->group(function () {
         // Two Factor
         Route::controller(TwoFactorAuthenticationController::class)->group(function () {
             Route::get('/two-factor', 'show')->name('twofactor.show');
+        });
+
+        // Sessions
+        Route::controller(SessionController::class)->group(function () {
+            Route::get('/sessions', 'index')->name('sessions.index');
+            Route::delete('/sessions/{log}', 'destroy')->name('sessions.destroy');
+            Route::delete('/sessions', 'destroyOther')->name('sessions.destroyOther');
         });
 
         // Appearance

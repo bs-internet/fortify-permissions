@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
+import { Eye, EyeOff, Key } from 'lucide-vue-next';
+import { ref } from 'vue';
 import InputError from '@/components/app/common/InputError.vue';
 import TextLink from '@/components/app/common/TextLink.vue';
 import { Button } from '@/components/ui/button';
@@ -16,14 +18,17 @@ defineProps<{
     canResetPassword: boolean;
     canRegister: boolean;
 }>();
+
+// Şifre görünürlük durumu
+const showPassword = ref(false);
 </script>
 
 <template>
     <AuthBase
-        title="Log in to your account"
-        description="Enter your email and password below to log in"
+        title="Hesabınıza giriş yapın"
+        description="Devam etmek için e-posta ve şifrenizi giriniz"
     >
-        <Head title="Log in" />
+        <Head title="Giriş Yap" />
 
         <div
             v-if="status"
@@ -40,48 +45,59 @@ defineProps<{
         >
             <div class="grid gap-6">
                 <div class="grid gap-2">
-                    <Label for="email">Email address</Label>
+                    <Label for="email">E-posta Adresi</Label>
                     <Input
                         id="email"
                         type="email"
                         name="email"
                         required
-                        autofocus
                         :tabindex="1"
                         autocomplete="email"
-                        placeholder="email@example.com"
+                        autofocus
+                        placeholder="ornek@alanadi.com"
                     />
                     <InputError :message="errors.email" />
                 </div>
 
                 <div class="grid gap-2">
                     <div class="flex items-center justify-between">
-                        <Label for="password">Password</Label>
+                        <Label for="password">Şifre</Label>
                         <TextLink
                             v-if="canResetPassword"
                             :href="request()"
                             class="text-sm"
                             :tabindex="5"
                         >
-                            Forgot password?
+                            Şifremi unuttum
                         </TextLink>
                     </div>
-                    <Input
-                        id="password"
-                        type="password"
-                        name="password"
-                        required
-                        :tabindex="2"
-                        autocomplete="current-password"
-                        placeholder="Password"
-                    />
+                    <div class="relative">
+                        <Input
+                            id="password"
+                            :type="showPassword ? 'text' : 'password'"
+                            name="password"
+                            required
+                            :tabindex="2"
+                            autocomplete="current-password"
+                            placeholder="••••••••"
+                            class="pr-10"
+                        />
+                        <button
+                            type="button"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            @click="showPassword = !showPassword"
+                        >
+                            <Eye v-if="!showPassword" class="h-4 w-4" />
+                            <EyeOff v-else class="h-4 w-4" />
+                        </button>
+                    </div>
                     <InputError :message="errors.password" />
                 </div>
 
                 <div class="flex items-center justify-between">
-                    <Label for="remember" class="flex items-center space-x-3">
+                    <Label for="remember" class="flex items-center space-x-3 cursor-pointer">
                         <Checkbox id="remember" name="remember" :tabindex="3" />
-                        <span>Remember me</span>
+                        <span class="text-sm font-normal">Beni hatırla</span>
                     </Label>
                 </div>
 
@@ -93,7 +109,8 @@ defineProps<{
                     data-test="login-button"
                 >
                     <Spinner v-if="processing" />
-                    Log in
+                    <Key v-else class="mr-2 h-4 w-4" />
+                    Giriş Yap
                 </Button>
             </div>
         </Form>

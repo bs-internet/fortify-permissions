@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useTwoFactorAuth } from '@/composables/useTwoFactorAuth';
 import AppLayout from '@/layouts/AppLayout.vue';
 import ProfileLayout from '@/pages/app/profile/partials/Layout.vue';
-import { disable, enable, show } from '@/routes/two-factor';
+import { show } from '@/routes/profile/twofactor';
 import type { BreadcrumbItem } from '@/types';
 
 type Props = {
@@ -25,7 +25,7 @@ withDefaults(defineProps<Props>(), {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Two-Factor Authentication',
+        title: 'İki Faktörlü Doğrulama',
         href: show.url(),
     },
 ];
@@ -40,29 +40,27 @@ onUnmounted(() => {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
-        <Head title="Two-Factor Authentication" />
+        <Head title="İki Faktörlü Doğrulama" />
 
-        <h1 class="sr-only">Two-Factor Authentication Settings</h1>
+        <h1 class="sr-only">İki Faktörlü Doğrulama Ayarları</h1>
 
         <ProfileLayout>
             <div class="space-y-6">
                 <Heading
                     variant="small"
-                    title="Two-Factor Authentication"
-                    description="Manage your two-factor authentication settings"
+                    title="İki Faktörlü Doğrulama"
+                    description="Hesabınızın güvenliğini artırmak için iki faktörlü doğrulamayı yönetin."
                 />
 
                 <div
                     v-if="!twoFactorEnabled"
                     class="flex flex-col items-start justify-start space-y-4"
                 >
-                    <Badge variant="destructive">Disabled</Badge>
+                    <Badge variant="destructive">Devre Dışı</Badge>
 
-                    <p class="text-muted-foreground">
-                        When you enable two-factor authentication, you will be
-                        prompted for a secure pin during login. This pin can be
-                        retrieved from a TOTP-supported application on your
-                        phone.
+                    <p class="text-sm text-muted-foreground leading-relaxed">
+                        İki faktörlü doğrulamayı etkinleştirdiğinizde, giriş sırasında sizden güvenli bir kod istenecektir. 
+                        Bu kodu telefonunuzdaki Google Authenticator gibi TOTP destekli bir uygulama üzerinden alabilirsiniz.
                     </p>
 
                     <div>
@@ -70,7 +68,7 @@ onUnmounted(() => {
                             v-if="hasSetupData"
                             @click="showSetupModal = true"
                         >
-                            <ShieldCheck />Continue Setup
+                            <ShieldCheck class="mr-2 h-4 w-4" />Kuruluma Devam Et
                         </Button>
                         <Form
                             v-else
@@ -79,9 +77,9 @@ onUnmounted(() => {
                             #default="{ processing }"
                         >
                             <Button type="submit" :disabled="processing">
-                                <ShieldCheck />Enable 2FA</Button
-                            ></Form
-                        >
+                                <ShieldCheck class="mr-2 h-4 w-4" />2FA'yı Etkinleştir
+                            </Button>
+                        </Form>
                     </div>
                 </div>
 
@@ -89,26 +87,24 @@ onUnmounted(() => {
                     v-else
                     class="flex flex-col items-start justify-start space-y-4"
                 >
-                    <Badge variant="default">Enabled</Badge>
+                    <Badge variant="default" class="bg-green-600 hover:bg-green-700">Aktif</Badge>
 
-                    <p class="text-muted-foreground">
-                        With two-factor authentication enabled, you will be
-                        prompted for a secure, random pin during login, which
-                        you can retrieve from the TOTP-supported application on
-                        your phone.
+                    <p class="text-sm text-muted-foreground leading-relaxed">
+                        İki faktörlü doğrulama şu anda etkin. Giriş yaparken telefonunuzdaki kimlik doğrulama uygulaması tarafından üretilen rastgele kodu kullanmanız gerekmektedir.
                     </p>
 
                     <TwoFactorRecoveryCodes />
 
-                    <div class="relative inline">
+                    <div class="relative inline pt-2">
                         <Form v-bind="disable.form()" #default="{ processing }">
                             <Button
                                 variant="destructive"
                                 type="submit"
                                 :disabled="processing"
+                                class="bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
                             >
-                                <ShieldBan />
-                                Disable 2FA
+                                <ShieldBan class="mr-2 h-4 w-4" />
+                                2FA'yı Kapat
                             </Button>
                         </Form>
                     </div>

@@ -5,27 +5,32 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { toUrl } from '@/lib/utils';
-import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editProfile } from '@/routes/profile';
-import { show } from '@/routes/two-factor';
-import { edit as editPassword } from '@/routes/user-password';
+import { edit as editAppearance } from '@/routes/profile/appearance';
+import { edit as editPassword } from '@/routes/profile/password';
+import { index as showSessions } from '@/routes/profile/sessions';
+import { show } from '@/routes/profile/twofactor';
 import { type NavItem } from '@/types';
 
 const sidebarNavItems: NavItem[] = [
     {
-        title: 'Profile',
+        title: 'Bilgilerim',
         href: editProfile(),
     },
     {
-        title: 'Password',
+        title: 'Şifre Değiştir',
         href: editPassword(),
     },
     {
-        title: 'Two-Factor Auth',
+        title: 'İki Faktörlü Doğrulama',
         href: show(),
     },
     {
-        title: 'Appearance',
+        title: 'Oturum Kayıtları',
+        href: showSessions(),
+    },
+    {
+        title: 'Görünüm',
         href: editAppearance(),
     },
 ];
@@ -36,8 +41,8 @@ const { isCurrentUrl } = useCurrentUrl();
 <template>
     <div class="px-4 py-6">
         <Heading
-            title="Settings"
-            description="Manage your profile and account settings"
+            title="Bilgilerim"
+            description="Profil bilgilerinizi görüntüleyin ve güncelleyin."
         />
 
         <div class="flex flex-col lg:flex-row lg:space-x-12">

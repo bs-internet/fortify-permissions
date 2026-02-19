@@ -14,17 +14,16 @@ defineProps<{
 
 <template>
     <AuthLayout
-        title="Verify email"
-        description="Please verify your email address by clicking on the link we just emailed to you."
+        title="E-posta Adresinizi Doğrulayın"
+        description="Lütfen size gönderdiğimiz bağlantıya tıklayarak e-posta adresinizi doğrulayın. Eğer e-posta ulaşmadıysa, size yenisini gönderebiliriz."
     >
-        <Head title="Email verification" />
+        <Head title="E-posta Doğrulama" />
 
         <div
             v-if="status === 'verification-link-sent'"
-            class="mb-4 text-center text-sm font-medium text-green-600"
+            class="mb-4 text-center text-sm font-medium text-green-600 bg-green-50 p-3 rounded-lg border border-green-100"
         >
-            A new verification link has been sent to the email address you
-            provided during registration.
+            Kayıt sırasında belirttiğiniz adrese yeni bir doğrulama bağlantısı gönderildi.
         </div>
 
         <Form
@@ -32,18 +31,21 @@ defineProps<{
             class="space-y-6 text-center"
             v-slot="{ processing }"
         >
-            <Button :disabled="processing" variant="secondary">
+            <Button :disabled="processing" variant="secondary" class="w-full">
                 <Spinner v-if="processing" />
-                Resend verification email
+                Doğrulama E-postasını Tekrar Gönder
             </Button>
 
-            <TextLink
-                :href="logout()"
-                as="button"
-                class="mx-auto block text-sm"
-            >
-                Log out
-            </TextLink>
+            <div class="flex flex-col gap-2">
+                <p class="text-xs text-muted-foreground">Yanlış bir hesapla mı giriş yaptınız?</p>
+                <TextLink
+                    :href="logout()"
+                    as="button"
+                    class="mx-auto block text-sm font-medium"
+                >
+                    Güvenli Çıkış Yap
+                </TextLink>
+            </div>
         </Form>
     </AuthLayout>
 </template>
