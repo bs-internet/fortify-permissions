@@ -1,0 +1,56 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Notifications\Profile;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Notification;
+
+/**
+ * Notification for panel profile updates.
+ *
+ * Sends database notification when a panel user's profile is updated.
+ */
+class ProfileUpdatedNotification extends Notification implements ShouldQueue
+{
+    use Queueable;
+
+    /**
+     * Create a new notification instance.
+     *
+     * @param array<string, mixed> $changes The changes made to the profile
+     */
+    public function __construct(
+        private readonly array $changes
+    ) {}
+
+    /**
+     * Get the notification's delivery channels.
+     *
+     * @param mixed $notifiable The notifiable entity
+     * @return array<int, string>
+     */
+    public function via(mixed $notifiable): array
+    {
+        return ['database'];
+    }
+
+    /**
+     * Get the array representation of the notification.
+     *
+     * @param mixed $notifiable The notifiable entity
+     * @return array<string, mixed>
+     */
+    public function toArray(mixed $notifiable): array
+    {
+        return [
+            'title' => 'Profiliniz Güncellendi',
+            'message' => 'Profil bilgileriniz başarıyla güncellendi.',
+            'type' => 'info',
+            'changes' => $this->changes,
+            'updated_at' => now()->toDateTimeString(),
+        ];
+    }
+}

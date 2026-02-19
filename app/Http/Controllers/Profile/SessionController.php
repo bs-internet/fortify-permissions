@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Profile;
 
 use App\Http\Controllers\Controller;
@@ -21,15 +23,15 @@ class SessionController extends Controller
         $logs = AuthenticationLog::where('authenticatable_id', $user->id)
             ->where('authenticatable_type', get_class($user))
             ->orderBy('login_at', 'desc') // En yeni giriş en üstte
-            ->paginate(10) 
+            ->paginate(10)
             ->through(function ($log) use ($request) {
-                
+
                 // GeoIP lokasyon işlemi
                 $location = null;
                 if ($log->ip_address) {
                     try {
                         $geo = GeoIP::getLocation($log->ip_address);
-                        
+
                         if ($geo) {
                             $location = collect([$geo->city, $geo->country])->filter()->implode(', ');
                         }
@@ -45,7 +47,7 @@ class SessionController extends Controller
                     'login_at' => optional($log->login_at)->diffForHumans(), // Okunabilir format
                     'login_successful' => $log->login_successful,
                     // Vue tarafında beklenen eksik alanları ekliyoruz
-                    'device_name' => $location ?? 'Bilinmeyen Cihaz', 
+                    'device_name' => $location ?? 'Bilinmeyen Cihaz',
                 ];
             });
 

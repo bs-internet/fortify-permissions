@@ -23,9 +23,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'GeoIP' => \Torann\GeoIP\Facades\GeoIP::class,
-        ]);      
+            'activeUser' => \App\Http\Middleware\EnsureActiveUser::class,
+            'writeAcces' => \App\Http\Middleware\EnsureWriteAccess::class
+        ]);
     })
+    ->withEvents(discover: [
+        __DIR__.'/../app/Listeners',
+    ])
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();

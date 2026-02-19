@@ -1,10 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
+use App\Enums\UserStatus;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -25,6 +29,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'status',
+        'last_login_at',
     ];
 
     /**
@@ -44,12 +50,34 @@ class User extends Authenticatable implements MustVerifyEmail
      *
      * @return array<string, string>
      */
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'two_factor_confirmed_at' => 'datetime',
+        'status' => UserStatus::class,
+        'last_login_at' => 'datetime',
+    ];
+
+    /**
+     * Notifications relationship.
+     */
+    public function notifications(): MorphMany
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'two_factor_confirmed_at' => 'datetime',
-        ];
+        return $this->morphMany(Notification::class, 'notifiable')
+            ->orderBy('created_at', 'desc');
+    }
+
+    public function unreadNotifications(): MorphMany
+    {
+        return $this->morphMany(Notification::class, 'notifiable')
+            ->whereNull('read_at')
+            ->orderBy('created_at', 'desc');
+    }
+
+    public function readNotifications(): MorphMany
+    {
+        return $this->morphMany(Notification::class, 'notifiable')
+            ->whereNotNull('read_at')
+            ->orderBy('created_at', 'desc');
     }
 }
