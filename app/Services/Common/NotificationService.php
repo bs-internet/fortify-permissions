@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\Common;
 
+use App\Models\ArchivedNotification;
 use App\Models\User;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Notification Service
@@ -40,8 +40,8 @@ class NotificationService
      */
     public function getPaginatedArchivedNotifications(User $user, int $perPage = 15): LengthAwarePaginator
     {
-        return DB::table('archived_notifications')
-            ->where('notifiable_type', get_class($user))
+        return ArchivedNotification::query()
+            ->where('notifiable_type', $user->getMorphClass())
             ->where('notifiable_id', $user->id)
             ->orderBy('archived_at', 'desc')
             ->paginate($perPage)
@@ -95,6 +95,63 @@ class NotificationService
     }
 
     /**
+     * Archive a single notification.
+     *
+     * @param User $user
+     * @param string $notificationId
+     * @return bool
+     */
+    public function archive(User $user, string $notificationId): bool
+    {
+        $notification = $user->notifications()->find($notificationId);
+
+        if (! $notification) {
+            return false;
+        }
+
+        ArchivedNotification::create([
+            'id' => $notification->id,
+            'type' => $notification->type,
+            'notifiable_id' => $notification->notifiable_id,
+            'notifiable_type' => $notification->notifiable_type,
+            'data' => $notification->data,
+            'read_at' => $notification->read_at,
+            'archived_at' => now(),
+        ]);
+
+        $notification->delete();
+
+        return true;
+    }
+
+    /**
+     * Archive all read notifications for a user.
+     *
+     * @param User $user
+     * @return int
+     */
+    public function archiveAllRead(User $user): int
+    {
+        $notifications = $user->readNotifications()->get();
+
+        foreach ($notifications as $notification) {
+            ArchivedNotification::create([
+                'id' => $notification->id,
+                'type' => $notification->type,
+                'notifiable_id' => $notification->notifiable_id,
+                'notifiable_type' => $notification->notifiable_type,
+                'data' => $notification->data,
+                'read_at' => $notification->read_at,
+                'archived_at' => now(),
+            ]);
+
+            $notification->delete();
+        }
+
+        return $notifications->count();
+    }
+
+    /**
      * Delete all active notifications for a user.
      *
      * @param User $user
@@ -104,5 +161,4 @@ class NotificationService
     {
         return $user->notifications()->delete();
     }
-
 }

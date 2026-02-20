@@ -11,24 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('notifications', function (Blueprint $table) {
-            // Birincil anahtar UUID
+        Schema::create('archived_notifications', function (Blueprint $table) {
             $table->uuid('id')->primary();
-
-            // Bildirim sınıfının adı (Örn: App\Notifications\ProfileUpdated)
             $table->string('type');
-
-            // Bildirimin kime ait olduğu (User UUID ise uuidMorphs kalmalı)
             $table->uuidMorphs('notifiable');
-
-            // Veriyi JSON olarak saklamak daha modern bir yaklaşımdır
             $table->json('data');
-
             $table->timestamp('read_at')->nullable();
+            $table->timestamp('archived_at')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
-            // Sorgu performansı için index (Opsiyonel ama önerilir)
             $table->index(['notifiable_id', 'notifiable_type']);
+            $table->index('archived_at');
+            $table->index('deleted_at');
         });
     }
 
@@ -37,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('notifications');
+        Schema::dropIfExists('archived_notifications');
     }
 };

@@ -7,6 +7,7 @@ import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { toUrl } from '@/lib/utils';
 import { edit as editProfile } from '@/routes/profile';
 import { edit as editAppearance } from '@/routes/profile/appearance';
+import { index as showNotifications } from '@/routes/profile/notifications';
 import { edit as editPassword } from '@/routes/profile/password';
 import { index as showSessions } from '@/routes/profile/sessions';
 import { show } from '@/routes/profile/twofactor';
@@ -24,6 +25,10 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'İki Faktörlü Doğrulama',
         href: show(),
+    },
+    {
+        title: 'Bildirimler',
+        href: showNotifications(),
     },
     {
         title: 'Oturum Kayıtları',

@@ -1,38 +1,40 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
-use App\Models\Activity;
+use App\Models\ArchivedNotification;
 use Illuminate\Console\Command;
 
-class SoftDeleteOldActivities extends Command
+class CleanupOldArchivedNotifications extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'activities:soft-delete-old';
+    protected $signature = 'archived-notifications:cleanup';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = '6 aydan eski aktivite kayıtlarını siler.';
+    protected $description = '120 günden eski arşivlenmiş bildirimleri soft delete eder.';
 
     /**
      * Execute the console command.
      */
     public function handle(): void
     {
-        $count = Activity::whereNull('deleted_at')
-            ->where('created_at', '<', now()->subMonths(6))
+        $count = ArchivedNotification::whereNull('deleted_at')
+            ->where('archived_at', '<', now()->subDays(120))
             ->update([
                 'deleted_at' => now(),
                 'updated_at' => now(),
             ]);
 
-        $this->info("{$count} aktivite kaydı soft delete edildi.");
+        $this->info("{$count} arşiv bildirimi soft delete edildi.");
     }
 }

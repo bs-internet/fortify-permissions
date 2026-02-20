@@ -93,26 +93,27 @@ function terminateOtherSessions() {
                         description="Hesabınıza erişimi olan cihazları buradan yönetebilirsiniz."
                     />
                     
-                    <Button 
-                        variant="outline" 
-                        size="sm" 
-                        @click="showBulkDialog = true"
-                        class="text-xs font-medium border-destructive/20 text-destructive hover:bg-destructive/5 hover:text-destructive"
-                    >
-                        Tüm Diğer Oturumları Kapat
-                    </Button>
                 </div>
+
+                <Button
+                    variant="outline"
+                    size="sm"
+                    @click="showBulkDialog = true"
+                    class="w-full cursor-pointer text-xs font-medium border-destructive/20 text-destructive hover:bg-destructive/5 hover:text-destructive"
+                >
+                    Tüm Diğer Oturumları Kapat
+                </Button>
 
                 <div class="grid gap-3">
                     <div
                         v-for="session in sessions.data"
                         :key="session.id"
-                        class="relative flex flex-col gap-3 rounded-lg border bg-card p-4 transition-all"
-                        :class="[session.is_current_device ? 'border-primary/20 bg-primary/5' : 'hover:border-border/80']"
+                        class="relative flex flex-col gap-3 rounded-lg border p-4 transition-all"
+                        :class="[session.is_current_device ? 'border-primary/20' : 'hover:border-border/80']"
                     >
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-3">
-                                <div class="flex h-9 w-9 items-center justify-center rounded-full border bg-background text-muted-foreground">
+                                <div class="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
                                     <Monitor v-if="session.user_agent.includes('Windows') || session.user_agent.includes('Macintosh')" class="h-4 w-4" />
                                     <Smartphone v-else class="h-4 w-4" />
                                 </div>
@@ -120,11 +121,11 @@ function terminateOtherSessions() {
                                 <div class="flex flex-col">
                                     <div class="flex items-center gap-2">
                                         <span class="text-sm font-semibold leading-none">
-                                            {{ session.location || 'Bilinmeyen Konum' }}
+                                            {{ session.location || session.ip_address }}
                                         </span>
-                                        
-                                        <span 
-                                            v-if="session.is_current_device" 
+
+                                        <span
+                                            v-if="session.is_current_device"
                                             class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary uppercase tracking-wider"
                                         >
                                             <span class="mr-1 h-1 w-1 rounded-full bg-current" />
@@ -132,10 +133,10 @@ function terminateOtherSessions() {
                                         </span>
                                     </div>
                                     <div class="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground">
-                                        <span class="flex items-center gap-1">
+                                        <span v-if="session.location" class="flex items-center gap-1">
                                             <Globe class="h-3 w-3" /> {{ session.ip_address }}
                                         </span>
-                                        <span>•</span>
+                                        <span v-if="session.location">•</span>
                                         <span>{{ session.login_at }}</span>
                                     </div>
                                 </div>
@@ -151,7 +152,7 @@ function terminateOtherSessions() {
                                     variant="ghost"
                                     size="sm"
                                     @click="confirmDelete(session)"
-                                    class="h-8 px-2 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/5"
+                                    class="h-8 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/5"
                                 >
                                     Oturumu Kapat
                                 </Button>

@@ -12,5 +12,9 @@ Artisan::command('inspire', function () {
 Schedule::command('activities:soft-delete-old')->daily();
 Schedule::command('model:prune')->daily();
 
+/* Bildirimleri Arşivleme ve Temizleme */
+Schedule::command('notifications:archive-old')->daily();
+Schedule::command('archived-notifications:cleanup')->daily();
+
 /* Oturum Açma Kayıtlarını Temizleme */
 Schedule::command('authentication-log:clear')->daily();

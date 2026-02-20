@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Profile;
 
 use App\Services\Common\NotificationService;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Profile\ArchiveNotificationRequest;
 use App\Http\Requests\Profile\MarkAsReadRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -83,6 +84,35 @@ class NotificationController extends Controller
     public function markAllAsRead(): RedirectResponse
     {
         $this->notificationService->markAllAsRead(Auth::user());
+
         return back()->with('success', 'Tüm bildirimler okundu olarak işaretlendi.');
+    }
+
+    /**
+     * Archive a single notification.
+     *
+     * @param ArchiveNotificationRequest $request
+     * @return RedirectResponse
+     */
+    public function archive(ArchiveNotificationRequest $request): RedirectResponse
+    {
+        $this->notificationService->archive(
+            Auth::user(),
+            $request->validated('notification_id')
+        );
+
+        return back()->with('success', 'Bildirim arşivlendi.');
+    }
+
+    /**
+     * Archive all read notifications.
+     *
+     * @return RedirectResponse
+     */
+    public function archiveAllRead(): RedirectResponse
+    {
+        $count = $this->notificationService->archiveAllRead(Auth::user());
+
+        return back()->with('success', "{$count} bildirim arşivlendi.");
     }
 }

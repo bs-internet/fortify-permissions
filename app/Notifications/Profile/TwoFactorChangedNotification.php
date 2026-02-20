@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Notifications\Profile;
 
+use App\Mail\Profile\TwoFactorChangedMail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
@@ -39,7 +40,23 @@ class TwoFactorChangedNotification extends Notification implements ShouldQueue
      */
     public function via(mixed $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
+    }
+
+    /**
+     * Get the mail representation of the notification.
+     *
+     * @param mixed $notifiable The notifiable entity
+     * @return TwoFactorChangedMail
+     */
+    public function toMail(mixed $notifiable): TwoFactorChangedMail
+    {
+        return new TwoFactorChangedMail(
+            $notifiable,
+            $this->enabled,
+            $this->ipAddress,
+            $this->userAgent
+        );
     }
 
     /**

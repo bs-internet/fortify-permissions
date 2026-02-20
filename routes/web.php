@@ -1,11 +1,12 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
+use App\Http\Controllers\Profile\NotificationController;
 use App\Http\Controllers\Profile\PasswordController;
 use App\Http\Controllers\Profile\ProfileController;
 use App\Http\Controllers\Profile\SessionController;
 use App\Http\Controllers\Profile\TwoFactorAuthenticationController;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,7 +16,6 @@ use App\Http\Controllers\Profile\TwoFactorAuthenticationController;
 
 // Ana sayfa direkt login'e yönlendir
 Route::redirect('/', '/login');
-
 
 /*
 |--------------------------------------------------------------------------
@@ -44,7 +44,6 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return Inertia::render('app/Dashboard');
     })->name('dashboard');
-
 
     /*
     |--------------------------------------------------------------------------
@@ -89,6 +88,20 @@ Route::middleware([
         */
         Route::controller(TwoFactorAuthenticationController::class)->group(function () {
             Route::get('/two-factor', 'show')->name('twofactor.show');
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Notifications
+        |--------------------------------------------------------------------------
+        */
+        Route::controller(NotificationController::class)->group(function () {
+            Route::get('/notifications', 'index')->name('notifications.index');
+            Route::get('/notifications/archived', 'archived')->name('notifications.archived');
+            Route::post('/notifications/mark-as-read', 'markAsRead')->middleware('writeAcces')->name('notifications.markAsRead');
+            Route::post('/notifications/mark-all-read', 'markAllAsRead')->middleware('writeAcces')->name('notifications.markAllAsRead');
+            Route::post('/notifications/archive', 'archive')->middleware('writeAcces')->name('notifications.archive');
+            Route::post('/notifications/archive-all-read', 'archiveAllRead')->middleware('writeAcces')->name('notifications.archiveAllRead');
         });
 
         /*
