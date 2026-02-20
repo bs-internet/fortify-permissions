@@ -38,6 +38,7 @@ class LogProfileActivity
             description: 'Kullanıcı profil bilgilerini güncelledi',
             log: [
                 'user_name' => $event->user->name,
+                'title' => $event->user->title,
                 'changes' => $event->changes,
             ],
             ipAddress: $event->ipAddress,

@@ -18,6 +18,7 @@ class ProfileUpdateRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
+            'title' => ['nullable', 'string', 'max:255'],
         ];
     }
 
@@ -32,6 +33,9 @@ class ProfileUpdateRequest extends FormRequest
             'name.required' => 'Ad Soyad alanı zorunludur.',
             'name.string' => 'Ad Soyad metin formatında olmalıdır.',
             'name.max' => 'Ad Soyad en fazla 255 karakter olabilir.',
+
+            'title.string' => 'Unvan metin formatında olmalıdır.',
+            'title.max' => 'Unvan en fazla 255 karakter olabilir.',
         ];
     }
 }

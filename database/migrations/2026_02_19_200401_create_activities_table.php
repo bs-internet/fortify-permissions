@@ -21,6 +21,10 @@ return new class extends Migration
             $table->text('user_agent')->nullable();
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index('created_at');
+            $table->index('deleted_at');
+            $table->index('user_id');
         });
     }
 

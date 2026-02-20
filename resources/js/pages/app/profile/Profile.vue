@@ -63,6 +63,19 @@ const user = page.props.auth.user;
                     </div>
 
                     <div class="grid gap-2">
+                        <Label for="title">Görev</Label>
+                        <Input
+                            id="title"
+                            class="mt-1 block w-full"
+                            name="title"
+                            :default-value="user.title ?? ''"
+                            autocomplete="name"
+                            placeholder="Göreviniz"
+                        />
+                        <InputError class="mt-2" :message="errors.title" />
+                    </div>
+
+                    <div class="grid gap-2">
                         <Label for="email">E-posta Adresi</Label>
                         <div class="relative">
                             <Input

@@ -13,7 +13,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->tinyInteger('status')->default(UserStatus::ACTIVE->value)->after('email');
+            $table->string('title')->nullable()->after('email');
+            $table->tinyInteger('status')->default(UserStatus::ACTIVE->value)->after('title');
             $table->timestamp('last_login_at')->nullable()->after('status');
             $table->softDeletes()->after('last_login_at');
         });

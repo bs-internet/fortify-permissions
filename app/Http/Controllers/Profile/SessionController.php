@@ -12,42 +12,24 @@ use Torann\GeoIP\Facades\GeoIP;
 
 class SessionController extends Controller
 {
-    /**
-     * Oturum listesini göster
-     */
     public function index(Request $request)
     {
         $user = $request->user();
 
-        // get() yerine paginate() kullanıyoruz
         $logs = AuthenticationLog::where('authenticatable_id', $user->id)
             ->where('authenticatable_type', get_class($user))
-            ->orderBy('login_at', 'desc') // En yeni giriş en üstte
+            ->orderByDesc('login_at')
             ->paginate(10)
             ->through(function ($log) use ($request) {
-
-                // GeoIP lokasyon işlemi
-                $location = null;
-                if ($log->ip_address) {
-                    try {
-                        $geo = GeoIP::getLocation($log->ip_address);
-
-                        if ($geo) {
-                            $location = collect([$geo->city, $geo->country])->filter()->implode(', ');
-                        }
-                    } catch (\Exception $e) { $location = 'Bilinmiyor'; }
-                }
 
                 return [
                     'id' => $log->id,
                     'ip_address' => $log->ip_address,
-                    'location' => $location,
+                    'location' => $this->resolveLocation($log->ip_address),
                     'user_agent' => $log->user_agent,
                     'is_current_device' => $log->ip_address === $request->ip(),
-                    'login_at' => optional($log->login_at)->diffForHumans(), // Okunabilir format
+                    'login_at' => optional($log->login_at)?->diffForHumans(),
                     'login_successful' => $log->login_successful,
-                    // Vue tarafında beklenen eksik alanları ekliyoruz
-                    'device_name' => $location ?? 'Bilinmeyen Cihaz',
                 ];
             });
 
@@ -56,19 +38,15 @@ class SessionController extends Controller
         ]);
     }
 
-    /**
-     * Tek cihaz/oturum sil
-     */
     public function destroy(Request $request, AuthenticationLog $log)
     {
         $this->authorizeLog($request, $log);
+
         $log->delete();
+
         return back()->with('success', 'Oturum başarıyla sonlandırıldı.');
     }
 
-    /**
-     * Diğer tüm cihazları sonlandır
-     */
     public function destroyOther(Request $request)
     {
         $user = $request->user();
@@ -81,16 +59,41 @@ class SessionController extends Controller
         return back()->with('success', 'Diğer tüm cihazlardaki oturumlar kapatıldı.');
     }
 
-    /**
-     * Güvenlik kontrolü
-     */
-    protected function authorizeLog(Request $request, AuthenticationLog $log)
+    protected function authorizeLog(Request $request, AuthenticationLog $log): void
     {
         if (
             $log->authenticatable_id !== $request->user()->id ||
             $log->authenticatable_type !== get_class($request->user())
         ) {
             abort(403);
+        }
+    }
+
+    protected function resolveLocation(?string $ip): ?string
+    {
+        if (!$ip) {
+            return null;
+        }
+
+        if (!class_exists(GeoIP::class)) {
+            return null;
+        }
+
+        try {
+            $record = GeoIP::getLocation($ip);
+
+            if (!$record) {
+                return null;
+            }
+
+            $city = $record->city ?? null;
+            $country = $record->country ?? null;
+
+            return collect([$city, $country])
+                ->filter()
+                ->implode(', ');
+        } catch (\Throwable) {
+            return null;
         }
     }
 }

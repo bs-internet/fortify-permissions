@@ -11,6 +11,7 @@ import { useTwoFactorAuth } from '@/composables/useTwoFactorAuth';
 import AppLayout from '@/layouts/AppLayout.vue';
 import ProfileLayout from '@/pages/app/profile/partials/Layout.vue';
 import { show } from '@/routes/profile/twofactor';
+import { disable, enable } from '@/routes/two-factor';
 import type { BreadcrumbItem } from '@/types';
 
 type Props = {
@@ -59,7 +60,7 @@ onUnmounted(() => {
                     <Badge variant="destructive">Devre Dışı</Badge>
 
                     <p class="text-sm text-muted-foreground leading-relaxed">
-                        İki faktörlü doğrulamayı etkinleştirdiğinizde, giriş sırasında sizden güvenli bir kod istenecektir. 
+                        İki faktörlü doğrulamayı etkinleştirdiğinizde, giriş sırasında sizden güvenli bir kod istenecektir.
                         Bu kodu telefonunuzdaki Google Authenticator gibi TOTP destekli bir uygulama üzerinden alabilirsiniz.
                     </p>
 
