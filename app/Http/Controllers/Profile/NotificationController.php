@@ -33,7 +33,7 @@ class NotificationController extends Controller
     /**
      * Display a listing of the user's notifications.
      *
-     * @return View
+     * @return Response
      */
     public function index(): Response
     {
@@ -49,7 +49,7 @@ class NotificationController extends Controller
     /**
      * Display a listing of the user's archived notifications.
      *
-     * @return View
+     * @return Response
      */
     public function archived(): Response
     {

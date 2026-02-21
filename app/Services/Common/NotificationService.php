@@ -28,6 +28,13 @@ class NotificationService
         return $user->notifications()
             ->orderBy('created_at', 'desc')
             ->paginate($perPage)
+            ->through(fn ($n) => [
+                'id' => $n->id,
+                'type' => $n->type,
+                'data' => $n->data,
+                'read_at' => $n->read_at,
+                'created_at_human' => $n->created_at->translatedFormat('d F Y H:i'),
+            ])
             ->withQueryString();
     }
 
@@ -45,6 +52,13 @@ class NotificationService
             ->where('notifiable_id', $user->id)
             ->orderBy('archived_at', 'desc')
             ->paginate($perPage)
+            ->through(fn ($n) => [
+                'id' => $n->id,
+                'type' => $n->type,
+                'data' => $n->data,
+                'read_at' => $n->read_at,
+                'archived_at_human' => $n->archived_at->translatedFormat('d F Y H:i'),
+            ])
             ->withQueryString();
     }
 

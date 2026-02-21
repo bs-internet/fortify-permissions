@@ -65,7 +65,7 @@ class ActivityService
      */
     public function getPaginatedActivities(
         array $filters = [],
-        int $perPage = 15
+        int $perPage = 25
     ): LengthAwarePaginator {
         $query = Activity::query()->with('user');
 

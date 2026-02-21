@@ -19,8 +19,8 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/pages/app/settings/partials/Layout.vue';
-import { type BreadcrumbItem } from '@/types';
 import { index as activityIndex } from '@/routes/settings/activities';
+import { type BreadcrumbItem } from '@/types';
 
 interface Props {
     activities: {
@@ -72,7 +72,7 @@ const breadcrumbItems: BreadcrumbItem[] = [
         <SettingsLayout>
             <div class="space-y-6">
                 <div
-                    class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"
+                    class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"
                 >
                     <Heading
                         variant="small"
@@ -80,7 +80,7 @@ const breadcrumbItems: BreadcrumbItem[] = [
                         description="Sistem üzerinde gerçekleştirdiğiniz tüm işlemlerin dökümü."
                     />
 
-                    <div class="w-full sm:w-[220px]">
+                    <div class="w-full sm:w-[220px] flex sm:justify-end">
                         <Select v-model="selectedType">
                             <SelectTrigger>
                                 <SelectValue placeholder="Tüm İşlemler" />

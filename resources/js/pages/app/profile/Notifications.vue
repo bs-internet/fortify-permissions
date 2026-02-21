@@ -23,7 +23,7 @@ type Notification = {
         updated_at?: string;
     };
     read_at: string | null;
-    created_at: string;
+    created_at_human: string;
 };
 
 interface Props {
@@ -144,7 +144,7 @@ function archiveAllRead() {
                                     {{ notification.data.message }}
                                 </p>
                                 <p class="text-[10px] uppercase tracking-wider text-muted-foreground">
-                                    {{ notification.data.updated_at }}
+                                    {{ notification.created_at_human }}
                                 </p>
                             </div>
                         </div>

@@ -16,7 +16,7 @@ type ArchivedNotification = {
         message: string;
         updated_at?: string;
     };
-    archived_at: string;
+    archived_at_human: string;
 };
 
 interface Props {
@@ -90,7 +90,7 @@ const breadcrumbItems: BreadcrumbItem[] = [
                                     {{ notification.data.message }}
                                 </p>
                                 <p class="text-[10px] uppercase tracking-wider text-muted-foreground">
-                                    {{ notification.archived_at }}
+                                    {{ notification.archived_at_human }}
                                 </p>
                             </div>
                         </div>
