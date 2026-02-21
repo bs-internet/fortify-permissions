@@ -1,10 +1,15 @@
 <?php
 
-use App\Http\Controllers\Profile\NotificationController;
-use App\Http\Controllers\Profile\PasswordController;
-use App\Http\Controllers\Profile\ProfileController;
-use App\Http\Controllers\Profile\SessionController;
-use App\Http\Controllers\Profile\TwoFactorAuthenticationController;
+use App\Http\Controllers\Settings\{
+    ActivityController
+};
+use App\Http\Controllers\Profile\{
+    NotificationController,
+    PasswordController,
+    ProfileController,
+    SessionController,
+    TwoFactorAuthenticationController
+};
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -51,7 +56,15 @@ Route::middleware([
     |--------------------------------------------------------------------------
     */
     Route::middleware('writeAcces')->group(function () {
-        // Buraya yazma izni gerektiren rotalar gelecek
+
+        // Settings
+        Route::name('settings.')->prefix('settings')->group(function () {
+
+            // Activities
+            Route::controller(ActivityController::class)->group(function () {
+                Route::get('/activities', 'index')->name('activities.index');
+            });
+        });
     });
 
     /*

@@ -69,11 +69,34 @@ class ActivityService
     ): LengthAwarePaginator {
         $query = Activity::query()->with('user');
 
+        if (!empty($filters['type']) && $filters['type'] !== 'all') {
+            $query->where('type', $filters['type']);
+        }
+
         $sortField = $filters['sort_field'] ?? 'created_at';
         $sortDirection = $filters['sort_direction'] ?? 'desc';
 
         return $query
             ->orderBy($sortField, $sortDirection)
-            ->paginate($perPage);
+            ->paginate($perPage)
+            ->through(fn ($activity) => [
+                'id' => $activity->id,
+                'type' => $activity->type,
+                'description' => $activity->description,
+                'ip_address' => $activity->ip_address,
+                'date_human' => $activity->created_at->translatedFormat('d F Y H:i'),
+                'log' => $activity->log,
+            ]);
+    }
+
+    /**
+     * Mevcut tüm aktivite tiplerini benzersiz olarak getirir.
+     */
+    public function getExistingTypes(): array
+    {
+        return Activity::query()
+            ->distinct()
+            ->pluck('type')
+            ->toArray();
     }
 }
