@@ -44,8 +44,8 @@ class PasswordUpdatedMail extends Mailable
     {
         return new Envelope(
             from: new Address(
-                settings('mail_from_address'),
-                settings('mail_from_name')
+                site_email(),
+                sender_name()
             ),
             subject: 'Şifreniz Değiştirildi',
         );

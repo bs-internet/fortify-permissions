@@ -13,5 +13,5 @@ Yönetim paneli hesabınızın şifresi **{{ $changedAt }}** tarihinde değişti
 Bu işlemi siz yapmadıysanız, lütfen derhal şifrenizi değiştirin ve hesabınızın güvenliğini kontrol edin.
 
 Saygılarımızla,<br>
-{{ settings('site_name') ?? config('app.name') }}
+{{ site_name() }}
 @endcomponent

@@ -1,7 +1,7 @@
 @component('mail::message')
 # @lang('Hello!')
 
-@lang('We detected suspicious activity on your :app account.', ['app' => config('app.name')])
+@lang('We detected suspicious activity on your :app account.', ['app' => site_name()])
 
 @if (!empty($suspiciousActivities))
 @foreach ($suspiciousActivities as $activity)
@@ -20,5 +20,5 @@
 @lang('If this was not you, please secure your account immediately by changing your password.')
 
 @lang('Regards,')<br/>
-{{ config('app.name') }}
+{{ site_name() }}
 @endcomponent

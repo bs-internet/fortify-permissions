@@ -4,13 +4,14 @@ import Heading from '@/components/app/common/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
-import { type NavItem } from '@/types';
+import { index as settingsIndex } from '@/routes/settings';
 import { index as activityIndex } from '@/routes/settings/activities';
+import { type NavItem } from '@/types';
 
 const sidebarNavItems: NavItem[] = [
     {
         title: 'Genel Ayarlar',
-        href: '#', // Şimdilik boş
+        href: settingsIndex(), // Wayfinder fonksiyonu
     },
     {
         title: 'Etkinlik Kayıtları',

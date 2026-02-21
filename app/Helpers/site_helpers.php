@@ -23,6 +23,66 @@ if (!function_exists('settings')) {
     }
 }
 
+if (!function_exists('site_name')) {
+    /**
+     * Get the site name.
+     *
+     * @return string
+     *
+     * @example
+     * site_name() → 'Herkobi'
+     */
+    function site_name(): string
+    {
+        return (string) settings('site_name', config('app.name'));
+    }
+}
+
+if (!function_exists('site_slogan')) {
+    /**
+     * Get the site slogan.
+     *
+     * @return string|null
+     *
+     * @example
+     * site_slogan() → 'Otomasyon Sistemi'
+     */
+    function site_slogan(): ?string
+    {
+        return settings('site_slogan');
+    }
+}
+
+if (!function_exists('site_email')) {
+    /**
+     * Get the system email address.
+     *
+     * @return string
+     *
+     * @example
+     * site_email() → 'info@herkobi.com'
+     */
+    function site_email(): string
+    {
+        return (string) settings('email', config('mail.from.address'));
+    }
+}
+
+if (!function_exists('sender_name')) {
+    /**
+     * Get the email sender name.
+     *
+     * @return string
+     *
+     * @example
+     * sender_name() → 'Herkobi'
+     */
+    function sender_name(): string
+    {
+        return (string) settings('sender_name', config('mail.from.name'));
+    }
+}
+
 if (!function_exists('logo')) {
     /**
      * Get the logo URL.

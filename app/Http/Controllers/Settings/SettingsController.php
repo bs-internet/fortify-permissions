@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\UpdateGeneralSettingsRequest;
 use App\Services\Settings\SettingService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -22,8 +21,6 @@ class SettingsController extends Controller
 {
     /**
      * Create a new controller instance.
-     *
-     * @param SettingService $settingService Service for setting operations
      */
     public function __construct(
         private readonly SettingService $settingService
@@ -36,8 +33,16 @@ class SettingsController extends Controller
      */
     public function index(): Response
     {
-        return Inertia::render('app/settings/Setting', [
-            'settings' => $this->settingService->all(),
+        return Inertia::render('app/settings/GeneralSettings', [
+            'settings' => [
+                'site_name'   => site_name(),
+                'site_slogan' => site_slogan(),
+                'email'       => site_email(),
+                'sender_name' => sender_name(),
+                'logo_light'  => logo('light'),
+                'logo_dark'   => logo('dark'),
+                'favicon'     => favicon(),
+            ],
         ]);
     }
 

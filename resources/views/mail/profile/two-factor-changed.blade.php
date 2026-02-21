@@ -21,5 +21,5 @@ Hesabınız için iki faktörlü doğrulama **{{ $changedAt }}** tarihinde devre
 Bu işlemi siz yapmadıysanız, lütfen derhal hesabınızın güvenliğini kontrol edin.
 
 Saygılarımızla,<br>
-{{ settings('site_name') ?? config('app.name') }}
+{{ site_name() }}
 @endcomponent

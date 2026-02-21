@@ -1,7 +1,7 @@
 @component('mail::message')
 # @lang('Hello!')
 
-@lang('There has been a failed login attempt to your :app account.', ['app' => config('app.name')])
+@lang('There has been a failed login attempt to your :app account.', ['app' => site_name()])
 
 > **@lang('Account:')** {{ $account->email }}<br/>
 > **@lang('Time:')** {{ $time->toDateTimeString() }}<br/>
@@ -14,5 +14,5 @@
 @lang('If this was you, you can ignore this alert. If you suspect any suspicious activity on your account, please change your password.')
 
 @lang('Regards,')<br/>
-{{ config('app.name') }}
+{{ site_name() }}
 @endcomponent

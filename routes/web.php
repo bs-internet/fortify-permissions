@@ -1,7 +1,8 @@
 <?php
 
 use App\Http\Controllers\Settings\{
-    ActivityController
+    ActivityController,
+    SettingsController
 };
 use App\Http\Controllers\Profile\{
     NotificationController,
@@ -59,6 +60,12 @@ Route::middleware([
 
         // Settings
         Route::name('settings.')->prefix('settings')->group(function () {
+
+            // General Settings
+            Route::controller(SettingsController::class)->group(function () {
+                Route::get('/edit', 'index')->name('index');
+                Route::post('/update', 'update')->name('update');
+            });
 
             // Activities
             Route::controller(ActivityController::class)->group(function () {

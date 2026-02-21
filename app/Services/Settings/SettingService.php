@@ -50,47 +50,59 @@ class SettingService
     }
 
     /**
-     * Update settings and dispatch event.
-     * * @param User $user
+     * Set a single setting value. Creates the record if it doesn't exist.
+     *
+     * @param string $key The setting key
+     * @param mixed $value The value to set (string, UploadedFile, etc.)
+     * @param string $type The value type (default: 'string')
+     * @return array{old: string|null, new: string}|null Returns change info or null if unchanged
+     */
+    public function set(string $key, mixed $value, string $type = 'string'): ?array
+    {
+        $setting = Setting::firstOrCreate(
+            ['key' => $key],
+            ['value' => '', 'type' => $type]
+        );
+
+        $oldValue = $setting->value;
+
+        if ($value instanceof UploadedFile) {
+            $value = $this->handleFileUpload($setting, $value);
+        }
+
+        if ($oldValue === (string) $value) {
+            return null;
+        }
+
+        $setting->setTypedValue($value);
+        $setting->save();
+
+        $this->clearCache();
+
+        return ['old' => $oldValue, 'new' => (string) $value];
+    }
+
+    /**
+     * Update multiple settings and dispatch event.
+     *
+     * @param User $user
      * @param array<string, mixed> $data
      * @param string $ipAddress
      * @param string $userAgent
-     * @return void
      */
     public function update(User $user, array $data, string $ipAddress, string $userAgent): void
     {
         $changes = [];
 
         foreach ($data as $key => $value) {
-            $setting = Setting::where('key', $key)->first();
+            $change = $this->set($key, $value);
 
-            if (!$setting) {
-                continue;
-            }
-
-            $oldValue = $setting->value;
-
-            // Eğer gelen değer bir dosya ise (Logo, Favicon vb.)
-            if ($value instanceof UploadedFile) {
-                $value = $this->handleFileUpload($setting, $value);
-            }
-
-            // Değişiklik kontrolü (Sadece değer değiştiyse kaydet ve logla)
-            if ($oldValue !== (string) $value) {
-                $setting->setTypedValue($value);
-                $setting->save();
-
-                $changes[$key] = [
-                    'old' => $oldValue,
-                    'new' => $value
-                ];
+            if ($change !== null) {
+                $changes[$key] = $change;
             }
         }
 
-        // Eğer bir değişiklik varsa cache temizle ve event fırlat
         if (!empty($changes)) {
-            $this->clearCache();
-
             event(new SettingsUpdated(
                 user: $user,
                 changes: $changes,
