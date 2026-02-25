@@ -1,17 +1,9 @@
 <script setup lang="ts">
 import {
-    AudioWaveform,
-    BookOpen,
-    Bot,
-    Command,
-    Frame,
-    GalleryVerticalEnd,
-    Map,
-    PieChart,
+    LayoutGrid,
     Settings2,
-    SquareTerminal,
 } from 'lucide-vue-next';
-import TeamSwitcher from '@/components/app/common/TeamSwitcher.vue';
+import AppLogo from '@/components/app/common/AppLogo.vue';
 import NavMain from '@/components/app/NavMain.vue';
 import NavUser from '@/components/app/NavUser.vue';
 import type { SidebarProps } from '@/components/ui/sidebar';
@@ -23,6 +15,7 @@ import {
     SidebarHeader,
     SidebarRail,
 } from '@/components/ui/sidebar';
+import { dashboard } from '@/routes';
 
 const props = withDefaults(defineProps<SidebarProps>(), {
     collapsible: 'icon',
@@ -30,93 +23,14 @@ const props = withDefaults(defineProps<SidebarProps>(), {
 
 // This is sample data.
 const data = {
-    user: {
-        name: 'shadcn',
-        email: 'm@example.com',
-        avatar: '/avatars/shadcn.jpg',
-    },
-    teams: [
-        {
-            name: 'Acme Inc',
-            logo: GalleryVerticalEnd,
-            plan: 'Enterprise',
-        },
-        {
-            name: 'Acme Corp.',
-            logo: AudioWaveform,
-            plan: 'Startup',
-        },
-        {
-            name: 'Evil Corp.',
-            logo: Command,
-            plan: 'Free',
-        },
-    ],
     navMain: [
         {
-            title: 'Playground',
-            url: '#',
-            icon: SquareTerminal,
-            isActive: true,
-            items: [
-                {
-                    title: 'History',
-                    url: '#',
-                },
-                {
-                    title: 'Starred',
-                    url: '#',
-                },
-                {
-                    title: 'Settings',
-                    url: '#',
-                },
-            ],
+            title: 'Başlangıç',
+            url: dashboard().url,
+            icon: LayoutGrid,
         },
         {
-            title: 'Models',
-            url: '#',
-            icon: Bot,
-            items: [
-                {
-                    title: 'Genesis',
-                    url: '#',
-                },
-                {
-                    title: 'Explorer',
-                    url: '#',
-                },
-                {
-                    title: 'Quantum',
-                    url: '#',
-                },
-            ],
-        },
-        {
-            title: 'Documentation',
-            url: '#',
-            icon: BookOpen,
-            items: [
-                {
-                    title: 'Introduction',
-                    url: '#',
-                },
-                {
-                    title: 'Get Started',
-                    url: '#',
-                },
-                {
-                    title: 'Tutorials',
-                    url: '#',
-                },
-                {
-                    title: 'Changelog',
-                    url: '#',
-                },
-            ],
-        },
-        {
-            title: 'Settings',
+            title: 'Ayarlar',
             url: '#',
             icon: Settings2,
             items: [
@@ -139,36 +53,21 @@ const data = {
             ],
         },
     ],
-    projects: [
-        {
-            name: 'Design Engineering',
-            url: '#',
-            icon: Frame,
-        },
-        {
-            name: 'Sales & Marketing',
-            url: '#',
-            icon: PieChart,
-        },
-        {
-            name: 'Travel',
-            url: '#',
-            icon: Map,
-        },
-    ],
 };
 </script>
 
 <template>
     <Sidebar v-bind="props">
         <SidebarHeader>
-            <TeamSwitcher :teams="data.teams" />
+            <div class="flex items-center gap-2 px-2 py-1.5">
+                <AppLogo />
+            </div>
         </SidebarHeader>
         <SidebarContent>
             <NavMain :items="data.navMain" />
         </SidebarContent>
         <SidebarFooter>
-            <NavUser :user="data.user" />
+            <NavUser />
         </SidebarFooter>
         <SidebarRail />
     </Sidebar>
