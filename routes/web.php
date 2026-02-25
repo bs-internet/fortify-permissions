@@ -1,5 +1,11 @@
 <?php
 
+
+use App\Http\Controllers\Definitions\{
+    CurrencyController,
+    LanguageController,
+    UnitController
+};
 use App\Http\Controllers\Settings\{
     ActivityController,
     SettingsController
@@ -10,6 +16,11 @@ use App\Http\Controllers\Profile\{
     ProfileController,
     SessionController,
     TwoFactorAuthenticationController
+};
+use App\Http\Controllers\Users\{
+    PermissionController,
+    RoleController,
+    UserController
 };
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -58,6 +69,25 @@ Route::middleware([
     */
     Route::middleware('writeAcces')->group(function () {
 
+        // Users
+        Route::name('users.')->prefix('users')->group(function () {
+
+            // Users
+            Route::controller(UserController::class)->group(function () {
+                Route::get('/users', 'index')->name('index');
+            });
+
+            // Roles
+            Route::controller(RoleController::class)->group(function () {
+                Route::get('/roles', 'index')->name('roles.index');
+            });
+
+            // Permissions
+            Route::controller(PermissionController::class)->group(function () {
+                Route::get('/permissions', 'index')->name('permissions.index');
+            });
+        });
+
         // Settings
         Route::name('settings.')->prefix('settings')->group(function () {
 
@@ -65,6 +95,25 @@ Route::middleware([
             Route::controller(SettingsController::class)->group(function () {
                 Route::get('/edit', 'index')->name('index');
                 Route::post('/update', 'update')->name('update');
+            });
+
+            // Definitions
+            Route::name('definitions.')->prefix('definitions')->group(function () {
+
+                // Units
+                Route::controller(UnitController::class)->group(function () {
+                    Route::get('/units', 'index')->name('units.index');
+                });
+
+                // Languages
+                Route::controller(LanguageController::class)->group(function () {
+                    Route::get('/languages', 'index')->name('languages.index');
+                });
+
+                // Currencies
+                Route::controller(CurrencyController::class)->group(function () {
+                    Route::get('/currencies', 'index')->name('currencies.index');
+                });
             });
 
             // Activities
@@ -81,40 +130,24 @@ Route::middleware([
     */
     Route::name('profile.')->prefix('profile')->group(function () {
 
-        /*
-        |--------------------------------------------------------------------------
-        | Profile Information
-        |--------------------------------------------------------------------------
-        */
+        // Profile
         Route::controller(ProfileController::class)->group(function () {
             Route::get('/edit', 'edit')->name('edit');
             Route::patch('/edit', 'update')->middleware('writeAcces')->name('update');
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Password
-        |--------------------------------------------------------------------------
-        */
+        // Password
         Route::controller(PasswordController::class)->group(function () {
             Route::get('/password', 'edit')->name('password.edit');
             Route::put('/password', 'update')->middleware(['writeAcces', 'throttle:6,1'])->name('password.update');
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Two Factor
-        |--------------------------------------------------------------------------
-        */
+        // Two Factor Authentication
         Route::controller(TwoFactorAuthenticationController::class)->group(function () {
             Route::get('/two-factor', 'show')->name('twofactor.show');
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Notifications
-        |--------------------------------------------------------------------------
-        */
+        // Notifications
         Route::controller(NotificationController::class)->group(function () {
             Route::get('/notifications', 'index')->name('notifications.index');
             Route::get('/notifications/archived', 'archived')->name('notifications.archived');
@@ -124,22 +157,14 @@ Route::middleware([
             Route::post('/notifications/archive-all-read', 'archiveAllRead')->middleware('writeAcces')->name('notifications.archiveAllRead');
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Sessions
-        |--------------------------------------------------------------------------
-        */
+        // Sessions
         Route::controller(SessionController::class)->group(function () {
             Route::get('/sessions', 'index')->name('sessions.index');
             Route::delete('/sessions/{log}', 'destroy')->middleware('writeAcces')->name('sessions.destroy');
             Route::delete('/sessions', 'destroyOther')->middleware('writeAcces')->name('sessions.destroyOther');
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Appearance
-        |--------------------------------------------------------------------------
-        */
+        // Appearance
         Route::get('/appearance', function () {
             return Inertia::render('app/profile/Appearance');
         })->name('appearance.edit');

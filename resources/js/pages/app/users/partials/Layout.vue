@@ -4,18 +4,20 @@ import Heading from '@/components/app/common/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
-import { index as settingsIndex } from '@/routes/settings';
-import { index as activityIndex } from '@/routes/settings/activities';
 import { type NavItem } from '@/types';
 
 const sidebarNavItems: NavItem[] = [
     {
-        title: 'Genel Ayarlar',
-        href: settingsIndex(),
+        title: 'Kullanıcılar',
+        href: '#',
     },
     {
-        title: 'Etkinlik Kayıtları',
-        href: activityIndex(),
+        title: 'Birimler',
+        href: '#',
+    },
+    {
+        title: 'Yetkiler',
+        href: '#',
     },
 ];
 
@@ -25,8 +27,8 @@ const { isCurrentUrl } = useCurrentUrl();
 <template>
     <div class="px-4 py-6">
         <Heading
-            title="Ayarlar"
-            description="Sistem tercihlerinizi ve hesap geçmişinizi yönetin."
+            title="Kullanıcı Yönetimi"
+            description="Sistem kullanıcıları, birimler ve yetkileri yönetin."
         />
 
         <div class="flex flex-col lg:flex-row lg:space-x-12">

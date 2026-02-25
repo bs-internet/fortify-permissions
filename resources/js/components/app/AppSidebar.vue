@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import {
-    LayoutGrid,
-    Settings2,
-} from 'lucide-vue-next';
+import { LayoutGrid, Users, Settings2 } from 'lucide-vue-next';
 import AppLogo from '@/components/app/common/AppLogo.vue';
 import NavMain from '@/components/app/NavMain.vue';
 import NavUser from '@/components/app/NavUser.vue';
@@ -16,18 +13,41 @@ import {
     SidebarRail,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as generalSettings } from '@/routes/settings';
+import { index as activities } from '@/routes/settings/activities';
 
 const props = withDefaults(defineProps<SidebarProps>(), {
     collapsible: 'icon',
 });
 
-// This is sample data.
+const mainNav = [
+    {
+        title: 'Başlangıç',
+        url: dashboard().url,
+        icon: LayoutGrid,
+    },
+];
+
 const data = {
-    navMain: [
+    moduleNav: [
         {
-            title: 'Başlangıç',
-            url: dashboard().url,
-            icon: LayoutGrid,
+            title: 'Kullanıcılar',
+            url: '#',
+            icon: Users,
+            items: [
+                {
+                    title: 'Kullanıcılar',
+                    url: '#',
+                },
+                {
+                    title: 'Birimler',
+                    url: '#',
+                },
+                {
+                    title: 'Yetkiler',
+                    url: '#',
+                },
+            ],
         },
         {
             title: 'Ayarlar',
@@ -35,20 +55,16 @@ const data = {
             icon: Settings2,
             items: [
                 {
-                    title: 'General',
-                    url: '#',
+                    title: 'Genel Ayarlar',
+                    url: generalSettings().url,
                 },
                 {
-                    title: 'Team',
-                    url: '#',
+                    title: 'Tanımlamalar',
+                    url: activities().url,
                 },
                 {
-                    title: 'Billing',
-                    url: '#',
-                },
-                {
-                    title: 'Limits',
-                    url: '#',
+                    title: 'Etkinlik Kayıtları',
+                    url: activities().url,
                 },
             ],
         },
@@ -64,7 +80,8 @@ const data = {
             </div>
         </SidebarHeader>
         <SidebarContent>
-            <NavMain :items="data.navMain" />
+            <NavMain :items="mainNav" />
+            <NavMain label="Platform" :items="data.moduleNav" />
         </SidebarContent>
         <SidebarFooter>
             <NavUser />
