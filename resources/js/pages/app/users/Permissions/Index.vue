@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import Heading from '@/components/app/common/Heading.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 import UsersLayout from '@/pages/app/users/partials/Layout.vue';
+import { index as permissionRoute } from '@/routes/users/permissions';
 import { type BreadcrumbItem } from '@/types';
 
 const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Kullanıcılar', href: '#' },
-    { title: 'Yetkiler', href: '#' },
+    { title: 'Yetkiler', href: permissionRoute().url },
 ];
 </script>
 <template>

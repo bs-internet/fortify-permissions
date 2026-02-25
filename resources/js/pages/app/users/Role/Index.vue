@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import Heading from '@/components/app/common/Heading.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 import UsersLayout from '@/pages/app/users/partials/Layout.vue';
+import { index as roleRoute } from '@/routes/users/roles';
 import { type BreadcrumbItem } from '@/types';
 
 const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Kullanıcılar', href: '#' },
-    { title: 'Birimler', href: '#' },
+    { title: 'Birimler', href: roleRoute().url },
 ];
 </script>
 <template>

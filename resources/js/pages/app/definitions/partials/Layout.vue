@@ -4,20 +4,23 @@ import Heading from '@/components/app/common/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
+import { index as currencyRoute } from '@/routes/settings/definitions/currencies';
+import { index as languageRoute } from '@/routes/settings/definitions/languages';
+import { index as unitRoute } from '@/routes/settings/definitions/units';
 import { type NavItem } from '@/types';
 
 const sidebarNavItems: NavItem[] = [
     {
         title: 'Birimler',
-        href: '#',
+        href: unitRoute().url,
     },
     {
         title: 'Para Birimler',
-        href: '#',
+        href: currencyRoute().url,
     },
     {
         title: 'Diller',
-        href: '#',
+        href: languageRoute().url,
     },
 ];
 

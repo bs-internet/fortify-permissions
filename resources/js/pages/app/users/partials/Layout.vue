@@ -4,20 +4,23 @@ import Heading from '@/components/app/common/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
+import { index as userRoute } from '@/routes/users';
+import { index as permissionRoute } from '@/routes/users/permissions';
+import { index as roleRoute } from '@/routes/users/roles';
 import { type NavItem } from '@/types';
 
 const sidebarNavItems: NavItem[] = [
     {
         title: 'Kullanıcılar',
-        href: '#',
+        href: userRoute().url,
     },
     {
         title: 'Birimler',
-        href: '#',
+        href: roleRoute().url,
     },
     {
         title: 'Yetkiler',
-        href: '#',
+        href: permissionRoute().url,
     },
 ];
 

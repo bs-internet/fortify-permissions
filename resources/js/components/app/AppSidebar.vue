@@ -15,6 +15,10 @@ import {
 import { dashboard } from '@/routes';
 import { index as generalSettings } from '@/routes/settings';
 import { index as activities } from '@/routes/settings/activities';
+import { index as units } from '@/routes/settings/definitions/units';
+import { index as usersRoute } from '@/routes/users';
+import { index as permissionsRoute } from '@/routes/users/permissions';
+import { index as rolesRoute } from '@/routes/users/roles';
 
 const props = withDefaults(defineProps<SidebarProps>(), {
     collapsible: 'icon',
@@ -37,15 +41,15 @@ const data = {
             items: [
                 {
                     title: 'Kullanıcılar',
-                    url: '#',
+                    url: usersRoute().url,
                 },
                 {
                     title: 'Birimler',
-                    url: '#',
+                    url: rolesRoute().url,
                 },
                 {
                     title: 'Yetkiler',
-                    url: '#',
+                    url: permissionsRoute().url,
                 },
             ],
         },
@@ -60,7 +64,7 @@ const data = {
                 },
                 {
                     title: 'Tanımlamalar',
-                    url: activities().url,
+                    url: units().url,
                 },
                 {
                     title: 'Etkinlik Kayıtları',

@@ -14,6 +14,6 @@ class PermissionController extends Controller
      */
     public function index(Request $request): Response
     {
-        return Inertia::render('app/users/Permission/Index');
+        return Inertia::render('app/users/Permissions/Index');
     }
 }
