@@ -1,0 +1,86 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Listeners;
+
+use App\Events\CurrencyCreated;
+use App\Events\CurrencyDeleted;
+use App\Events\CurrencyUpdated;
+use App\Services\Common\ActivityService;
+
+/**
+ * Listener for logging currency update activities.
+ */
+class LogCurrencyActivity
+{
+    /**
+     * Create the event listener.
+     */
+    public function __construct(
+        private readonly ActivityService $activityService
+    ) {}
+
+    /**
+     * Handle the currency created event.
+     */
+    public function handleCreated(CurrencyCreated $event): void
+    {
+        $this->activityService->log(
+            user: $event->user,
+            type: 'system',
+            description: 'Yeni para birimi eklendi',
+            log: [
+                'changes' => $event->changes,
+            ],
+            ipAddress: $event->ipAddress,
+            userAgent: $event->userAgent,
+        );
+    }
+
+    /**
+     * Handle the currency updated event.
+     */
+    public function handleUpdated(CurrencyUpdated $event): void
+    {
+        $this->activityService->log(
+            user: $event->user,
+            type: 'system',
+            description: 'Para birimi bilgisi güncellendi',
+            log: [
+                'changes' => $event->changes,
+            ],
+            ipAddress: $event->ipAddress,
+            userAgent: $event->userAgent,
+        );
+    }
+
+    /**
+     * Handle the currency deleted event.
+     */
+    public function handleDeleted(CurrencyDeleted $event): void
+    {
+        $this->activityService->log(
+            user: $event->user,
+            type: 'system',
+            description: 'Para birimi silindi',
+            log: [
+                'changes' => $event->changes,
+            ],
+            ipAddress: $event->ipAddress,
+            userAgent: $event->userAgent,
+        );
+    }
+
+    /**
+     * Handle the currency deleted event.
+     */
+    public function subscribe($events): array
+    {
+        return [
+            CurrencyCreated::class => 'handleCreated',
+            CurrencyUpdated::class => 'handleUpdated',
+            CurrencyDeleted::class => 'handleDeleted',
+        ];
+    }
+}

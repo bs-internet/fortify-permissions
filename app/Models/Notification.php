@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids; // Bunu ekle
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Notifications\DatabaseNotification as BaseDatabaseNotification;
 
 class Notification extends BaseDatabaseNotification
 {
-    use HasUuids; // Bunu ekle
+    use HasUuids;
 
     protected $table = 'notifications';
 
