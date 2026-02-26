@@ -10,9 +10,13 @@ use App\Events\LanguageUpdated;
 use App\Models\Language;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class LanguageService
 {
+    private const CACHE_KEY_ALL = 'languages_all';
+    private const CACHE_KEY_ACTIVE = 'languages_active';
+
     /**
      * Get all languages ordered by sort_order.
      *
@@ -20,10 +24,12 @@ class LanguageService
      */
     public function getAll(): Collection
     {
-        return Language::query()
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
+        return Cache::rememberForever(self::CACHE_KEY_ALL, function () {
+            return Language::query()
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get();
+        });
     }
 
     /**
@@ -33,11 +39,13 @@ class LanguageService
      */
     public function getActiveLanguages(): Collection
     {
-        return Language::query()
-            ->where('is_active', true)
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
+        return Cache::rememberForever(self::CACHE_KEY_ACTIVE, function () {
+            return Language::query()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get();
+        });
     }
 
     /**
@@ -53,6 +61,7 @@ class LanguageService
 
         $language = Language::create($data);
 
+        $this->clearCache();
         LanguageCreated::dispatch($user, $data, $ipAddress, $userAgent);
 
         return $language;
@@ -76,7 +85,7 @@ class LanguageService
 
         $changes = [];
         foreach ($data as $key => $value) {
-            if (array_key_exists($key, $originalData) && $originalData[$key] != $value) {
+            if (array_key_exists($key, $originalData) && $originalData[$key] !== $value) {
                 $changes[$key] = [
                     'old' => $originalData[$key],
                     'new' => $value,
@@ -85,6 +94,7 @@ class LanguageService
         }
 
         if (!empty($changes)) {
+            $this->clearCache();
             LanguageUpdated::dispatch($user, $changes, $ipAddress, $userAgent);
         }
 
@@ -102,6 +112,17 @@ class LanguageService
 
         $language->delete();
 
+        $this->clearCache();
         LanguageDeleted::dispatch($user, $changes, $ipAddress, $userAgent);
     }
+
+    /**
+     * Clear the language caches.
+     */
+    private function clearCache(): void
+    {
+        Cache::forget(self::CACHE_KEY_ALL);
+        Cache::forget(self::CACHE_KEY_ACTIVE);
+    }
 }
+

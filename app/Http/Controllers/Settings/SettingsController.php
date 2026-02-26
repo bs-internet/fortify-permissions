@@ -6,8 +6,10 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\UpdateGeneralSettingsRequest;
+use App\Models\Setting;
 use App\Services\Settings\SettingService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -24,37 +26,40 @@ class SettingsController extends Controller
      */
     public function __construct(
         private readonly SettingService $settingService
-    ) {}
+    ) {
+    }
 
     /**
      * Display the general settings page.
-     *
-     * @return Response
      */
-    public function index(): Response
+    public function index(): Response|RedirectResponse
     {
+        if (Gate::denies('viewAny', Setting::class)) {
+            return back()->with('error', 'Ayarları görüntüleme yetkiniz bulunmuyor.');
+        }
+
         return Inertia::render('app/settings/GeneralSettings', [
             'settings' => [
-                'site_name'   => site_name(),
+                'site_name' => site_name(),
                 'site_slogan' => site_slogan(),
-                'email'       => site_email(),
+                'email' => site_email(),
                 'sender_name' => sender_name(),
-                'logo_light'  => logo('light'),
-                'logo_dark'   => logo('dark'),
-                'favicon'     => favicon(),
+                'logo_light' => logo('light'),
+                'logo_dark' => logo('dark'),
+                'favicon' => favicon(),
             ],
         ]);
     }
 
     /**
      * Update the general system settings.
-     *
-     * @param UpdateGeneralSettingsRequest $request The validated update request
-     * @return RedirectResponse
      */
     public function update(UpdateGeneralSettingsRequest $request): RedirectResponse
     {
-        // Tüm mantık (güncelleme, dosya yönetimi ve event tetikleme) Service içinde
+        if (Gate::denies('update', new Setting())) {
+            return back()->with('error', 'Ayarları güncelleme yetkiniz bulunmuyor.');
+        }
+
         $this->settingService->update(
             $request->user(),
             $request->validated(),
@@ -65,3 +70,4 @@ class SettingsController extends Controller
         return back()->with('success', 'Sistem ayarları başarıyla güncellendi.');
     }
 }
+

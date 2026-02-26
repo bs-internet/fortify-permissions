@@ -10,9 +10,12 @@ use App\Events\PermissionUpdated;
 use App\Models\Permission;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class PermissionService
 {
+    private const CACHE_KEY_ALL = 'permissions_all';
+
     /**
      * Get all permissions.
      *
@@ -20,10 +23,12 @@ class PermissionService
      */
     public function getAll(): Collection
     {
-        return Permission::query()
-            ->where('guard_name', 'web')
-            ->orderBy('name')
-            ->get();
+        return Cache::rememberForever(self::CACHE_KEY_ALL, function () {
+            return Permission::query()
+                ->where('guard_name', 'web')
+                ->orderBy('name')
+                ->get();
+        });
     }
 
     /**
@@ -37,6 +42,7 @@ class PermissionService
 
         $permission = Permission::create($data);
 
+        $this->clearCache();
         PermissionCreated::dispatch($user, $data, $ipAddress, $userAgent);
 
         return $permission;
@@ -56,7 +62,7 @@ class PermissionService
 
         $changes = [];
         foreach ($data as $key => $value) {
-            if (array_key_exists($key, $originalData) && $originalData[$key] != $value) {
+            if (array_key_exists($key, $originalData) && $originalData[$key] !== $value) {
                 $changes[$key] = [
                     'old' => $originalData[$key],
                     'new' => $value,
@@ -65,6 +71,7 @@ class PermissionService
         }
 
         if (!empty($changes)) {
+            $this->clearCache();
             PermissionUpdated::dispatch($user, $changes, $ipAddress, $userAgent);
         }
 
@@ -82,6 +89,16 @@ class PermissionService
 
         $permission->delete();
 
+        $this->clearCache();
         PermissionDeleted::dispatch($user, $changes, $ipAddress, $userAgent);
     }
+
+    /**
+     * Clear the permission caches.
+     */
+    private function clearCache(): void
+    {
+        Cache::forget(self::CACHE_KEY_ALL);
+    }
 }
+

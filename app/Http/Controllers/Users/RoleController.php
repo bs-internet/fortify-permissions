@@ -11,6 +11,7 @@ use App\Models\Role;
 use App\Services\Users\PermissionService;
 use App\Services\Users\RoleService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -22,13 +23,18 @@ class RoleController extends Controller
     public function __construct(
         protected RoleService $roleService,
         protected PermissionService $permissionService
-    ) {}
+    ) {
+    }
 
     /**
      * Display a listing of roles.
      */
-    public function index(): Response
+    public function index(): Response|RedirectResponse
     {
+        if (Gate::denies('viewAny', Role::class)) {
+            return back()->with('error', 'Rolleri görüntüleme yetkiniz bulunmuyor.');
+        }
+
         return Inertia::render('app/users/Role/Index', [
             'roles' => $this->roleService->getAll(),
             'permissions' => $this->permissionService->getAll(),
@@ -40,6 +46,10 @@ class RoleController extends Controller
      */
     public function store(RoleCreateRequest $request): RedirectResponse
     {
+        if (Gate::denies('create', Role::class)) {
+            return back()->with('error', 'Rol oluşturma yetkiniz bulunmuyor.');
+        }
+
         $this->roleService->store(
             $request->user(),
             $request->validated(),
@@ -55,6 +65,10 @@ class RoleController extends Controller
      */
     public function update(RoleUpdateRequest $request, Role $role): RedirectResponse
     {
+        if (Gate::denies('update', $role)) {
+            return back()->with('error', 'Bu rolü düzenleme yetkiniz bulunmuyor.');
+        }
+
         $this->roleService->update(
             $role,
             $request->user(),
@@ -71,6 +85,14 @@ class RoleController extends Controller
      */
     public function destroy(Role $role): RedirectResponse
     {
+        if (Gate::denies('delete', $role)) {
+            $message = $role->users()->count() > 0
+                ? 'Bu role atanmış kullanıcılar var, önce kullanıcıları kaldırın.'
+                : 'Bu rolü silme yetkiniz bulunmuyor.';
+
+            return back()->with('error', $message);
+        }
+
         $this->roleService->delete(
             $role,
             request()->user(),
@@ -81,3 +103,4 @@ class RoleController extends Controller
         return back()->with('success', 'Rol başarıyla silindi.');
     }
 }
+

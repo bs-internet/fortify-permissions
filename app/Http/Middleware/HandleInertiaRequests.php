@@ -45,15 +45,19 @@ class HandleInertiaRequests extends Middleware
                 'permissions' => $request->user()?->getAllPermissions()->pluck('name') ?? [],
             ],
             'settings' => [
-                'site_name'   => site_name(),
+                'site_name' => site_name(),
                 'site_slogan' => site_slogan(),
-                'email'       => site_email(),
+                'email' => site_email(),
                 'sender_name' => sender_name(),
-                'logo_light'  => logo('light'),
-                'logo_dark'   => logo('dark'),
-                'favicon'     => favicon(),
+                'logo_light' => logo('light'),
+                'logo_dark' => logo('dark'),
+                'favicon' => favicon(),
             ],
-            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'flash' => [
+                'success' => fn() => $request->session()->get('success'),
+                'error' => fn() => $request->session()->get('error'),
+            ],
+            'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }
 }

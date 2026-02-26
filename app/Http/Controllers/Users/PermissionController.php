@@ -10,6 +10,7 @@ use App\Http\Requests\Users\PermissionUpdateRequest;
 use App\Models\Permission;
 use App\Services\Users\PermissionService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -20,13 +21,18 @@ class PermissionController extends Controller
      */
     public function __construct(
         protected PermissionService $permissionService
-    ) {}
+    ) {
+    }
 
     /**
      * Display a listing of permissions.
      */
-    public function index(): Response
+    public function index(): Response|RedirectResponse
     {
+        if (Gate::denies('viewAny', Permission::class)) {
+            return back()->with('error', 'Yetkileri görüntüleme yetkiniz bulunmuyor.');
+        }
+
         return Inertia::render('app/users/Permissions/Index', [
             'permissions' => $this->permissionService->getAll(),
         ]);
@@ -37,6 +43,10 @@ class PermissionController extends Controller
      */
     public function store(PermissionCreateRequest $request): RedirectResponse
     {
+        if (Gate::denies('create', Permission::class)) {
+            return back()->with('error', 'Yetki oluşturma yetkiniz bulunmuyor.');
+        }
+
         $this->permissionService->store(
             $request->user(),
             $request->validated(),
@@ -52,6 +62,10 @@ class PermissionController extends Controller
      */
     public function update(PermissionUpdateRequest $request, Permission $permission): RedirectResponse
     {
+        if (Gate::denies('update', $permission)) {
+            return back()->with('error', 'Bu yetkiyi düzenleme yetkiniz bulunmuyor.');
+        }
+
         $this->permissionService->update(
             $permission,
             $request->user(),
@@ -68,6 +82,10 @@ class PermissionController extends Controller
      */
     public function destroy(Permission $permission): RedirectResponse
     {
+        if (Gate::denies('delete', $permission)) {
+            return back()->with('error', 'Bu yetkiyi silme yetkiniz bulunmuyor.');
+        }
+
         $this->permissionService->delete(
             $permission,
             request()->user(),
@@ -78,3 +96,4 @@ class PermissionController extends Controller
         return back()->with('success', 'Yetki başarıyla silindi.');
     }
 }
+

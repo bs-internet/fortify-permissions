@@ -15,6 +15,7 @@ use App\Services\Users\RoleService;
 use App\Services\Users\UserService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -28,13 +29,18 @@ class UserController extends Controller
         protected RoleService $roleService,
         protected PermissionService $permissionService,
         protected LanguageService $languageService
-    ) {}
+    ) {
+    }
 
     /**
      * Display a listing of users.
      */
-    public function index(Request $request): Response
+    public function index(Request $request): Response|RedirectResponse
     {
+        if (Gate::denies('viewAny', User::class)) {
+            return back()->with('error', 'Kullanıcıları görüntüleme yetkiniz bulunmuyor.');
+        }
+
         return Inertia::render('app/users/Users/Index', [
             'users' => $this->userService->getPaginated(
                 filters: $request->only(['search', 'status']),
@@ -53,6 +59,10 @@ class UserController extends Controller
      */
     public function store(UserCreateRequest $request): RedirectResponse
     {
+        if (Gate::denies('create', User::class)) {
+            return back()->with('error', 'Kullanıcı oluşturma yetkiniz bulunmuyor.');
+        }
+
         $this->userService->store(
             $request->user(),
             $request->validated(),
@@ -68,6 +78,10 @@ class UserController extends Controller
      */
     public function update(UserUpdateRequest $request, User $user): RedirectResponse
     {
+        if (Gate::denies('update', $user)) {
+            return back()->with('error', 'Bu kullanıcıyı düzenleme yetkiniz bulunmuyor.');
+        }
+
         $this->userService->update(
             $user,
             $request->user(),
@@ -84,6 +98,10 @@ class UserController extends Controller
      */
     public function destroy(User $user): RedirectResponse
     {
+        if (Gate::denies('delete', $user)) {
+            return back()->with('error', 'Bu kullanıcıyı silme yetkiniz bulunmuyor.');
+        }
+
         $this->userService->delete(
             $user,
             request()->user(),
@@ -94,3 +112,4 @@ class UserController extends Controller
         return back()->with('success', 'Kullanıcı başarıyla silindi.');
     }
 }
+

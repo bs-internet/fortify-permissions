@@ -10,9 +10,12 @@ use App\Events\UnitUpdated;
 use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class UnitService
 {
+    private const CACHE_KEY_ALL = 'units_all';
+
     /**
      * Get all units ordered by sort_order.
      *
@@ -20,10 +23,12 @@ class UnitService
      */
     public function getAll(): Collection
     {
-        return Unit::query()
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
+        return Cache::rememberForever(self::CACHE_KEY_ALL, function () {
+            return Unit::query()
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get();
+        });
     }
 
     /**
@@ -35,6 +40,7 @@ class UnitService
     {
         $unit = Unit::create($data);
 
+        $this->clearCache();
         UnitCreated::dispatch($user, $data, $ipAddress, $userAgent);
 
         return $unit;
@@ -54,7 +60,7 @@ class UnitService
 
         $changes = [];
         foreach ($data as $key => $value) {
-            if (array_key_exists($key, $originalData) && $originalData[$key] != $value) {
+            if (array_key_exists($key, $originalData) && $originalData[$key] !== $value) {
                 $changes[$key] = [
                     'old' => $originalData[$key],
                     'new' => $value,
@@ -63,6 +69,7 @@ class UnitService
         }
 
         if (!empty($changes)) {
+            $this->clearCache();
             UnitUpdated::dispatch($user, $changes, $ipAddress, $userAgent);
         }
 
@@ -80,6 +87,16 @@ class UnitService
 
         $unit->delete();
 
+        $this->clearCache();
         UnitDeleted::dispatch($user, $changes, $ipAddress, $userAgent);
     }
+
+    /**
+     * Clear the unit caches.
+     */
+    private function clearCache(): void
+    {
+        Cache::forget(self::CACHE_KEY_ALL);
+    }
 }
+

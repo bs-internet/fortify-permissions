@@ -11,9 +11,12 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class RoleService
 {
+    private const CACHE_KEY_ALL = 'roles_all';
+
     /**
      * Get all roles with their permissions.
      *
@@ -21,11 +24,13 @@ class RoleService
      */
     public function getAll(): Collection
     {
-        return Role::query()
-            ->where('guard_name', 'web')
-            ->with('permissions:id,name,label')
-            ->orderBy('name')
-            ->get();
+        return Cache::rememberForever(self::CACHE_KEY_ALL, function () {
+            return Role::query()
+                ->where('guard_name', 'web')
+                ->with('permissions:id,name,label')
+                ->orderBy('name')
+                ->get();
+        });
     }
 
     /**
@@ -47,6 +52,7 @@ class RoleService
             $role->syncPermissions($permissions);
         }
 
+        $this->clearCache();
         RoleCreated::dispatch($user, $data, $ipAddress, $userAgent);
 
         return $role;
@@ -72,7 +78,7 @@ class RoleService
 
         $changes = [];
         foreach ($data as $key => $value) {
-            if (array_key_exists($key, $originalData) && $originalData[$key] != $value) {
+            if (array_key_exists($key, $originalData) && $originalData[$key] !== $value) {
                 $changes[$key] = [
                     'old' => $originalData[$key],
                     'new' => $value,
@@ -81,6 +87,7 @@ class RoleService
         }
 
         if (!empty($changes)) {
+            $this->clearCache();
             RoleUpdated::dispatch($user, $changes, $ipAddress, $userAgent);
         }
 
@@ -98,6 +105,16 @@ class RoleService
 
         $role->delete();
 
+        $this->clearCache();
         RoleDeleted::dispatch($user, $changes, $ipAddress, $userAgent);
     }
+
+    /**
+     * Clear the role caches.
+     */
+    private function clearCache(): void
+    {
+        Cache::forget(self::CACHE_KEY_ALL);
+    }
 }
+

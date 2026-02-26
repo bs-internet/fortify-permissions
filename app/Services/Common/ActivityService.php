@@ -24,13 +24,16 @@ class ActivityService
     ): void {
         $request = request();
 
+        $ip = $ipAddress ?? $request?->ip() ?? 'unknown';
+        $agent = $userAgent ?? $request?->userAgent() ?? 'unknown';
+
         $activity = Activity::create([
-            'user_id'   => $user->id,
-            'type'      => $type,
+            'user_id' => $user->id,
+            'type' => $type,
             'description' => $description,
-            'log'       => $log,
-            'ip_address' => $ipAddress ?? $request?->ip(),
-            'user_agent' => $userAgent ?? $request?->userAgent(),
+            'log' => $log,
+            'ip_address' => substr($ip, 0, 45),
+            'user_agent' => mb_substr($agent, 0, 255),
         ]);
 
         ActivityLogged::dispatch(
@@ -50,13 +53,16 @@ class ActivityService
     ): void {
         $request = request();
 
+        $ip = $ipAddress ?? $request?->ip() ?? 'unknown';
+        $agent = $userAgent ?? $request?->userAgent() ?? 'unknown';
+
         Activity::create([
-            'user_id'   => null,
-            'type'      => $type,
+            'user_id' => null,
+            'type' => $type,
             'description' => $description,
-            'log'       => $log,
-            'ip_address' => $ipAddress ?? $request?->ip(),
-            'user_agent' => $userAgent ?? $request?->userAgent(),
+            'log' => $log,
+            'ip_address' => substr($ip, 0, 45),
+            'user_agent' => mb_substr($agent, 0, 255),
         ]);
     }
 
@@ -79,7 +85,7 @@ class ActivityService
         return $query
             ->orderBy($sortField, $sortDirection)
             ->paginate($perPage)
-            ->through(fn ($activity) => [
+            ->through(fn($activity) => [
                 'id' => $activity->id,
                 'type' => $activity->type,
                 'description' => $activity->description,

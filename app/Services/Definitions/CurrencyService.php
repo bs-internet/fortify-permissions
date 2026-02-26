@@ -10,9 +10,12 @@ use App\Events\CurrencyUpdated;
 use App\Models\Currency;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class CurrencyService
 {
+    private const CACHE_KEY_ALL = 'currencies_all';
+
     /**
      * Get all currencies ordered by sort_order.
      *
@@ -20,10 +23,12 @@ class CurrencyService
      */
     public function getAll(): Collection
     {
-        return Currency::query()
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
+        return Cache::rememberForever(self::CACHE_KEY_ALL, function () {
+            return Currency::query()
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get();
+        });
     }
 
     /**
@@ -39,6 +44,7 @@ class CurrencyService
 
         $currency = Currency::create($data);
 
+        $this->clearCache();
         CurrencyCreated::dispatch($user, $data, $ipAddress, $userAgent);
 
         return $currency;
@@ -62,7 +68,7 @@ class CurrencyService
 
         $changes = [];
         foreach ($data as $key => $value) {
-            if (array_key_exists($key, $originalData) && $originalData[$key] != $value) {
+            if (array_key_exists($key, $originalData) && $originalData[$key] !== $value) {
                 $changes[$key] = [
                     'old' => $originalData[$key],
                     'new' => $value,
@@ -71,6 +77,7 @@ class CurrencyService
         }
 
         if (!empty($changes)) {
+            $this->clearCache();
             CurrencyUpdated::dispatch($user, $changes, $ipAddress, $userAgent);
         }
 
@@ -88,6 +95,16 @@ class CurrencyService
 
         $currency->delete();
 
+        $this->clearCache();
         CurrencyDeleted::dispatch($user, $changes, $ipAddress, $userAgent);
     }
+
+    /**
+     * Clear the currency caches.
+     */
+    private function clearCache(): void
+    {
+        Cache::forget(self::CACHE_KEY_ALL);
+    }
 }
+

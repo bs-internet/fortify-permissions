@@ -99,7 +99,7 @@ class UserService
                 $changes['password'] = ['old' => '***', 'new' => '***'];
                 continue;
             }
-            if (array_key_exists($key, $originalData) && $originalData[$key] != $value) {
+            if (array_key_exists($key, $originalData) && $originalData[$key] !== $value) {
                 $changes[$key] = [
                     'old' => $originalData[$key],
                     'new' => $value,
@@ -123,6 +123,8 @@ class UserService
             'deleted' => $user->only(['name', 'email']),
         ];
 
+        $user->syncRoles([]);
+        $user->syncPermissions([]);
         $user->delete();
 
         UserDeleted::dispatch($authUser, $changes, $ipAddress, $userAgent);
