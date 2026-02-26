@@ -12,4 +12,14 @@ class Role extends SpatieRole
 {
     use HasFactory;
     use HasUuids;
+
+    /**
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'guard_name',
+        'label',
+        'description',
+    ];
 }

@@ -22,6 +22,11 @@ class RoleCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'name' => ['required', 'string', 'max:255', 'unique:roles,name'],
+            'label' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:500'],
+            'permissions' => ['nullable', 'array'],
+            'permissions.*' => ['exists:permissions,id'],
         ];
     }
 
@@ -33,6 +38,10 @@ class RoleCreateRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'name.required' => 'Rol teknik adı zorunludur.',
+            'name.unique' => 'Bu rol adı zaten kullanılıyor.',
+            'label.required' => 'Rol görünen adı zorunludur.',
+            'permissions.*.exists' => 'Seçilen yetkilerden biri geçersiz.',
         ];
     }
 }

@@ -8,6 +8,7 @@ use App\Enums\UserStatus;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -32,6 +33,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'title',
         'password',
         'status',
+        'language_id',
         'last_login_at',
     ];
 
@@ -59,6 +61,14 @@ class User extends Authenticatable implements MustVerifyEmail
         'status' => UserStatus::class,
         'last_login_at' => 'datetime',
     ];
+
+    /**
+     * @return BelongsTo<Language, $this>
+     */
+    public function language(): BelongsTo
+    {
+        return $this->belongsTo(Language::class);
+    }
 
     /**
      * Notifications relationship.

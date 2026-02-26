@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Definitions;
 
+use App\Enums\UnitType;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Request for creating a unit.
@@ -22,6 +24,11 @@ class UnitCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'name' => ['required', 'string', 'max:255'],
+            'abbreviation' => ['required', 'string', 'max:20'],
+            'type' => ['required', 'string', Rule::enum(UnitType::class)],
+            'is_active' => ['boolean'],
+            'sort_order' => ['integer', 'min:0'],
         ];
     }
 
@@ -33,6 +40,11 @@ class UnitCreateRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'name.required' => 'Birim adı zorunludur.',
+            'abbreviation.required' => 'Kısaltma zorunludur.',
+            'abbreviation.max' => 'Kısaltma en fazla 20 karakter olabilir.',
+            'type.required' => 'Birim tipi zorunludur.',
+            'type.enum' => 'Geçersiz birim tipi.',
         ];
     }
 }

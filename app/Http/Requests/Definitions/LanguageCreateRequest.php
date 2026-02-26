@@ -22,6 +22,12 @@ class LanguageCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'code' => ['required', 'string', 'max:10', 'unique:languages,code'],
+            'name' => ['required', 'string', 'max:255'],
+            'native_name' => ['required', 'string', 'max:255'],
+            'is_default' => ['boolean'],
+            'is_active' => ['boolean'],
+            'sort_order' => ['integer', 'min:0'],
         ];
     }
 
@@ -33,6 +39,11 @@ class LanguageCreateRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'code.required' => 'Dil kodu zorunludur.',
+            'code.unique' => 'Bu dil kodu zaten kullanılıyor.',
+            'code.max' => 'Dil kodu en fazla 10 karakter olabilir.',
+            'name.required' => 'Dil adı zorunludur.',
+            'native_name.required' => 'Yerel ad zorunludur.',
         ];
     }
 }

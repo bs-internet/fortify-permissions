@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Definitions;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Definitions\LanguageCreateRequest;
+use App\Http\Requests\Definitions\LanguageUpdateRequest;
+use App\Models\Language;
 use App\Services\Definitions\LanguageService;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -22,8 +25,56 @@ class LanguageController extends Controller
     /**
      * Display a listing of languages.
      */
-    public function index(Request $request): Response
+    public function index(): Response
     {
-        return Inertia::render('app/definitions/Language/Index');
+        return Inertia::render('app/definitions/Language/Index', [
+            'languages' => $this->languageService->getAll(),
+        ]);
+    }
+
+    /**
+     * Store a newly created language.
+     */
+    public function store(LanguageCreateRequest $request): RedirectResponse
+    {
+        $this->languageService->store(
+            $request->user(),
+            $request->validated(),
+            $request->ip() ?? '127.0.0.1',
+            $request->userAgent() ?? 'unknown'
+        );
+
+        return back()->with('success', 'Dil başarıyla eklendi.');
+    }
+
+    /**
+     * Update the specified language.
+     */
+    public function update(LanguageUpdateRequest $request, Language $language): RedirectResponse
+    {
+        $this->languageService->update(
+            $language,
+            $request->user(),
+            $request->validated(),
+            $request->ip() ?? '127.0.0.1',
+            $request->userAgent() ?? 'unknown'
+        );
+
+        return back()->with('success', 'Dil başarıyla güncellendi.');
+    }
+
+    /**
+     * Remove the specified language.
+     */
+    public function destroy(Language $language): RedirectResponse
+    {
+        $this->languageService->delete(
+            $language,
+            request()->user(),
+            request()->ip() ?? '127.0.0.1',
+            request()->userAgent() ?? 'unknown'
+        );
+
+        return back()->with('success', 'Dil başarıyla silindi.');
     }
 }

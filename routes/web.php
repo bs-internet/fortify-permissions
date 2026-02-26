@@ -75,16 +75,25 @@ Route::middleware([
             // Users
             Route::controller(UserController::class)->group(function () {
                 Route::get('/users', 'index')->name('index');
+                Route::post('/users', 'store')->name('store');
+                Route::put('/users/{user}', 'update')->name('update');
+                Route::delete('/users/{user}', 'destroy')->name('destroy');
             });
 
             // Roles
             Route::controller(RoleController::class)->group(function () {
                 Route::get('/roles', 'index')->name('roles.index');
+                Route::post('/roles', 'store')->name('roles.store');
+                Route::put('/roles/{role}', 'update')->name('roles.update');
+                Route::delete('/roles/{role}', 'destroy')->name('roles.destroy');
             });
 
             // Permissions
             Route::controller(PermissionController::class)->group(function () {
                 Route::get('/permissions', 'index')->name('permissions.index');
+                Route::post('/permissions', 'store')->name('permissions.store');
+                Route::put('/permissions/{permission}', 'update')->name('permissions.update');
+                Route::delete('/permissions/{permission}', 'destroy')->name('permissions.destroy');
             });
         });
 
@@ -103,16 +112,25 @@ Route::middleware([
                 // Units
                 Route::controller(UnitController::class)->group(function () {
                     Route::get('/units', 'index')->name('units.index');
+                    Route::post('/units', 'store')->name('units.store');
+                    Route::put('/units/{unit}', 'update')->name('units.update');
+                    Route::delete('/units/{unit}', 'destroy')->name('units.destroy');
                 });
 
                 // Languages
                 Route::controller(LanguageController::class)->group(function () {
                     Route::get('/languages', 'index')->name('languages.index');
+                    Route::post('/languages', 'store')->name('languages.store');
+                    Route::put('/languages/{language}', 'update')->name('languages.update');
+                    Route::delete('/languages/{language}', 'destroy')->name('languages.destroy');
                 });
 
                 // Currencies
                 Route::controller(CurrencyController::class)->group(function () {
                     Route::get('/currencies', 'index')->name('currencies.index');
+                    Route::post('/currencies', 'store')->name('currencies.store');
+                    Route::put('/currencies/{currency}', 'update')->name('currencies.update');
+                    Route::delete('/currencies/{currency}', 'destroy')->name('currencies.destroy');
                 });
             });
 

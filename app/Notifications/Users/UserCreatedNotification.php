@@ -13,6 +13,8 @@ class UserCreatedNotification extends Notification
 
     /**
      * Create a new notification instance.
+     *
+     * @param array<string, mixed> $changes
      */
     public function __construct(
         private readonly array $changes
@@ -28,10 +30,15 @@ class UserCreatedNotification extends Notification
 
     /**
      * Get the array representation of the notification.
+     *
+     * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array
     {
         return [
+            'title' => 'Hesabınız Oluşturuldu',
+            'message' => 'Sistem yöneticisi tarafından hesabınız oluşturuldu.',
+            'created_at' => now()->toISOString(),
         ];
     }
 }

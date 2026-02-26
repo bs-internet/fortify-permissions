@@ -22,6 +22,9 @@ class PermissionCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'name' => ['required', 'string', 'max:255', 'unique:permissions,name'],
+            'label' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:500'],
         ];
     }
 
@@ -33,6 +36,9 @@ class PermissionCreateRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'name.required' => 'Yetki teknik adı zorunludur.',
+            'name.unique' => 'Bu yetki adı zaten kullanılıyor.',
+            'label.required' => 'Yetki görünen adı zorunludur.',
         ];
     }
 }

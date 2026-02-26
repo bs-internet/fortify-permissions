@@ -4,9 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Users;
 
-use Illuminate\Http\Request;
+use App\Enums\UserStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Users\UserCreateRequest;
+use App\Http\Requests\Users\UserUpdateRequest;
+use App\Models\User;
+use App\Services\Definitions\LanguageService;
+use App\Services\Users\PermissionService;
+use App\Services\Users\RoleService;
 use App\Services\Users\UserService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,7 +24,10 @@ class UserController extends Controller
      * UserController constructor.
      */
     public function __construct(
-        protected UserService $userService
+        protected UserService $userService,
+        protected RoleService $roleService,
+        protected PermissionService $permissionService,
+        protected LanguageService $languageService
     ) {}
 
     /**
@@ -24,6 +35,62 @@ class UserController extends Controller
      */
     public function index(Request $request): Response
     {
-        return Inertia::render('app/users/Users/Index');
+        return Inertia::render('app/users/Users/Index', [
+            'users' => $this->userService->getPaginated(
+                filters: $request->only(['search', 'status']),
+                perPage: 15
+            ),
+            'filters' => $request->only(['search', 'status']),
+            'roles' => $this->roleService->getAll(),
+            'permissions' => $this->permissionService->getAll(),
+            'languages' => $this->languageService->getActiveLanguages(),
+            'statuses' => UserStatus::options(),
+        ]);
+    }
+
+    /**
+     * Store a newly created user.
+     */
+    public function store(UserCreateRequest $request): RedirectResponse
+    {
+        $this->userService->store(
+            $request->user(),
+            $request->validated(),
+            $request->ip() ?? '127.0.0.1',
+            $request->userAgent() ?? 'unknown'
+        );
+
+        return back()->with('success', 'Kullanıcı başarıyla oluşturuldu.');
+    }
+
+    /**
+     * Update the specified user.
+     */
+    public function update(UserUpdateRequest $request, User $user): RedirectResponse
+    {
+        $this->userService->update(
+            $user,
+            $request->user(),
+            $request->validated(),
+            $request->ip() ?? '127.0.0.1',
+            $request->userAgent() ?? 'unknown'
+        );
+
+        return back()->with('success', 'Kullanıcı başarıyla güncellendi.');
+    }
+
+    /**
+     * Remove the specified user (soft delete).
+     */
+    public function destroy(User $user): RedirectResponse
+    {
+        $this->userService->delete(
+            $user,
+            request()->user(),
+            request()->ip() ?? '127.0.0.1',
+            request()->userAgent() ?? 'unknown'
+        );
+
+        return back()->with('success', 'Kullanıcı başarıyla silindi.');
     }
 }
