@@ -14,7 +14,7 @@ class UnitPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('definition.management');
+        return $user->can('unit.management');
     }
 
     /**
@@ -22,7 +22,7 @@ class UnitPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('definition.management');
+        return $user->can('unit.create');
     }
 
     /**
@@ -30,7 +30,7 @@ class UnitPolicy
      */
     public function update(User $user, Unit $unit): bool
     {
-        return $user->can('definition.management');
+        return $user->can('unit.update');
     }
 
     /**
@@ -38,6 +38,6 @@ class UnitPolicy
      */
     public function delete(User $user, Unit $unit): bool
     {
-        return $user->can('definition.management');
+        return $user->can('unit.delete');
     }
 }

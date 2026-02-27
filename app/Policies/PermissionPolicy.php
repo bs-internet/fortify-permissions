@@ -22,7 +22,7 @@ class PermissionPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('permission.management');
+        return $user->can('permission.create');
     }
 
     /**
@@ -30,7 +30,7 @@ class PermissionPolicy
      */
     public function update(User $user, Permission $permission): bool
     {
-        return $user->can('permission.management');
+        return $user->can('permission.update');
     }
 
     /**
@@ -38,6 +38,6 @@ class PermissionPolicy
      */
     public function delete(User $user, Permission $permission): bool
     {
-        return $user->can('permission.management');
+        return $user->can('permission.delete');
     }
 }

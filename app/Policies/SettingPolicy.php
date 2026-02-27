@@ -22,6 +22,6 @@ class SettingPolicy
      */
     public function update(User $user): bool
     {
-        return $user->can('setting.management');
+        return $user->can('setting.update');
     }
 }

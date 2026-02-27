@@ -14,7 +14,7 @@ class LanguagePolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('definition.management');
+        return $user->can('language.management');
     }
 
     /**
@@ -22,7 +22,7 @@ class LanguagePolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('definition.management');
+        return $user->can('language.management');
     }
 
     /**
@@ -30,7 +30,7 @@ class LanguagePolicy
      */
     public function update(User $user, Language $language): bool
     {
-        return $user->can('definition.management');
+        return $user->can('language.management');
     }
 
     /**
@@ -38,6 +38,6 @@ class LanguagePolicy
      */
     public function delete(User $user, Language $language): bool
     {
-        return $user->can('definition.management');
+        return $user->can('language.management');
     }
 }

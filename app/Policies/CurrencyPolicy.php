@@ -14,7 +14,7 @@ class CurrencyPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('definition.management');
+        return $user->can('currency.management');
     }
 
     /**
@@ -22,7 +22,7 @@ class CurrencyPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('definition.management');
+        return $user->can('currency.create');
     }
 
     /**
@@ -30,7 +30,7 @@ class CurrencyPolicy
      */
     public function update(User $user, Currency $currency): bool
     {
-        return $user->can('definition.management');
+        return $user->can('currency.update');
     }
 
     /**
@@ -38,6 +38,6 @@ class CurrencyPolicy
      */
     public function delete(User $user, Currency $currency): bool
     {
-        return $user->can('definition.management');
+        return $user->can('currency.delete');
     }
 }

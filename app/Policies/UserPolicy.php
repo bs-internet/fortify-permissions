@@ -21,7 +21,7 @@ class UserPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('user.management');
+        return $user->can('user.create');
     }
 
     /**
@@ -29,7 +29,7 @@ class UserPolicy
      */
     public function update(User $user, User $model): bool
     {
-        if (!$user->can('user.management')) {
+        if (!$user->can('user.update')) {
             return false;
         }
 
@@ -46,7 +46,7 @@ class UserPolicy
      */
     public function delete(User $user, User $model): bool
     {
-        if (!$user->can('user.management')) {
+        if (!$user->can('user.delete')) {
             return false;
         }
 

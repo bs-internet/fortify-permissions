@@ -22,7 +22,7 @@ class RolePolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('role.management');
+        return $user->can('role.create');
     }
 
     /**
@@ -30,7 +30,7 @@ class RolePolicy
      */
     public function update(User $user, Role $role): bool
     {
-        return $user->can('role.management');
+        return $user->can('role.update');
     }
 
     /**
@@ -38,6 +38,6 @@ class RolePolicy
      */
     public function delete(User $user, Role $role): bool
     {
-        return $user->can('role.management');
+        return $user->can('role.delete');
     }
 }
