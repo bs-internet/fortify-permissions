@@ -13,7 +13,7 @@ class UserPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('user.management');
+        return $user->can('user.management');
     }
 
     /**
@@ -21,7 +21,7 @@ class UserPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasPermissionTo('user.management');
+        return $user->can('user.management');
     }
 
     /**
@@ -29,7 +29,7 @@ class UserPolicy
      */
     public function update(User $user, User $model): bool
     {
-        if (!$user->hasPermissionTo('user.management')) {
+        if (!$user->can('user.management')) {
             return false;
         }
 
@@ -46,7 +46,7 @@ class UserPolicy
      */
     public function delete(User $user, User $model): bool
     {
-        if (!$user->hasPermissionTo('user.management')) {
+        if (!$user->can('user.management')) {
             return false;
         }
 

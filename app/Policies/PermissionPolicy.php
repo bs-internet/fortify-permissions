@@ -14,7 +14,7 @@ class PermissionPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('permission.management');
+        return $user->can('permission.management');
     }
 
     /**
@@ -22,7 +22,7 @@ class PermissionPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasPermissionTo('permission.management');
+        return $user->can('permission.management');
     }
 
     /**
@@ -30,7 +30,7 @@ class PermissionPolicy
      */
     public function update(User $user, Permission $permission): bool
     {
-        return $user->hasPermissionTo('permission.management');
+        return $user->can('permission.management');
     }
 
     /**
@@ -38,6 +38,6 @@ class PermissionPolicy
      */
     public function delete(User $user, Permission $permission): bool
     {
-        return $user->hasPermissionTo('permission.management');
+        return $user->can('permission.management');
     }
 }

@@ -40,7 +40,15 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? [
+                    'id' => $request->user()->id,
+                    'name' => $request->user()->name,
+                    'email' => $request->user()->email,
+                    'email_verified_at' => $request->user()->email_verified_at,
+                    'created_at' => $request->user()->created_at,
+                    'updated_at' => $request->user()->updated_at,
+                    'can' => $request->user()->getPermissionsViaRoles()->pluck('name')->mapWithKeys(fn($permission) => [$permission => true]) ?? [],
+                ] : null,
                 'is_super_admin' => $request->user()?->hasRole('Super Admin') ?? false,
                 'roles' => $request->user()?->getRoleNames() ?? [],
                 'permissions' => $request->user()?->getAllPermissions()->pluck('name') ?? [],

@@ -14,7 +14,7 @@ class SettingPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('setting.management');
+        return $user->can('setting.management');
     }
 
     /**
@@ -22,6 +22,6 @@ class SettingPolicy
      */
     public function update(User $user): bool
     {
-        return $user->hasPermissionTo('setting.management');
+        return $user->can('setting.management');
     }
 }

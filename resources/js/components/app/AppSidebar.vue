@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { LayoutGrid, Users, Settings2 } from 'lucide-vue-next';
+import { computed } from 'vue';
 import AppLogo from '@/components/app/common/AppLogo.vue';
 import NavMain from '@/components/app/NavMain.vue';
 import NavUser from '@/components/app/NavUser.vue';
@@ -12,6 +13,7 @@ import {
     SidebarHeader,
     SidebarRail,
 } from '@/components/ui/sidebar';
+import { usePermission } from '@/composables/usePermission';
 import { dashboard } from '@/routes';
 import { index as generalSettings } from '@/routes/settings';
 import { index as activities } from '@/routes/settings/activities';
@@ -19,6 +21,8 @@ import { index as units } from '@/routes/settings/definitions/units';
 import { index as usersRoute } from '@/routes/users';
 import { index as permissionsRoute } from '@/routes/users/permissions';
 import { index as rolesRoute } from '@/routes/users/roles';
+
+const { can } = usePermission();
 
 const props = withDefaults(defineProps<SidebarProps>(), {
     collapsible: 'icon',
@@ -32,24 +36,6 @@ const mainNav = [
     },
 ];
 
-import { usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
-
-const page = usePage();
-
-const isSuperAdmin = computed<boolean>(() => {
-    return (page.props.auth as any)?.is_super_admin || false;
-});
-
-const permissions = computed<string[]>(() => {
-    return (page.props.auth as any)?.permissions || [];
-});
-
-const hasPermission = (permission: string) => {
-    if (isSuperAdmin.value) return true;
-    return permissions.value.includes(permission);
-};
-
 const moduleNav = computed(() => {
     const nav = [
         {
@@ -60,17 +46,17 @@ const moduleNav = computed(() => {
                 {
                     title: 'Kullanıcılar',
                     url: usersRoute().url,
-                    show: hasPermission('user.management'),
+                    show: can('user.management'),
                 },
                 {
                     title: 'Roller',
                     url: rolesRoute().url,
-                    show: hasPermission('role.management'),
+                    show: can('role.management'),
                 },
                 {
                     title: 'Yetkiler',
                     url: permissionsRoute().url,
-                    show: hasPermission('permission.management'),
+                    show: can('permission.management'),
                 },
             ].filter((item) => item.show),
         },
@@ -82,23 +68,21 @@ const moduleNav = computed(() => {
                 {
                     title: 'Genel Ayarlar',
                     url: generalSettings().url,
-                    show: hasPermission('setting.management'),
+                    show: can('setting.management'),
                 },
                 {
                     title: 'Tanımlamalar',
-                    url: units().url, // Note: Units represents Definitions broadly in this menu route
-                    show: hasPermission('definition.management'),
+                    url: units().url,
+                    show: can('definition.management'),
                 },
                 {
                     title: 'Etkinlik Kayıtları',
                     url: activities().url,
-                    show: hasPermission('activity.view'),
+                    show: can('activity.view'),
                 },
             ].filter((item) => item.show),
         },
     ];
-
-    // Sadece içi dolu (alt elemanı olan) parent menüleri göster
     return nav.filter((menu) => menu.items.length > 0);
 });
 </script>

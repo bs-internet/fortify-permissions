@@ -14,6 +14,6 @@ class ActivityPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('activity.view');
+        return $user->can('activity.view');
     }
 }
