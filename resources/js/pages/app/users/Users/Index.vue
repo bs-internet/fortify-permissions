@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { store, update, destroy } from '@/actions/App/Http/Controllers/Users/UserController';
 import Heading from '@/components/app/common/Heading.vue';
 import InputError from '@/components/app/common/InputError.vue';
@@ -98,9 +98,10 @@ watch(search, (value) => {
     }, 300);
 });
 
-function onStatusChange(value: string) {
-    statusFilter.value = value;
-    router.get(userRoute().url, { search: search.value || undefined, status: value || undefined }, { preserveState: true, replace: true });
+function onStatusChange(value: string | null) {
+    const statusValue = value ?? '';
+    statusFilter.value = statusValue;
+    router.get(userRoute().url, { search: search.value || undefined, status: statusValue || undefined }, { preserveState: true, replace: true });
 }
 
 // Bulk Actions state
@@ -279,7 +280,7 @@ function getStatusBadgeVariant(status: number): 'default' | 'secondary' | 'destr
                 <!-- Filters -->
                 <div class="flex flex-col gap-4 sm:flex-row">
                     <Input v-model="search" placeholder="Ad, e-posta veya ünvan ara..." class="sm:max-w-xs" />
-                    <Select :model-value="statusFilter" @update:model-value="onStatusChange">
+                    <Select :model-value="statusFilter" @update:model-value="(val: any) => onStatusChange(val)">
                         <SelectTrigger class="sm:w-48">
                             <SelectValue placeholder="Tüm Durumlar" />
                         </SelectTrigger>
@@ -320,7 +321,7 @@ function getStatusBadgeVariant(status: number): 'default' | 'secondary' | 'destr
                             </TableRow>
                             <TableRow v-for="user in users.data" :key="user.id">
                                 <TableCell class="w-12 text-center">
-                                    <Checkbox :checked="selectedUsers.includes(user.id)" @update:checked="(val) => {
+                                    <Checkbox :checked="selectedUsers.includes(user.id)" @update:checked="(val: boolean) => {
                                         if (val) selectedUsers.push(user.id);
                                         else selectedUsers.splice(selectedUsers.indexOf(user.id), 1);
                                     }" />

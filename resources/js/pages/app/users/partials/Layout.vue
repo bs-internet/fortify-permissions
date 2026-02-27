@@ -15,7 +15,7 @@ const sidebarNavItems: NavItem[] = [
         href: userRoute().url,
     },
     {
-        title: 'Birimler',
+        title: 'Roller',
         href: roleRoute().url,
     },
     {
@@ -29,24 +29,15 @@ const { isCurrentUrl } = useCurrentUrl();
 
 <template>
     <div class="px-4 py-6">
-        <Heading
-            title="Kullanıcı Yönetimi"
-            description="Sistem kullanıcıları, birimler ve yetkileri yönetin."
-        />
+        <Heading title="Kullanıcı Yönetimi" description="Sistem kullanıcıları, birimler ve yetkileri yönetin." />
 
         <div class="flex flex-col lg:flex-row lg:space-x-12">
             <aside class="w-full max-w-xl lg:w-48">
                 <nav class="flex flex-col space-y-1">
-                    <Button
-                        v-for="item in sidebarNavItems"
-                        :key="item.title"
-                        variant="ghost"
-                        :class="[
-                            'w-full justify-start',
-                            { 'bg-muted': isCurrentUrl(item.href) },
-                        ]"
-                        as-child
-                    >
+                    <Button v-for="item in sidebarNavItems" :key="item.title" variant="ghost" :class="[
+                        'w-full justify-start',
+                        { 'bg-muted': isCurrentUrl(item.href) },
+                    ]" as-child>
                         <Link :href="item.href">
                             {{ item.title }}
                         </Link>

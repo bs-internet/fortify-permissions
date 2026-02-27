@@ -35,6 +35,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import AppLayout from '@/layouts/AppLayout.vue';
 import DefinitionsLayout from '@/pages/app/definitions/partials/Layout.vue';
 import EmptyState from '@/components/ui/empty-state/EmptyState.vue';
 import { index as currencyRoute } from '@/routes/settings/definitions/currencies';
