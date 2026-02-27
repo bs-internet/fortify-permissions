@@ -1,14 +1,14 @@
 import { createInertiaApp } from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import '../css/app.css';
+import { toast } from 'vue-sonner';
 import { initializeTheme } from './composables/useAppearance';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
-import { router } from '@inertiajs/vue3';
-import { toast } from 'vue-sonner';
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),

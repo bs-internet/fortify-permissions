@@ -73,7 +73,7 @@ const moduleNav = computed(() => {
                 {
                     title: 'Tanımlamalar',
                     url: units().url,
-                    show: can('definition.management'),
+                    show: can('unit.management'),
                 },
                 {
                     title: 'Etkinlik Kayıtları',
