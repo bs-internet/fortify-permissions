@@ -37,11 +37,16 @@ import { computed } from 'vue';
 
 const page = usePage();
 
+const isSuperAdmin = computed<boolean>(() => {
+    return (page.props.auth as any)?.is_super_admin || false;
+});
+
 const permissions = computed<string[]>(() => {
     return (page.props.auth as any)?.permissions || [];
 });
 
 const hasPermission = (permission: string) => {
+    if (isSuperAdmin.value) return true;
     return permissions.value.includes(permission);
 };
 

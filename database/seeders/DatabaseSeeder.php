@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
                 'status' => UserStatus::ACTIVE,
                 'language_id' => $defaultLanguage?->id,
                 'title' => 'Süper Yönetici',
+                'email_verified_at' => now(),
             ]
         );
 
