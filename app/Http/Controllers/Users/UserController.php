@@ -15,7 +15,6 @@ use App\Services\Users\RoleService;
 use App\Services\Users\UserService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -37,19 +36,15 @@ class UserController extends Controller
      */
     public function index(Request $request): Response|RedirectResponse
     {
-        if (Gate::denies('viewAny', User::class)) {
-            return back()->with('error', 'Kullanıcıları görüntüleme yetkiniz bulunmuyor.');
-        }
 
         return Inertia::render('app/users/Users/Index', [
-            'users' => $this->userService->getPaginated(
-                filters: $request->only(['search', 'status']),
-                perPage: 15
+            'users' => $this->userService->paginate(
+                filters: $request->only(['search', 'status'])
             ),
             'filters' => $request->only(['search', 'status']),
-            'roles' => $this->roleService->getAll(),
-            'permissions' => $this->permissionService->getAll(),
-            'languages' => $this->languageService->getActiveLanguages(),
+            'roles' => $this->roleService->all(),
+            'permissions' => $this->permissionService->all(),
+            'languages' => $this->languageService->allActive(),
             'statuses' => UserStatus::options(),
         ]);
     }
@@ -59,15 +54,12 @@ class UserController extends Controller
      */
     public function store(UserCreateRequest $request): RedirectResponse
     {
-        if (Gate::denies('create', User::class)) {
-            return back()->with('error', 'Kullanıcı oluşturma yetkiniz bulunmuyor.');
-        }
 
         $this->userService->store(
             $request->user(),
             $request->validated(),
-            $request->ip() ?? '127.0.0.1',
-            $request->userAgent() ?? 'unknown'
+            $request->ip() ?? config('otomasyon.defaults.ip_address', '127.0.0.1'),
+            $request->userAgent() ?? config('otomasyon.defaults.user_agent', 'unknown')
         );
 
         return back()->with('success', 'Kullanıcı başarıyla oluşturuldu.');
@@ -78,16 +70,13 @@ class UserController extends Controller
      */
     public function update(UserUpdateRequest $request, User $user): RedirectResponse
     {
-        if (Gate::denies('update', $user)) {
-            return back()->with('error', 'Bu kullanıcıyı düzenleme yetkiniz bulunmuyor.');
-        }
 
         $this->userService->update(
             $user,
             $request->user(),
             $request->validated(),
-            $request->ip() ?? '127.0.0.1',
-            $request->userAgent() ?? 'unknown'
+            $request->ip() ?? config('otomasyon.defaults.ip_address', '127.0.0.1'),
+            $request->userAgent() ?? config('otomasyon.defaults.user_agent', 'unknown')
         );
 
         return back()->with('success', 'Kullanıcı başarıyla güncellendi.');
@@ -98,18 +87,74 @@ class UserController extends Controller
      */
     public function destroy(User $user): RedirectResponse
     {
-        if (Gate::denies('delete', $user)) {
-            return back()->with('error', 'Bu kullanıcıyı silme yetkiniz bulunmuyor.');
-        }
 
         $this->userService->delete(
             $user,
             request()->user(),
-            request()->ip() ?? '127.0.0.1',
-            request()->userAgent() ?? 'unknown'
+            request()->ip() ?? config('otomasyon.defaults.ip_address', '127.0.0.1'),
+            request()->userAgent() ?? config('otomasyon.defaults.user_agent', 'unknown')
         );
 
         return back()->with('success', 'Kullanıcı başarıyla silindi.');
+    }
+
+    /**
+     * Perform bulk action on selected users.
+     */
+    public function bulkAction(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'action' => 'required|string|in:delete,activate,deactivate',
+            'ids' => 'required|array',
+            'ids.*' => 'string|exists:users,id',
+        ]);
+
+        $action = $validated['action'];
+        $ids = $validated['ids'];
+
+        $this->userService->bulkAction(
+            $action,
+            $ids,
+            $request->user(),
+            $request->ip() ?? config('otomasyon.defaults.ip_address', '127.0.0.1'),
+            $request->userAgent() ?? config('otomasyon.defaults.user_agent', 'unknown')
+        );
+
+        $messages = [
+            'delete' => 'Seçilen kullanıcılar başarıyla silindi.',
+            'activate' => 'Seçilen kullanıcılar başarıyla aktifleştirildi.',
+            'deactivate' => 'Seçilen kullanıcılar başarıyla pasifleştirildi.',
+        ];
+
+        return back()->with('success', $messages[$action]);
+    }
+
+    /**
+     * Export users to excel.
+     */
+    public function export(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+
+        $query = $this->userService->getForExport($request->only(['search', 'status']));
+
+        $writer = \Spatie\SimpleExcel\SimpleExcelWriter::streamDownload('kullanicilar.xlsx');
+
+        foreach ($query->lazy() as $user) {
+            /** @var User $user */
+            $writer->addRow([
+                'ID' => (string) $user->id,
+                'Ad Soyad' => $user->name,
+                'E-posta' => $user->email,
+                'Ünvan' => $user->title ?? '-',
+                'Durum' => $user->status->label(),
+                'Roller' => $user->roles->pluck('label')->join(', '),
+                'Doğrudan Yetkiler' => $user->permissions->pluck('label')->join(', '),
+                'Dil' => $user->language ? $user->language->name : '-',
+                'Oluşturulma Tarihi' => $user->created_at->format('Y-m-d H:i:s'),
+            ]);
+        }
+
+        return $writer->toBrowser();
     }
 }
 

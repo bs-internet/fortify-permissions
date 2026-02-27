@@ -12,18 +12,20 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class RoleService
 {
     private const CACHE_KEY_ALL = 'roles_all';
 
     /**
-     * Get all roles with their permissions.
-     *
      * @return Collection<int, Role>
      */
-    public function getAll(): Collection
+    public function all(): Collection
     {
+        Gate::authorize('viewAny', Role::class);
+
         return Cache::rememberForever(self::CACHE_KEY_ALL, function () {
             return Role::query()
                 ->where('guard_name', 'web')
@@ -40,6 +42,8 @@ class RoleService
      */
     public function store(User $user, array $data, string $ipAddress, string $userAgent): Role
     {
+        Gate::authorize('create', Role::class);
+
         $permissionIds = $data['permissions'] ?? [];
         unset($data['permissions']);
 
@@ -65,6 +69,8 @@ class RoleService
      */
     public function update(Role $role, User $user, array $data, string $ipAddress, string $userAgent): Role
     {
+        Gate::authorize('update', $role);
+
         $permissionIds = $data['permissions'] ?? [];
         unset($data['permissions']);
 
@@ -99,6 +105,16 @@ class RoleService
      */
     public function delete(Role $role, User $user, string $ipAddress, string $userAgent): void
     {
+        Gate::authorize('delete', $role);
+
+        if ($role->users()->count() > 0) {
+            throw new AuthorizationException('Bu role atanmış kullanıcılar var, önce kullanıcıları kaldırın.');
+        }
+
+        if ($role->name === 'Admin' || $role->id === 1) {
+            throw new AuthorizationException('Sistem yöneticisi rolü silinemez.');
+        }
+
         $changes = [
             'deleted' => $role->only(['name', 'label']),
         ];

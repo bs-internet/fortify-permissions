@@ -10,7 +10,6 @@ use App\Http\Requests\Definitions\CurrencyUpdateRequest;
 use App\Models\Currency;
 use App\Services\Definitions\CurrencyService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,12 +28,9 @@ class CurrencyController extends Controller
      */
     public function index(): Response|RedirectResponse
     {
-        if (Gate::denies('viewAny', Currency::class)) {
-            return back()->with('error', 'Para birimlerini görüntüleme yetkiniz bulunmuyor.');
-        }
 
         return Inertia::render('app/definitions/Currency/Index', [
-            'currencies' => $this->currencyService->getAll(),
+            'currencies' => $this->currencyService->all(),
         ]);
     }
 
@@ -43,15 +39,12 @@ class CurrencyController extends Controller
      */
     public function store(CurrencyCreateRequest $request): RedirectResponse
     {
-        if (Gate::denies('create', Currency::class)) {
-            return back()->with('error', 'Para birimi oluşturma yetkiniz bulunmuyor.');
-        }
 
         $this->currencyService->store(
             $request->user(),
             $request->validated(),
-            $request->ip() ?? '127.0.0.1',
-            $request->userAgent() ?? 'unknown'
+            $request->ip() ?? config('otomasyon.defaults.ip_address', '127.0.0.1'),
+            $request->userAgent() ?? config('otomasyon.defaults.user_agent', 'unknown')
         );
 
         return back()->with('success', 'Para birimi başarıyla eklendi.');
@@ -62,16 +55,13 @@ class CurrencyController extends Controller
      */
     public function update(CurrencyUpdateRequest $request, Currency $currency): RedirectResponse
     {
-        if (Gate::denies('update', $currency)) {
-            return back()->with('error', 'Bu para birimini düzenleme yetkiniz bulunmuyor.');
-        }
 
         $this->currencyService->update(
             $currency,
             $request->user(),
             $request->validated(),
-            $request->ip() ?? '127.0.0.1',
-            $request->userAgent() ?? 'unknown'
+            $request->ip() ?? config('otomasyon.defaults.ip_address', '127.0.0.1'),
+            $request->userAgent() ?? config('otomasyon.defaults.user_agent', 'unknown')
         );
 
         return back()->with('success', 'Para birimi başarıyla güncellendi.');
@@ -82,9 +72,6 @@ class CurrencyController extends Controller
      */
     public function destroy(Currency $currency): RedirectResponse
     {
-        if (Gate::denies('delete', $currency)) {
-            return back()->with('error', 'Bu para birimini silme yetkiniz bulunmuyor.');
-        }
 
         $this->currencyService->delete(
             $currency,

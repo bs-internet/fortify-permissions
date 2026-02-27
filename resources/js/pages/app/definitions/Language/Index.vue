@@ -35,8 +35,8 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import AppLayout from '@/layouts/AppLayout.vue';
 import DefinitionsLayout from '@/pages/app/definitions/partials/Layout.vue';
+import EmptyState from '@/components/ui/empty-state/EmptyState.vue';
 import { index as languageRoute } from '@/routes/settings/definitions/languages';
 import { type BreadcrumbItem, type Language } from '@/types';
 
@@ -122,6 +122,7 @@ function confirmDelete() {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
+
         <Head title="Diller" />
 
         <DefinitionsLayout>
@@ -147,7 +148,11 @@ function confirmDelete() {
                         </TableHeader>
                         <TableBody>
                             <TableRow v-if="languages.length === 0">
-                                <TableCell :colspan="7" class="text-center text-muted-foreground"> Henüz dil eklenmemiş. </TableCell>
+                                <TableCell :colspan="7" class="p-0">
+                                    <EmptyState title="Dil Bulunamadı"
+                                        description="Sistemde henüz hiç dil oluşturulmamış." actionLabel="Yeni Dil Ekle"
+                                        @action="openCreateDialog" />
+                                </TableCell>
                             </TableRow>
                             <TableRow v-for="language in languages" :key="language.id">
                                 <TableCell class="font-medium">{{ language.code }}</TableCell>
@@ -164,8 +169,10 @@ function confirmDelete() {
                                 <TableCell class="text-center">{{ language.sort_order }}</TableCell>
                                 <TableCell class="text-right">
                                     <div class="flex justify-end gap-2">
-                                        <Button variant="ghost" size="sm" @click="openEditDialog(language)"> Düzenle </Button>
-                                        <Button variant="ghost" size="sm" class="text-destructive" @click="openDeleteDialog(language)">
+                                        <Button variant="ghost" size="sm" @click="openEditDialog(language)"> Düzenle
+                                        </Button>
+                                        <Button variant="ghost" size="sm" class="text-destructive"
+                                            @click="openDeleteDialog(language)">
                                             Sil
                                         </Button>
                                     </div>
@@ -217,12 +224,14 @@ function confirmDelete() {
 
                         <div class="flex items-center gap-6">
                             <div class="flex items-center gap-2">
-                                <Switch id="is_active" :checked="form.is_active" @update:checked="form.is_active = $event" />
+                                <Switch id="is_active" :checked="form.is_active"
+                                    @update:checked="form.is_active = $event" />
                                 <Label for="is_active">Aktif</Label>
                             </div>
 
                             <div class="flex items-center gap-2">
-                                <Switch id="is_default" :checked="form.is_default" @update:checked="form.is_default = $event" />
+                                <Switch id="is_default" :checked="form.is_default"
+                                    @update:checked="form.is_default = $event" />
                                 <Label for="is_default">Varsayılan</Label>
                             </div>
                         </div>
@@ -243,7 +252,8 @@ function confirmDelete() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Dili silmek istediğinize emin misiniz?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            <strong>{{ deletingLanguage?.name }}</strong> dili kalıcı olarak silinecektir. Bu işlem geri alınamaz.
+                            <strong>{{ deletingLanguage?.name }}</strong> dili kalıcı olarak silinecektir. Bu işlem geri
+                            alınamaz.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

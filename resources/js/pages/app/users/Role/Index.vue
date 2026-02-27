@@ -38,6 +38,7 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import UsersLayout from '@/pages/app/users/partials/Layout.vue';
+import EmptyState from '@/components/ui/empty-state/EmptyState.vue';
 import { index as roleRoute } from '@/routes/users/roles';
 import { type BreadcrumbItem, type Permission, type Role } from '@/types';
 
@@ -127,6 +128,7 @@ function confirmDelete() {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
+
         <Head title="Roller" />
 
         <UsersLayout>
@@ -150,7 +152,11 @@ function confirmDelete() {
                         </TableHeader>
                         <TableBody>
                             <TableRow v-if="roles.length === 0">
-                                <TableCell :colspan="5" class="text-center text-muted-foreground"> Henüz rol eklenmemiş. </TableCell>
+                                <TableCell :colspan="5" class="p-0">
+                                    <EmptyState title="Rol Bulunamadı"
+                                        description="Sistemde henüz hiç rol oluşturulmamış." actionLabel="Yeni Rol Ekle"
+                                        @action="openCreateDialog" />
+                                </TableCell>
                             </TableRow>
                             <TableRow v-for="role in roles" :key="role.id">
                                 <TableCell class="font-mono text-sm">{{ role.name }}</TableCell>
@@ -158,16 +164,20 @@ function confirmDelete() {
                                 <TableCell class="text-muted-foreground">{{ role.description ?? '-' }}</TableCell>
                                 <TableCell>
                                     <div class="flex flex-wrap gap-1">
-                                        <Badge v-for="permission in role.permissions" :key="permission.id" variant="secondary">
+                                        <Badge v-for="permission in role.permissions" :key="permission.id"
+                                            variant="secondary">
                                             {{ permission.label }}
                                         </Badge>
-                                        <span v-if="role.permissions.length === 0" class="text-sm text-muted-foreground">-</span>
+                                        <span v-if="role.permissions.length === 0"
+                                            class="text-sm text-muted-foreground">-</span>
                                     </div>
                                 </TableCell>
                                 <TableCell class="text-right">
                                     <div class="flex justify-end gap-2">
-                                        <Button variant="ghost" size="sm" @click="openEditDialog(role)"> Düzenle </Button>
-                                        <Button variant="ghost" size="sm" class="text-destructive" @click="openDeleteDialog(role)">
+                                        <Button variant="ghost" size="sm" @click="openEditDialog(role)"> Düzenle
+                                        </Button>
+                                        <Button variant="ghost" size="sm" class="text-destructive"
+                                            @click="openDeleteDialog(role)">
                                             Sil
                                         </Button>
                                     </div>
@@ -184,7 +194,11 @@ function confirmDelete() {
                     <DialogHeader>
                         <DialogTitle>{{ editingRole ? 'Rol Düzenle' : 'Yeni Rol Ekle' }}</DialogTitle>
                         <DialogDescription>
-                            {{ editingRole ? 'Rol bilgilerini ve yetkilerini güncelleyin.' : 'Sisteme yeni bir rol ekleyin.' }}
+                            {{
+                                editingRole
+                                    ? 'Rol bilgilerini ve yetkilerini güncelleyin.'
+                                    : 'Sisteme yeni bir rol ekleyin.'
+                            }}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -205,19 +219,19 @@ function confirmDelete() {
 
                         <div class="space-y-2">
                             <Label for="description">Açıklama</Label>
-                            <Textarea id="description" v-model="form.description" placeholder="Bu rolün açıklaması..." rows="2" />
+                            <Textarea id="description" v-model="form.description" placeholder="Bu rolün açıklaması..."
+                                rows="2" />
                             <InputError :message="form.errors.description" />
                         </div>
 
                         <div v-if="permissions.length > 0" class="space-y-2">
                             <Label>Yetkiler</Label>
                             <div class="max-h-48 space-y-2 overflow-y-auto rounded-md border p-3">
-                                <div v-for="permission in permissions" :key="permission.id" class="flex items-center gap-2">
-                                    <Checkbox
-                                        :id="`perm-${permission.id}`"
+                                <div v-for="permission in permissions" :key="permission.id"
+                                    class="flex items-center gap-2">
+                                    <Checkbox :id="`perm-${permission.id}`"
                                         :checked="form.permissions.includes(permission.id)"
-                                        @update:checked="togglePermission(permission.id)"
-                                    />
+                                        @update:checked="togglePermission(permission.id)" />
                                     <Label :for="`perm-${permission.id}`" class="cursor-pointer font-normal">
                                         {{ permission.label }}
                                         <span v-if="permission.description" class="text-xs text-muted-foreground">
@@ -245,7 +259,8 @@ function confirmDelete() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Rolü silmek istediğinize emin misiniz?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            <strong>{{ deletingRole?.label }}</strong> rolü kalıcı olarak silinecektir. Bu işlem geri alınamaz.
+                            <strong>{{ deletingRole?.label }}</strong> rolü kalıcı olarak silinecektir. Bu işlem geri
+                            alınamaz.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

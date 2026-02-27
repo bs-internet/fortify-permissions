@@ -9,6 +9,7 @@ use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -23,21 +24,6 @@ class SettingService
      * Cache key for all settings.
      */
     private const CACHE_KEY = 'settings.all';
-
-    /**
-     * Cache TTL in seconds (1 hour).
-     */
-    private const CACHE_TTL = 3600;
-
-    /**
-     * Storage disk for settings assets.
-     */
-    private const STORAGE_DISK = 'public';
-
-    /**
-     * Directory for uploaded settings files.
-     */
-    private const UPLOAD_DIRECTORY = 'settings';
 
     /**
      * Get a setting value by key.
@@ -92,6 +78,8 @@ class SettingService
      */
     public function update(User $user, array $data, string $ipAddress, string $userAgent): void
     {
+        Gate::authorize('update', new Setting());
+
         $changes = [];
 
         foreach ($data as $key => $value) {
@@ -117,11 +105,14 @@ class SettingService
      */
     private function handleFileUpload(Setting $setting, UploadedFile $file): string
     {
+        $disk = config('otomasyon.storage.disk', 'public');
+        $directory = config('otomasyon.storage.settings_path', 'settings');
+
         if ($setting->value) {
-            Storage::disk(self::STORAGE_DISK)->delete($setting->value);
+            Storage::disk($disk)->delete($setting->value);
         }
 
-        return $file->store(self::UPLOAD_DIRECTORY, self::STORAGE_DISK);
+        return $file->store($directory, $disk);
     }
 
     /**
@@ -129,6 +120,8 @@ class SettingService
      */
     public function all(): array
     {
+        Gate::authorize('viewAny', Setting::class);
+
         return $this->getCachedSettings();
     }
 
@@ -145,7 +138,7 @@ class SettingService
      */
     private function getCachedSettings(): array
     {
-        return Cache::remember(self::CACHE_KEY, self::CACHE_TTL, function () {
+        return Cache::remember(self::CACHE_KEY, config('otomasyon.cache.ttl', 3600), function () {
             return Setting::all()
                 ->mapWithKeys(fn(Setting $setting) => [$setting->key => $setting->typed_value])
                 ->toArray();

@@ -10,7 +10,6 @@ use App\Http\Requests\Definitions\LanguageUpdateRequest;
 use App\Models\Language;
 use App\Services\Definitions\LanguageService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,12 +28,9 @@ class LanguageController extends Controller
      */
     public function index(): Response|RedirectResponse
     {
-        if (Gate::denies('viewAny', Language::class)) {
-            return back()->with('error', 'Dilleri görüntüleme yetkiniz bulunmuyor.');
-        }
 
         return Inertia::render('app/definitions/Language/Index', [
-            'languages' => $this->languageService->getAll(),
+            'languages' => $this->languageService->all(),
         ]);
     }
 
@@ -43,15 +39,12 @@ class LanguageController extends Controller
      */
     public function store(LanguageCreateRequest $request): RedirectResponse
     {
-        if (Gate::denies('create', Language::class)) {
-            return back()->with('error', 'Dil oluşturma yetkiniz bulunmuyor.');
-        }
 
         $this->languageService->store(
             $request->user(),
             $request->validated(),
-            $request->ip() ?? '127.0.0.1',
-            $request->userAgent() ?? 'unknown'
+            $request->ip() ?? config('otomasyon.defaults.ip_address', '127.0.0.1'),
+            $request->userAgent() ?? config('otomasyon.defaults.user_agent', 'unknown')
         );
 
         return back()->with('success', 'Dil başarıyla eklendi.');
@@ -62,16 +55,13 @@ class LanguageController extends Controller
      */
     public function update(LanguageUpdateRequest $request, Language $language): RedirectResponse
     {
-        if (Gate::denies('update', $language)) {
-            return back()->with('error', 'Bu dili düzenleme yetkiniz bulunmuyor.');
-        }
 
         $this->languageService->update(
             $language,
             $request->user(),
             $request->validated(),
-            $request->ip() ?? '127.0.0.1',
-            $request->userAgent() ?? 'unknown'
+            $request->ip() ?? config('otomasyon.defaults.ip_address', '127.0.0.1'),
+            $request->userAgent() ?? config('otomasyon.defaults.user_agent', 'unknown')
         );
 
         return back()->with('success', 'Dil başarıyla güncellendi.');
@@ -82,9 +72,6 @@ class LanguageController extends Controller
      */
     public function destroy(Language $language): RedirectResponse
     {
-        if (Gate::denies('delete', $language)) {
-            return back()->with('error', 'Bu dili silme yetkiniz bulunmuyor.');
-        }
 
         $this->languageService->delete(
             $language,

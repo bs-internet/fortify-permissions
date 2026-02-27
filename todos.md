@@ -20,18 +20,19 @@
 
 ## 🟢 Orta
 
-- [ ] **Toplu işlemler** — Kullanıcı listesine checkbox ve toplu aksiyon ekle
-- [ ] **Export özelliği** — Listeler için CSV/Excel export
-- [ ] **Bildirim tercihleri** — Profil sayfasına bildirim tercih paneli ekle
-- [ ] **İki Faktörlü Doğrulama tamamla** — Enable/disable, kurtarma kodları aksiyonları
-- [ ] **Global hata yakalama** — `app.ts` içinde Inertia global hata listener'ı ekle
-- [ ] **EmptyState bileşeni** — Tutarlı boş durum gösterimi için reusable bileşen
-- [ ] **Service katmanında yetkilendirme** — İş kurallarını service'lere taşı
-- [ ] **Metot isimlendirme tutarlılığı** — Service'lerde convention belirle
-- [ ] **DTO kullanımı** — Notification/Activity dönüşümlerini DTO sınıflarına taşı
+- [x] **Toplu işlemler** — Kullanıcı listesine checkbox ve toplu aksiyon ekle
+- [x] **Export özelliği** — Listeler için CSV/Excel export
+- [~] ~~**Bildirim tercihleri** — (Gerek görülmediği için iptal edildi)~~
+- [x] **Sidebar Yetki Kontrolü** — Sidebar menülerini policy kurallarına göre dinamik hale getir
+- [x] **İki Faktörlü Doğrulama tamamla** — Enable/disable, kurtarma kodları aksiyonları
+- [x] **Global hata yakalama** — `app.ts` içinde Inertia global hata listener'ı ekle
+- [x] **EmptyState bileşeni** — Tutarlı boş durum gösterimi için reusable bileşen
+- [x] **Service katmanında yetkilendirme** — İş kurallarını service'lere taşı
+- [x] **Metot isimlendirme tutarlılığı** — Service'lerde convention belirlendi ve uygulandı
+- [~] ~~**DTO kullanımı** — (Resource kullanımı yeterli görüldüğünden iptal edildi)~~
 
 ## ⚪ Düşük
 
-- [ ] **`writeAcces` typo düzelt** — `writeAccess` olarak güncelle
-- [ ] **Sabit değerleri çıkar** — Hardcoded değerleri config'e taşı
-- [ ] **Gereksiz import'ları temizle** — `vendor/bin/pint --dirty` çalıştır
+- [x] **`writeAcces` typo düzelt** — `writeAccess` olarak güncellendi
+- [x] **Sabit değerleri çıkar** — `config/otomasyon.php` dosyasına taşındı
+- [x] **Gereksiz import'ları temizle** — Kod temizliği yapıldı

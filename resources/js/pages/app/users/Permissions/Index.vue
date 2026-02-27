@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import UsersLayout from '@/pages/app/users/partials/Layout.vue';
+import EmptyState from '@/components/ui/empty-state/EmptyState.vue';
 import { index as permissionRoute } from '@/routes/users/permissions';
 import { type BreadcrumbItem, type Permission } from '@/types';
 
@@ -113,12 +114,14 @@ function confirmDelete() {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
+
         <Head title="Yetkiler" />
 
         <UsersLayout>
             <div class="space-y-6">
                 <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                    <Heading variant="small" title="Yetkiler" description="Sistem kullanıcılarının sahip olduğu yetkiler." />
+                    <Heading variant="small" title="Yetkiler"
+                        description="Sistem kullanıcılarının sahip olduğu yetkiler." />
 
                     <Button @click="openCreateDialog">Yeni Yetki Ekle</Button>
                 </div>
@@ -135,7 +138,11 @@ function confirmDelete() {
                         </TableHeader>
                         <TableBody>
                             <TableRow v-if="permissions.length === 0">
-                                <TableCell :colspan="4" class="text-center text-muted-foreground"> Henüz yetki eklenmemiş. </TableCell>
+                                <TableCell :colspan="4" class="p-0">
+                                    <EmptyState title="Yetki Bulunamadı"
+                                        description="Sistemde henüz hiç yetki oluşturulmamış."
+                                        actionLabel="Yeni Yetki Ekle" @action="openCreateDialog" />
+                                </TableCell>
                             </TableRow>
                             <TableRow v-for="permission in permissions" :key="permission.id">
                                 <TableCell class="font-mono text-sm">{{ permission.name }}</TableCell>
@@ -143,8 +150,10 @@ function confirmDelete() {
                                 <TableCell class="text-muted-foreground">{{ permission.description ?? '-' }}</TableCell>
                                 <TableCell class="text-right">
                                     <div class="flex justify-end gap-2">
-                                        <Button variant="ghost" size="sm" @click="openEditDialog(permission)"> Düzenle </Button>
-                                        <Button variant="ghost" size="sm" class="text-destructive" @click="openDeleteDialog(permission)">
+                                        <Button variant="ghost" size="sm" @click="openEditDialog(permission)"> Düzenle
+                                        </Button>
+                                        <Button variant="ghost" size="sm" class="text-destructive"
+                                            @click="openDeleteDialog(permission)">
                                             Sil
                                         </Button>
                                     </div>
@@ -161,7 +170,11 @@ function confirmDelete() {
                     <DialogHeader>
                         <DialogTitle>{{ editingPermission ? 'Yetki Düzenle' : 'Yeni Yetki Ekle' }}</DialogTitle>
                         <DialogDescription>
-                            {{ editingPermission ? 'Yetki bilgilerini güncelleyin.' : 'Sisteme yeni bir yetki ekleyin.' }}
+                            {{
+                                editingPermission
+                                    ? 'Yetki bilgilerini güncelleyin.'
+                                    : 'Sisteme yeni bir yetki ekleyin.'
+                            }}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -180,7 +193,8 @@ function confirmDelete() {
 
                         <div class="space-y-2">
                             <Label for="description">Açıklama</Label>
-                            <Textarea id="description" v-model="form.description" placeholder="Bu yetki ne işe yarar..." rows="2" />
+                            <Textarea id="description" v-model="form.description" placeholder="Bu yetki ne işe yarar..."
+                                rows="2" />
                             <InputError :message="form.errors.description" />
                         </div>
 
@@ -200,7 +214,8 @@ function confirmDelete() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Yetkiyi silmek istediğinize emin misiniz?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            <strong>{{ deletingPermission?.label }}</strong> yetkisi kalıcı olarak silinecektir. Bu işlem geri alınamaz.
+                            <strong>{{ deletingPermission?.label }}</strong> yetkisi kalıcı olarak silinecektir. Bu
+                            işlem geri alınamaz.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

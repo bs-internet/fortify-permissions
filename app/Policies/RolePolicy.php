@@ -38,15 +38,6 @@ class RolePolicy
      */
     public function delete(User $user, Role $role): bool
     {
-        if (!$user->hasPermissionTo('role.management')) {
-            return false;
-        }
-
-        // Üzerinde kullanıcı atanmış rol silinemez
-        if ($role->users()->count() > 0) {
-            return false;
-        }
-
-        return true;
+        return $user->hasPermissionTo('role.management');
     }
 }

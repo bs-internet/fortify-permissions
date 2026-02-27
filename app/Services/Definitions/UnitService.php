@@ -11,18 +11,19 @@ use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Gate;
 
 class UnitService
 {
     private const CACHE_KEY_ALL = 'units_all';
 
     /**
-     * Get all units ordered by sort_order.
-     *
      * @return Collection<int, Unit>
      */
-    public function getAll(): Collection
+    public function all(): Collection
     {
+        Gate::authorize('viewAny', Unit::class);
+
         return Cache::rememberForever(self::CACHE_KEY_ALL, function () {
             return Unit::query()
                 ->orderBy('sort_order')
@@ -38,6 +39,8 @@ class UnitService
      */
     public function store(User $user, array $data, string $ipAddress, string $userAgent): Unit
     {
+        Gate::authorize('create', Unit::class);
+
         $unit = Unit::create($data);
 
         $this->clearCache();
@@ -53,6 +56,8 @@ class UnitService
      */
     public function update(Unit $unit, User $user, array $data, string $ipAddress, string $userAgent): Unit
     {
+        Gate::authorize('update', $unit);
+
         $originalData = $unit->only(array_keys($data));
 
         $unit->fill($data);
@@ -81,6 +86,8 @@ class UnitService
      */
     public function delete(Unit $unit, User $user, string $ipAddress, string $userAgent): void
     {
+        Gate::authorize('delete', $unit);
+
         $changes = [
             'deleted' => $unit->only(['name', 'abbreviation']),
         ];

@@ -44,7 +44,8 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import UsersLayout from '@/pages/app/users/partials/Layout.vue';
-import { index as userRoute } from '@/routes/users';
+import EmptyState from '@/components/ui/empty-state/EmptyState.vue';
+import { bulk as bulkRoute, index as userRoute } from '@/routes/users';
 import { type BreadcrumbItem, type Language, type Permission, type Role } from '@/types';
 
 type UserItem = {
@@ -100,6 +101,39 @@ watch(search, (value) => {
 function onStatusChange(value: string) {
     statusFilter.value = value;
     router.get(userRoute().url, { search: search.value || undefined, status: value || undefined }, { preserveState: true, replace: true });
+}
+
+// Bulk Actions state
+const selectedUsers = ref<string[]>([]);
+
+const isAllSelected = computed(() => {
+    return props.users.data.length > 0 && selectedUsers.value.length === props.users.data.length;
+});
+
+function toggleSelectAll(checked: boolean) {
+    if (checked) {
+        selectedUsers.value = props.users.data.map(u => u.id);
+    } else {
+        selectedUsers.value = [];
+    }
+}
+
+function handleBulkAction(action: 'delete' | 'activate' | 'deactivate') {
+    if (selectedUsers.value.length === 0) return;
+
+    if (action === 'delete') {
+        if (!confirm('Seçili kullanıcıları silmek istediğinize emin misiniz?')) return;
+    }
+
+    router.post(bulkRoute().url, {
+        action: action,
+        ids: selectedUsers.value
+    }, {
+        preserveScroll: true,
+        onSuccess: () => {
+            selectedUsers.value = [];
+        }
+    });
 }
 
 // Dialog state
@@ -193,6 +227,13 @@ function confirmDelete() {
     });
 }
 
+function exportData() {
+    const params = new URLSearchParams();
+    if (search.value) params.append('search', search.value);
+    if (statusFilter.value) params.append('status', statusFilter.value);
+    window.location.href = `/users/export?${params.toString()}`;
+}
+
 function getStatusLabel(status: number): string {
     return props.statuses[status] ?? String(status);
 }
@@ -211,14 +252,28 @@ function getStatusBadgeVariant(status: number): 'default' | 'secondary' | 'destr
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
+
         <Head title="Kayıtlı Kullanıcılar" />
 
         <UsersLayout>
             <div class="space-y-6">
                 <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                    <Heading variant="small" title="Kayıtlı Kullanıcılar" description="Sistem üzerinde kayıtlı kullanıcılar." />
+                    <Heading variant="small" title="Kayıtlı Kullanıcılar"
+                        description="Sistem üzerinde kayıtlı kullanıcılar." />
 
-                    <Button @click="openCreateDialog">Yeni Kullanıcı Ekle</Button>
+                    <div v-if="selectedUsers.length > 0" class="flex flex-wrap items-center gap-2">
+                        <span class="text-sm text-muted-foreground mr-2">{{ selectedUsers.length }} seçili</span>
+                        <Button variant="outline" size="sm" @click="handleBulkAction('activate')">Aktif Yap</Button>
+                        <Button variant="outline" size="sm" @click="handleBulkAction('deactivate')">Pasif Yap</Button>
+                        <Button variant="destructive" size="sm" @click="handleBulkAction('delete')">Sil</Button>
+                    </div>
+                    <div v-else class="flex gap-2">
+                        <Button variant="outline" @click="exportData">
+                            <span class="mr-2">📥</span>
+                            Dışa Aktar
+                        </Button>
+                        <Button @click="openCreateDialog">Yeni Kullanıcı Ekle</Button>
+                    </div>
                 </div>
 
                 <!-- Filters -->
@@ -242,6 +297,9 @@ function getStatusBadgeVariant(status: number): 'default' | 'secondary' | 'destr
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead class="w-12 text-center">
+                                    <Checkbox :checked="isAllSelected" @update:checked="toggleSelectAll" />
+                                </TableHead>
                                 <TableHead>Ad</TableHead>
                                 <TableHead>E-posta</TableHead>
                                 <TableHead>Ünvan</TableHead>
@@ -254,11 +312,19 @@ function getStatusBadgeVariant(status: number): 'default' | 'secondary' | 'destr
                         </TableHeader>
                         <TableBody>
                             <TableRow v-if="users.data.length === 0">
-                                <TableCell :colspan="8" class="text-center text-muted-foreground">
-                                    Kullanıcı bulunamadı.
+                                <TableCell :colspan="8" class="p-0">
+                                    <EmptyState title="Kullanıcı Bulunamadı"
+                                        description="Sistemde kayıtlı veya aradığınız kritere uygun kullanıcı bulunmuyor."
+                                        actionLabel="Yeni Kullanıcı Ekle" @action="openCreateDialog" />
                                 </TableCell>
                             </TableRow>
                             <TableRow v-for="user in users.data" :key="user.id">
+                                <TableCell class="w-12 text-center">
+                                    <Checkbox :checked="selectedUsers.includes(user.id)" @update:checked="(val) => {
+                                        if (val) selectedUsers.push(user.id);
+                                        else selectedUsers.splice(selectedUsers.indexOf(user.id), 1);
+                                    }" />
+                                </TableCell>
                                 <TableCell class="font-medium">{{ user.name }}</TableCell>
                                 <TableCell>{{ user.email }}</TableCell>
                                 <TableCell>{{ user.title ?? '-' }}</TableCell>
@@ -272,7 +338,8 @@ function getStatusBadgeVariant(status: number): 'default' | 'secondary' | 'destr
                                         <Badge v-for="role in user.roles" :key="role.id" variant="secondary">
                                             {{ role.label }}
                                         </Badge>
-                                        <span v-if="user.roles.length === 0" class="text-sm text-muted-foreground">-</span>
+                                        <span v-if="user.roles.length === 0"
+                                            class="text-sm text-muted-foreground">-</span>
                                     </div>
                                 </TableCell>
                                 <TableCell>
@@ -280,14 +347,17 @@ function getStatusBadgeVariant(status: number): 'default' | 'secondary' | 'destr
                                         <Badge v-for="perm in user.permissions" :key="perm.id" variant="outline">
                                             {{ perm.label }}
                                         </Badge>
-                                        <span v-if="user.permissions.length === 0" class="text-sm text-muted-foreground">-</span>
+                                        <span v-if="user.permissions.length === 0"
+                                            class="text-sm text-muted-foreground">-</span>
                                     </div>
                                 </TableCell>
                                 <TableCell>{{ user.language?.name ?? '-' }}</TableCell>
                                 <TableCell class="text-right">
                                     <div class="flex justify-end gap-2">
-                                        <Button variant="ghost" size="sm" @click="openEditDialog(user)"> Düzenle </Button>
-                                        <Button variant="ghost" size="sm" class="text-destructive" @click="openDeleteDialog(user)">
+                                        <Button variant="ghost" size="sm" @click="openEditDialog(user)"> Düzenle
+                                        </Button>
+                                        <Button variant="ghost" size="sm" class="text-destructive"
+                                            @click="openDeleteDialog(user)">
                                             Sil
                                         </Button>
                                     </div>
@@ -300,14 +370,9 @@ function getStatusBadgeVariant(status: number): 'default' | 'secondary' | 'destr
                 <!-- Pagination -->
                 <div v-if="users.last_page > 1" class="flex justify-center gap-1">
                     <template v-for="link in users.links" :key="link.label">
-                        <Button
-                            v-if="link.url"
-                            variant="outline"
-                            size="sm"
+                        <Button v-if="link.url" variant="outline" size="sm"
                             :class="{ 'bg-primary text-primary-foreground': link.active }"
-                            @click="router.get(link.url, {}, { preserveState: true })"
-                            v-html="link.label"
-                        />
+                            @click="router.get(link.url, {}, { preserveState: true })" v-html="link.label" />
                         <Button v-else variant="outline" size="sm" disabled v-html="link.label" />
                     </template>
                 </div>
@@ -356,7 +421,8 @@ function getStatusBadgeVariant(status: number): 'default' | 'secondary' | 'destr
                                         <SelectValue placeholder="Durum seçin" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem v-for="(label, value) in statuses" :key="value" :value="Number(value)">
+                                        <SelectItem v-for="(label, value) in statuses" :key="value"
+                                            :value="Number(value)">
                                             {{ label }}
                                         </SelectItem>
                                     </SelectContent>
@@ -369,7 +435,8 @@ function getStatusBadgeVariant(status: number): 'default' | 'secondary' | 'destr
                             <div class="space-y-2">
                                 <Label for="password">
                                     Şifre
-                                    <span v-if="editingUser" class="text-xs text-muted-foreground">(boş bırakılırsa değişmez)</span>
+                                    <span v-if="editingUser" class="text-xs text-muted-foreground">(boş bırakılırsa
+                                        değişmez)</span>
                                 </Label>
                                 <Input id="password" v-model="form.password" type="password" />
                                 <InputError :message="form.errors.password" />
@@ -377,7 +444,8 @@ function getStatusBadgeVariant(status: number): 'default' | 'secondary' | 'destr
 
                             <div class="space-y-2">
                                 <Label for="password_confirmation">Şifre Tekrar</Label>
-                                <Input id="password_confirmation" v-model="form.password_confirmation" type="password" />
+                                <Input id="password_confirmation" v-model="form.password_confirmation"
+                                    type="password" />
                             </div>
                         </div>
 
@@ -402,11 +470,8 @@ function getStatusBadgeVariant(status: number): 'default' | 'secondary' | 'destr
                             <Label>Roller</Label>
                             <div class="max-h-36 space-y-2 overflow-y-auto rounded-md border p-3">
                                 <div v-for="role in roles" :key="role.id" class="flex items-center gap-2">
-                                    <Checkbox
-                                        :id="`role-${role.id}`"
-                                        :checked="form.roles.includes(role.id)"
-                                        @update:checked="toggleRole(role.id)"
-                                    />
+                                    <Checkbox :id="`role-${role.id}`" :checked="form.roles.includes(role.id)"
+                                        @update:checked="toggleRole(role.id)" />
                                     <Label :for="`role-${role.id}`" class="cursor-pointer font-normal">
                                         {{ role.label }}
                                         <span v-if="role.description" class="text-xs text-muted-foreground">
@@ -421,14 +486,15 @@ function getStatusBadgeVariant(status: number): 'default' | 'secondary' | 'destr
                         <!-- Direct Permissions -->
                         <div v-if="permissions.length > 0" class="space-y-2">
                             <Label>Doğrudan Yetkiler</Label>
-                            <p class="text-xs text-muted-foreground">Rol üzerinden gelen yetkilere ek olarak doğrudan atanan yetkiler.</p>
+                            <p class="text-xs text-muted-foreground">Rol üzerinden gelen yetkilere ek olarak doğrudan
+                                atanan
+                                yetkiler.</p>
                             <div class="max-h-36 space-y-2 overflow-y-auto rounded-md border p-3">
-                                <div v-for="permission in permissions" :key="permission.id" class="flex items-center gap-2">
-                                    <Checkbox
-                                        :id="`perm-${permission.id}`"
+                                <div v-for="permission in permissions" :key="permission.id"
+                                    class="flex items-center gap-2">
+                                    <Checkbox :id="`perm-${permission.id}`"
                                         :checked="form.permissions.includes(permission.id)"
-                                        @update:checked="togglePermission(permission.id)"
-                                    />
+                                        @update:checked="togglePermission(permission.id)" />
                                     <Label :for="`perm-${permission.id}`" class="cursor-pointer font-normal">
                                         {{ permission.label }}
                                         <span v-if="permission.description" class="text-xs text-muted-foreground">
@@ -456,7 +522,8 @@ function getStatusBadgeVariant(status: number): 'default' | 'secondary' | 'destr
                     <AlertDialogHeader>
                         <AlertDialogTitle>Kullanıcıyı silmek istediğinize emin misiniz?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            <strong>{{ deletingUser?.name }} ({{ deletingUser?.email }})</strong> kullanıcısı silinecektir.
+                            <strong>{{ deletingUser?.name }} ({{ deletingUser?.email }})</strong> kullanıcısı
+                            silinecektir.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

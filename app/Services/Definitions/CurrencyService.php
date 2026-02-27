@@ -11,18 +11,19 @@ use App\Models\Currency;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Gate;
 
 class CurrencyService
 {
     private const CACHE_KEY_ALL = 'currencies_all';
 
     /**
-     * Get all currencies ordered by sort_order.
-     *
      * @return Collection<int, Currency>
      */
-    public function getAll(): Collection
+    public function all(): Collection
     {
+        Gate::authorize('viewAny', Currency::class);
+
         return Cache::rememberForever(self::CACHE_KEY_ALL, function () {
             return Currency::query()
                 ->orderBy('sort_order')
@@ -38,6 +39,8 @@ class CurrencyService
      */
     public function store(User $user, array $data, string $ipAddress, string $userAgent): Currency
     {
+        Gate::authorize('create', Currency::class);
+
         if (!empty($data['is_default'])) {
             Currency::query()->where('is_default', true)->update(['is_default' => false]);
         }
@@ -57,6 +60,8 @@ class CurrencyService
      */
     public function update(Currency $currency, User $user, array $data, string $ipAddress, string $userAgent): Currency
     {
+        Gate::authorize('update', $currency);
+
         if (!empty($data['is_default'])) {
             Currency::query()->where('is_default', true)->where('id', '!=', $currency->id)->update(['is_default' => false]);
         }
@@ -89,6 +94,8 @@ class CurrencyService
      */
     public function delete(Currency $currency, User $user, string $ipAddress, string $userAgent): void
     {
+        Gate::authorize('delete', $currency);
+
         $changes = [
             'deleted' => $currency->only(['code', 'name']),
         ];

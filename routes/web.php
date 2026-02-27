@@ -67,7 +67,7 @@ Route::middleware([
     | App Routes with Write Access
     |--------------------------------------------------------------------------
     */
-    Route::middleware('writeAcces')->group(function () {
+    Route::middleware('writeAccess')->group(function () {
 
         // Users
         Route::name('users.')->prefix('users')->group(function () {
@@ -75,7 +75,9 @@ Route::middleware([
             // Users
             Route::controller(UserController::class)->group(function () {
                 Route::get('/users', 'index')->name('index');
+                Route::get('/users/export', 'export')->middleware('throttle:sensitiveActions')->name('export');
                 Route::post('/users', 'store')->middleware('throttle:sensitiveActions')->name('store');
+                Route::post('/users/bulk', 'bulkAction')->middleware('throttle:sensitiveActions')->name('bulk');
                 Route::put('/users/{user}', 'update')->middleware('throttle:sensitiveActions')->name('update');
                 Route::delete('/users/{user}', 'destroy')->middleware('throttle:sensitiveActions')->name('destroy');
             });
@@ -151,13 +153,13 @@ Route::middleware([
         // Profile
         Route::controller(ProfileController::class)->group(function () {
             Route::get('/edit', 'edit')->name('edit');
-            Route::patch('/edit', 'update')->middleware('writeAcces')->name('update');
+            Route::patch('/edit', 'update')->middleware('writeAccess')->name('update');
         });
 
         // Password
         Route::controller(PasswordController::class)->group(function () {
             Route::get('/password', 'edit')->name('password.edit');
-            Route::put('/password', 'update')->middleware(['writeAcces', 'throttle:6,1'])->name('password.update');
+            Route::put('/password', 'update')->middleware(['writeAccess', 'throttle:6,1'])->name('password.update');
         });
 
         // Two Factor Authentication
@@ -169,17 +171,17 @@ Route::middleware([
         Route::controller(NotificationController::class)->group(function () {
             Route::get('/notifications', 'index')->name('notifications.index');
             Route::get('/notifications/archived', 'archived')->name('notifications.archived');
-            Route::post('/notifications/mark-as-read', 'markAsRead')->middleware('writeAcces')->name('notifications.markAsRead');
-            Route::post('/notifications/mark-all-read', 'markAllAsRead')->middleware('writeAcces')->name('notifications.markAllAsRead');
-            Route::post('/notifications/archive', 'archive')->middleware('writeAcces')->name('notifications.archive');
-            Route::post('/notifications/archive-all-read', 'archiveAllRead')->middleware('writeAcces')->name('notifications.archiveAllRead');
+            Route::post('/notifications/mark-as-read', 'markAsRead')->middleware('writeAccess')->name('notifications.markAsRead');
+            Route::post('/notifications/mark-all-read', 'markAllAsRead')->middleware('writeAccess')->name('notifications.markAllAsRead');
+            Route::post('/notifications/archive', 'archive')->middleware('writeAccess')->name('notifications.archive');
+            Route::post('/notifications/archive-all-read', 'archiveAllRead')->middleware('writeAccess')->name('notifications.archiveAllRead');
         });
 
         // Sessions
         Route::controller(SessionController::class)->group(function () {
             Route::get('/sessions', 'index')->name('sessions.index');
-            Route::delete('/sessions/{log}', 'destroy')->middleware('writeAcces')->name('sessions.destroy');
-            Route::delete('/sessions', 'destroyOther')->middleware('writeAcces')->name('sessions.destroyOther');
+            Route::delete('/sessions/{log}', 'destroy')->middleware('writeAccess')->name('sessions.destroy');
+            Route::delete('/sessions', 'destroyOther')->middleware('writeAccess')->name('sessions.destroyOther');
         });
 
         // Appearance

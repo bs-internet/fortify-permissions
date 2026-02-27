@@ -35,8 +35,8 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import AppLayout from '@/layouts/AppLayout.vue';
 import DefinitionsLayout from '@/pages/app/definitions/partials/Layout.vue';
+import EmptyState from '@/components/ui/empty-state/EmptyState.vue';
 import { index as currencyRoute } from '@/routes/settings/definitions/currencies';
 import { type BreadcrumbItem, type Currency } from '@/types';
 
@@ -126,12 +126,14 @@ function confirmDelete() {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
+
         <Head title="Para Birimleri" />
 
         <DefinitionsLayout>
             <div class="space-y-6">
                 <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                    <Heading variant="small" title="Para Birimleri" description="Sistem üzerinde kullanılan para birimleri." />
+                    <Heading variant="small" title="Para Birimleri"
+                        description="Sistem üzerinde kullanılan para birimleri." />
 
                     <Button @click="openCreateDialog">Yeni Para Birimi Ekle</Button>
                 </div>
@@ -151,8 +153,10 @@ function confirmDelete() {
                         </TableHeader>
                         <TableBody>
                             <TableRow v-if="currencies.length === 0">
-                                <TableCell :colspan="7" class="text-center text-muted-foreground">
-                                    Henüz para birimi eklenmemiş.
+                                <TableCell :colspan="7" class="p-0">
+                                    <EmptyState title="Para Birimi Bulunamadı"
+                                        description="Sistemde henüz hiç para birimi oluşturulmamış."
+                                        actionLabel="Yeni Para Birimi Ekle" @action="openCreateDialog" />
                                 </TableCell>
                             </TableRow>
                             <TableRow v-for="currency in currencies" :key="currency.id">
@@ -170,8 +174,10 @@ function confirmDelete() {
                                 </TableCell>
                                 <TableCell class="text-right">
                                     <div class="flex justify-end gap-2">
-                                        <Button variant="ghost" size="sm" @click="openEditDialog(currency)"> Düzenle </Button>
-                                        <Button variant="ghost" size="sm" class="text-destructive" @click="openDeleteDialog(currency)">
+                                        <Button variant="ghost" size="sm" @click="openEditDialog(currency)"> Düzenle
+                                        </Button>
+                                        <Button variant="ghost" size="sm" class="text-destructive"
+                                            @click="openDeleteDialog(currency)">
                                             Sil
                                         </Button>
                                     </div>
@@ -186,9 +192,14 @@ function confirmDelete() {
             <Dialog v-model:open="showFormDialog">
                 <DialogContent class="sm:max-w-lg">
                     <DialogHeader>
-                        <DialogTitle>{{ editingCurrency ? 'Para Birimi Düzenle' : 'Yeni Para Birimi Ekle' }}</DialogTitle>
+                        <DialogTitle>{{ editingCurrency ? 'Para Birimi Düzenle' : 'Yeni Para Birimi Ekle' }}
+                        </DialogTitle>
                         <DialogDescription>
-                            {{ editingCurrency ? 'Para birimi bilgilerini güncelleyin.' : 'Sisteme yeni bir para birimi ekleyin.' }}
+                            {{
+                                editingCurrency
+                                    ? 'Para birimi bilgilerini güncelleyin.'
+                                    : 'Sisteme yeni bir para birimi ekleyin.'
+                            }}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -216,7 +227,8 @@ function confirmDelete() {
                         <div class="grid gap-4 sm:grid-cols-3">
                             <div class="space-y-2">
                                 <Label for="decimal_places">Ondalık Basamak</Label>
-                                <Input id="decimal_places" v-model.number="form.decimal_places" type="number" min="0" max="10" />
+                                <Input id="decimal_places" v-model.number="form.decimal_places" type="number" min="0"
+                                    max="10" />
                                 <InputError :message="form.errors.decimal_places" />
                             </div>
 
@@ -243,12 +255,14 @@ function confirmDelete() {
 
                         <div class="flex items-center gap-6">
                             <div class="flex items-center gap-2">
-                                <Switch id="is_active" :checked="form.is_active" @update:checked="form.is_active = $event" />
+                                <Switch id="is_active" :checked="form.is_active"
+                                    @update:checked="form.is_active = $event" />
                                 <Label for="is_active">Aktif</Label>
                             </div>
 
                             <div class="flex items-center gap-2">
-                                <Switch id="is_default" :checked="form.is_default" @update:checked="form.is_default = $event" />
+                                <Switch id="is_default" :checked="form.is_default"
+                                    @update:checked="form.is_default = $event" />
                                 <Label for="is_default">Varsayılan</Label>
                             </div>
                         </div>
@@ -269,7 +283,8 @@ function confirmDelete() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Para birimini silmek istediğinize emin misiniz?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            <strong>{{ deletingCurrency?.name }} ({{ deletingCurrency?.code }})</strong> kalıcı olarak silinecektir. Bu
+                            <strong>{{ deletingCurrency?.name }} ({{ deletingCurrency?.code }})</strong> kalıcı olarak
+                            silinecektir. Bu
                             işlem geri alınamaz.
                         </AlertDialogDescription>
                     </AlertDialogHeader>

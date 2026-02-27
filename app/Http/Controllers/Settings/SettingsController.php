@@ -9,7 +9,6 @@ use App\Http\Requests\Settings\UpdateGeneralSettingsRequest;
 use App\Models\Setting;
 use App\Services\Settings\SettingService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -34,9 +33,6 @@ class SettingsController extends Controller
      */
     public function index(): Response|RedirectResponse
     {
-        if (Gate::denies('viewAny', Setting::class)) {
-            return back()->with('error', 'Ayarları görüntüleme yetkiniz bulunmuyor.');
-        }
 
         return Inertia::render('app/settings/GeneralSettings', [
             'settings' => [
@@ -56,15 +52,12 @@ class SettingsController extends Controller
      */
     public function update(UpdateGeneralSettingsRequest $request): RedirectResponse
     {
-        if (Gate::denies('update', new Setting())) {
-            return back()->with('error', 'Ayarları güncelleme yetkiniz bulunmuyor.');
-        }
 
         $this->settingService->update(
             $request->user(),
             $request->validated(),
-            $request->ip() ?? '127.0.0.1',
-            $request->userAgent() ?? 'unknown'
+            $request->ip() ?? config('otomasyon.defaults.ip_address', '127.0.0.1'),
+            $request->userAgent() ?? config('otomasyon.defaults.user_agent', 'unknown')
         );
 
         return back()->with('success', 'Sistem ayarları başarıyla güncellendi.');

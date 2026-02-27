@@ -7,6 +7,9 @@ import { initializeTheme } from './composables/useAppearance';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
+import { router } from '@inertiajs/vue3';
+import { toast } from 'vue-sonner';
+
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     resolve: (name) =>
@@ -22,6 +25,16 @@ createInertiaApp({
     progress: {
         color: '#4B5563',
     },
+});
+
+router.on('invalid', (event) => {
+    event.preventDefault();
+    toast.error('Beklenmeyen bir sunucu hatası oluştu. Lütfen daha sonra tekrar deneyin.');
+});
+
+router.on('exception', (event) => {
+    event.preventDefault();
+    toast.error('Sunucu ile iletişim kurulamadı veya bir hata oluştu.');
 });
 
 // This will set light / dark mode on page load...

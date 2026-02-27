@@ -11,18 +11,19 @@ use App\Models\Permission;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Gate;
 
 class PermissionService
 {
     private const CACHE_KEY_ALL = 'permissions_all';
 
     /**
-     * Get all permissions.
-     *
      * @return Collection<int, Permission>
      */
-    public function getAll(): Collection
+    public function all(): Collection
     {
+        Gate::authorize('viewAny', Permission::class);
+
         return Cache::rememberForever(self::CACHE_KEY_ALL, function () {
             return Permission::query()
                 ->where('guard_name', 'web')
@@ -38,6 +39,8 @@ class PermissionService
      */
     public function store(User $user, array $data, string $ipAddress, string $userAgent): Permission
     {
+        Gate::authorize('create', Permission::class);
+
         $data['guard_name'] = 'web';
 
         $permission = Permission::create($data);
@@ -55,6 +58,8 @@ class PermissionService
      */
     public function update(Permission $permission, User $user, array $data, string $ipAddress, string $userAgent): Permission
     {
+        Gate::authorize('update', $permission);
+
         $originalData = $permission->only(array_keys($data));
 
         $permission->fill($data);
@@ -83,6 +88,8 @@ class PermissionService
      */
     public function delete(Permission $permission, User $user, string $ipAddress, string $userAgent): void
     {
+        Gate::authorize('delete', $permission);
+
         $changes = [
             'deleted' => $permission->only(['name', 'label']),
         ];

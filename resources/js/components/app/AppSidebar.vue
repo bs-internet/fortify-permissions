@@ -32,8 +32,21 @@ const mainNav = [
     },
 ];
 
-const data = {
-    moduleNav: [
+import { usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
+
+const page = usePage();
+
+const permissions = computed<string[]>(() => {
+    return (page.props.auth as any)?.permissions || [];
+});
+
+const hasPermission = (permission: string) => {
+    return permissions.value.includes(permission);
+};
+
+const moduleNav = computed(() => {
+    const nav = [
         {
             title: 'Kullanıcılar',
             url: '#',
@@ -42,16 +55,19 @@ const data = {
                 {
                     title: 'Kullanıcılar',
                     url: usersRoute().url,
+                    show: hasPermission('user.management'),
                 },
                 {
-                    title: 'Birimler',
+                    title: 'Roller',
                     url: rolesRoute().url,
+                    show: hasPermission('role.management'),
                 },
                 {
                     title: 'Yetkiler',
                     url: permissionsRoute().url,
+                    show: hasPermission('permission.management'),
                 },
-            ],
+            ].filter((item) => item.show),
         },
         {
             title: 'Ayarlar',
@@ -61,19 +77,25 @@ const data = {
                 {
                     title: 'Genel Ayarlar',
                     url: generalSettings().url,
+                    show: hasPermission('setting.management'),
                 },
                 {
                     title: 'Tanımlamalar',
-                    url: units().url,
+                    url: units().url, // Note: Units represents Definitions broadly in this menu route
+                    show: hasPermission('definition.management'),
                 },
                 {
                     title: 'Etkinlik Kayıtları',
                     url: activities().url,
+                    show: hasPermission('activity.view'),
                 },
-            ],
+            ].filter((item) => item.show),
         },
-    ],
-};
+    ];
+
+    // Sadece içi dolu (alt elemanı olan) parent menüleri göster
+    return nav.filter((menu) => menu.items.length > 0);
+});
 </script>
 
 <template>
@@ -85,7 +107,7 @@ const data = {
         </SidebarHeader>
         <SidebarContent>
             <NavMain :items="mainNav" />
-            <NavMain label="Platform" :items="data.moduleNav" />
+            <NavMain label="Platform" :items="moduleNav" />
         </SidebarContent>
         <SidebarFooter>
             <NavUser />

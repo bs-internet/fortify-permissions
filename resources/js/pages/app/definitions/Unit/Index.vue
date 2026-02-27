@@ -42,8 +42,8 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import AppLayout from '@/layouts/AppLayout.vue';
 import DefinitionsLayout from '@/pages/app/definitions/partials/Layout.vue';
+import EmptyState from '@/components/ui/empty-state/EmptyState.vue';
 import { index as unitRoute } from '@/routes/settings/definitions/units';
 import { type BreadcrumbItem, type Unit } from '@/types';
 
@@ -130,6 +130,7 @@ function getTypeLabel(type: string): string {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
+
         <Head title="Birimler" />
 
         <DefinitionsLayout>
@@ -154,7 +155,11 @@ function getTypeLabel(type: string): string {
                         </TableHeader>
                         <TableBody>
                             <TableRow v-if="units.length === 0">
-                                <TableCell :colspan="6" class="text-center text-muted-foreground"> Henüz birim eklenmemiş. </TableCell>
+                                <TableCell :colspan="6" class="p-0">
+                                    <EmptyState title="Birim Bulunamadı"
+                                        description="Sistemde henüz hiç birim oluşturulmamış."
+                                        actionLabel="Yeni Birim Ekle" @action="openCreateDialog" />
+                                </TableCell>
                             </TableRow>
                             <TableRow v-for="unit in units" :key="unit.id">
                                 <TableCell class="font-medium">{{ unit.name }}</TableCell>
@@ -170,8 +175,10 @@ function getTypeLabel(type: string): string {
                                 <TableCell class="text-center">{{ unit.sort_order }}</TableCell>
                                 <TableCell class="text-right">
                                     <div class="flex justify-end gap-2">
-                                        <Button variant="ghost" size="sm" @click="openEditDialog(unit)"> Düzenle </Button>
-                                        <Button variant="ghost" size="sm" class="text-destructive" @click="openDeleteDialog(unit)">
+                                        <Button variant="ghost" size="sm" @click="openEditDialog(unit)"> Düzenle
+                                        </Button>
+                                        <Button variant="ghost" size="sm" class="text-destructive"
+                                            @click="openDeleteDialog(unit)">
                                             Sil
                                         </Button>
                                     </div>
@@ -231,7 +238,8 @@ function getTypeLabel(type: string): string {
                         </div>
 
                         <div class="flex items-center gap-2">
-                            <Switch id="is_active" :checked="form.is_active" @update:checked="form.is_active = $event" />
+                            <Switch id="is_active" :checked="form.is_active"
+                                @update:checked="form.is_active = $event" />
                             <Label for="is_active">Aktif</Label>
                         </div>
 
@@ -251,7 +259,8 @@ function getTypeLabel(type: string): string {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Birimi silmek istediğinize emin misiniz?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            <strong>{{ deletingUnit?.name }} ({{ deletingUnit?.abbreviation }})</strong> kalıcı olarak silinecektir. Bu
+                            <strong>{{ deletingUnit?.name }} ({{ deletingUnit?.abbreviation }})</strong> kalıcı olarak
+                            silinecektir. Bu
                             işlem geri alınamaz.
                         </AlertDialogDescription>
                     </AlertDialogHeader>

@@ -11,6 +11,7 @@ use App\Models\Language;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Gate;
 
 class LanguageService
 {
@@ -18,12 +19,12 @@ class LanguageService
     private const CACHE_KEY_ACTIVE = 'languages_active';
 
     /**
-     * Get all languages ordered by sort_order.
-     *
      * @return Collection<int, Language>
      */
-    public function getAll(): Collection
+    public function all(): Collection
     {
+        Gate::authorize('viewAny', Language::class);
+
         return Cache::rememberForever(self::CACHE_KEY_ALL, function () {
             return Language::query()
                 ->orderBy('sort_order')
@@ -33,11 +34,9 @@ class LanguageService
     }
 
     /**
-     * Get only active languages (for dropdowns).
-     *
      * @return Collection<int, Language>
      */
-    public function getActiveLanguages(): Collection
+    public function allActive(): Collection
     {
         return Cache::rememberForever(self::CACHE_KEY_ACTIVE, function () {
             return Language::query()
@@ -55,6 +54,8 @@ class LanguageService
      */
     public function store(User $user, array $data, string $ipAddress, string $userAgent): Language
     {
+        Gate::authorize('create', Language::class);
+
         if (!empty($data['is_default'])) {
             Language::query()->where('is_default', true)->update(['is_default' => false]);
         }
@@ -74,6 +75,8 @@ class LanguageService
      */
     public function update(Language $language, User $user, array $data, string $ipAddress, string $userAgent): Language
     {
+        Gate::authorize('update', $language);
+
         if (!empty($data['is_default'])) {
             Language::query()->where('is_default', true)->where('id', '!=', $language->id)->update(['is_default' => false]);
         }
@@ -106,6 +109,8 @@ class LanguageService
      */
     public function delete(Language $language, User $user, string $ipAddress, string $userAgent): void
     {
+        Gate::authorize('delete', $language);
+
         $changes = [
             'deleted' => $language->only(['code', 'name']),
         ];
