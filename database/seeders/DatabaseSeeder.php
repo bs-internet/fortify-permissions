@@ -2,9 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\Language;
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Enums\UserStatus;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,11 +15,25 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $this->call([
+            LanguageSeeder::class,
+            PermissionSeeder::class,
+            RoleSeeder::class,
         ]);
+
+        $defaultLanguage = Language::where('is_default', true)->first();
+
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@admin.com'],
+            [
+                'name' => 'Super Admin',
+                'password' => Hash::make('password'),
+                'status' => UserStatus::ACTIVE,
+                'language_id' => $defaultLanguage?->id,
+                'title' => 'Süper Yönetici',
+            ]
+        );
+
+        $admin->assignRole('Super Admin');
     }
 }
