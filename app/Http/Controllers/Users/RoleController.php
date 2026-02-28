@@ -33,7 +33,7 @@ class RoleController extends Controller
 
         return Inertia::render('app/users/Role/Index', [
             'roles' => $this->roleService->all(),
-            'permissions' => $this->permissionService->all(),
+            'permissions' => $this->permissionService->groupedAll(),
         ]);
     }
 

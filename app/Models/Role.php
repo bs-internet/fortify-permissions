@@ -22,4 +22,9 @@ class Role extends SpatieRole
         'label',
         'description',
     ];
+
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 }

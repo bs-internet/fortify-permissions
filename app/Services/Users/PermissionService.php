@@ -63,6 +63,25 @@ class PermissionService
     }
 
     /**
+     * Get all permissions grouped by their module prefix.
+     * * @return array<string, Collection<int, Permission>>
+     */
+    public function groupedAll(): array
+    {
+        Gate::authorize('viewAny', Permission::class);
+
+        return $this->all()->groupBy(function (Permission $permission) {
+
+            $name = $permission->name;
+            $moduleKey = str_contains($name->value, '.')
+                ? explode('.', $name->value)[0]
+                : 'other';
+
+            return \App\Enums\PermissionEnum::getModuleLabel($moduleKey);
+        })->toArray();
+    }
+
+    /**
      * Clear the permission caches.
      */
     private function clearCache(): void

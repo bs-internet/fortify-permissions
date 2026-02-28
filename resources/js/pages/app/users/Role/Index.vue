@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
-import { store, update, destroy } from '@/actions/App/Http/Controllers/Users/RoleController';
+import {
+    store,
+    update,
+    destroy,
+} from '@/actions/App/Http/Controllers/Users/RoleController';
 import Heading from '@/components/app/common/Heading.vue';
 import InputError from '@/components/app/common/InputError.vue';
 import {
@@ -27,7 +31,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
     Table,
     TableBody,
@@ -36,18 +39,18 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout.vue';
 import UsersLayout from '@/pages/app/users/partials/Layout.vue';
-import EmptyState from '@/components/ui/empty-state/EmptyState.vue';
 import { index as roleRoute } from '@/routes/users/roles';
 import { type BreadcrumbItem, type Permission, type Role } from '@/types';
 
 type Props = {
     roles: Role[];
-    permissions: Permission[];
+    permissions: Record<string, Permission[]>;
 };
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Kullanıcılar', href: '#' },
@@ -83,11 +86,6 @@ function openEditDialog(role: Role) {
     showFormDialog.value = true;
 }
 
-function openDeleteDialog(role: Role) {
-    deletingRole.value = role;
-    showDeleteDialog.value = true;
-}
-
 function togglePermission(permissionId: string) {
     const index = form.permissions.indexOf(permissionId);
     if (index > -1) {
@@ -97,12 +95,25 @@ function togglePermission(permissionId: string) {
     }
 }
 
+// Bir grubun tamamını seçmek veya kaldırmak için yardımcı fonksiyon
+function toggleGroup(groupPermissions: Permission[]) {
+    const groupIds = groupPermissions.map((p) => p.id);
+    const allSelected = groupIds.every((id) => form.permissions.includes(id));
+
+    if (allSelected) {
+        form.permissions = form.permissions.filter(
+            (id) => !groupIds.includes(id),
+        );
+    } else {
+        const newIds = groupIds.filter((id) => !form.permissions.includes(id));
+        form.permissions.push(...newIds);
+    }
+}
+
 function submitForm() {
     if (editingRole.value) {
         form.put(update.url(editingRole.value.id), {
-            onSuccess: () => {
-                showFormDialog.value = false;
-            },
+            onSuccess: () => (showFormDialog.value = false),
         });
     } else {
         form.post(store.url(), {
@@ -116,7 +127,6 @@ function submitForm() {
 
 function confirmDelete() {
     if (!deletingRole.value) return;
-
     form.delete(destroy.url(deletingRole.value.id), {
         onSuccess: () => {
             showDeleteDialog.value = false;
@@ -128,14 +138,18 @@ function confirmDelete() {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
-
         <Head title="Roller" />
 
         <UsersLayout>
             <div class="space-y-6">
-                <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                    <Heading variant="small" title="Roller" description="Sistem kullanıcılarına atanabilecek roller." />
-
+                <div
+                    class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"
+                >
+                    <Heading
+                        variant="small"
+                        title="Roller"
+                        description="Sistem kullanıcılarına atanabilecek roller ve yetki setleri."
+                    />
                     <Button @click="openCreateDialog">Yeni Rol Ekle</Button>
                 </div>
 
@@ -145,41 +159,75 @@ function confirmDelete() {
                             <TableRow>
                                 <TableHead>Teknik Ad</TableHead>
                                 <TableHead>Görünen Ad</TableHead>
-                                <TableHead>Açıklama</TableHead>
                                 <TableHead>Yetkiler</TableHead>
-                                <TableHead class="text-right">İşlemler</TableHead>
+                                <TableHead class="text-right"
+                                    >İşlemler</TableHead
+                                >
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow v-if="roles.length === 0">
-                                <TableCell :colspan="5" class="p-0">
-                                    <EmptyState title="Rol Bulunamadı"
-                                        description="Sistemde henüz hiç rol oluşturulmamış." actionLabel="Yeni Rol Ekle"
-                                        @action="openCreateDialog" />
-                                </TableCell>
-                            </TableRow>
                             <TableRow v-for="role in roles" :key="role.id">
-                                <TableCell class="font-mono text-sm">{{ role.name }}</TableCell>
-                                <TableCell class="font-medium">{{ role.label }}</TableCell>
-                                <TableCell class="text-muted-foreground">{{ role.description ?? '-' }}</TableCell>
+                                <TableCell
+                                    class="font-mono text-xs text-muted-foreground"
+                                    >{{ role.name }}</TableCell
+                                >
                                 <TableCell>
-                                    <div class="flex flex-wrap gap-1">
-                                        <Badge v-for="permission in role.permissions" :key="permission.id"
-                                            variant="secondary">
+                                    <div class="font-medium">
+                                        {{ role.label }}
+                                    </div>
+                                    <div class="text-xs text-muted-foreground">
+                                        {{ role.description ?? '-' }}
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <div
+                                        class="flex max-w-[400px] flex-wrap gap-1"
+                                    >
+                                        <Badge
+                                            v-for="permission in role.permissions.slice(
+                                                0,
+                                                5,
+                                            )"
+                                            :key="permission.id"
+                                            variant="outline"
+                                            class="font-normal"
+                                        >
                                             {{ permission.label }}
                                         </Badge>
-                                        <span v-if="role.permissions.length === 0"
-                                            class="text-sm text-muted-foreground">-</span>
+                                        <Badge
+                                            v-if="role.permissions.length > 5"
+                                            variant="secondary"
+                                        >
+                                            +{{
+                                                role.permissions.length - 5
+                                            }}
+                                            daha...
+                                        </Badge>
+                                        <span
+                                            v-if="role.permissions.length === 0"
+                                            class="text-muted-foreground"
+                                            >-</span
+                                        >
                                     </div>
                                 </TableCell>
                                 <TableCell class="text-right">
                                     <div class="flex justify-end gap-2">
-                                        <Button variant="ghost" size="sm" @click="openEditDialog(role)"> Düzenle
-                                        </Button>
-                                        <Button variant="ghost" size="sm" class="text-destructive"
-                                            @click="openDeleteDialog(role)">
-                                            Sil
-                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            @click="openEditDialog(role)"
+                                            >Düzenle</Button
+                                        >
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            class="text-destructive"
+                                            @click="
+                                                showDeleteDialog = true;
+                                                deletingRole = role;
+                                            "
+                                            >Sil</Button
+                                        >
                                     </div>
                                 </TableCell>
                             </TableRow>
@@ -188,84 +236,185 @@ function confirmDelete() {
                 </div>
             </div>
 
-            <!-- Create/Edit Dialog -->
             <Dialog v-model:open="showFormDialog">
-                <DialogContent class="sm:max-w-lg">
-                    <DialogHeader>
-                        <DialogTitle>{{ editingRole ? 'Rol Düzenle' : 'Yeni Rol Ekle' }}</DialogTitle>
-                        <DialogDescription>
-                            {{
-                                editingRole
-                                    ? 'Rol bilgilerini ve yetkilerini güncelleyin.'
-                                    : 'Sisteme yeni bir rol ekleyin.'
-                            }}
-                        </DialogDescription>
+                <DialogContent
+                    class="flex max-h-[90vh] flex-col p-0 sm:max-w-2xl"
+                >
+                    <DialogHeader class="p-6 pb-0">
+                        <DialogTitle>{{
+                            editingRole ? 'Rol Düzenle' : 'Yeni Rol Ekle'
+                        }}</DialogTitle>
+                        <DialogDescription
+                            >Rol bilgilerini ve yetkilerini bu ekrandan
+                            yönetebilirsiniz.</DialogDescription
+                        >
                     </DialogHeader>
 
-                    <form class="space-y-4" @submit.prevent="submitForm">
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            <div class="space-y-2">
-                                <Label for="name">Teknik Ad (slug)</Label>
-                                <Input id="name" v-model="form.name" placeholder="admin" />
-                                <InputError :message="form.errors.name" />
-                            </div>
-
-                            <div class="space-y-2">
-                                <Label for="label">Görünen Ad</Label>
-                                <Input id="label" v-model="form.label" placeholder="Yönetici" />
-                                <InputError :message="form.errors.label" />
-                            </div>
-                        </div>
-
-                        <div class="space-y-2">
-                            <Label for="description">Açıklama</Label>
-                            <Textarea id="description" v-model="form.description" placeholder="Bu rolün açıklaması..."
-                                rows="2" />
-                            <InputError :message="form.errors.description" />
-                        </div>
-
-                        <div v-if="permissions.length > 0" class="space-y-2">
-                            <Label>Yetkiler</Label>
-                            <div class="max-h-48 space-y-2 overflow-y-auto rounded-md border p-3">
-                                <div v-for="permission in permissions" :key="permission.id"
-                                    class="flex items-center gap-2">
-                                    <Checkbox :id="`perm-${permission.id}`"
-                                        :checked="form.permissions.includes(permission.id)"
-                                        @update:checked="togglePermission(permission.id)" />
-                                    <Label :for="`perm-${permission.id}`" class="cursor-pointer font-normal">
-                                        {{ permission.label }}
-                                        <span v-if="permission.description" class="text-xs text-muted-foreground">
-                                            - {{ permission.description }}
-                                        </span>
-                                    </Label>
+                    <form
+                        @submit.prevent="submitForm"
+                        class="flex flex-col overflow-hidden"
+                    >
+                        <div class="flex-1 space-y-6 overflow-y-auto p-6">
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <div class="space-y-2">
+                                    <Label for="name">Teknik Ad (slug)</Label>
+                                    <Input
+                                        id="name"
+                                        v-model="form.name"
+                                        placeholder="admin"
+                                        :disabled="
+                                            editingRole?.name === 'Admin'
+                                        "
+                                    />
+                                    <InputError :message="form.errors.name" />
+                                </div>
+                                <div class="space-y-2">
+                                    <Label for="label">Görünen Ad</Label>
+                                    <Input
+                                        id="label"
+                                        v-model="form.label"
+                                        placeholder="Yönetici"
+                                    />
+                                    <InputError :message="form.errors.label" />
                                 </div>
                             </div>
-                            <InputError :message="form.errors.permissions" />
+
+                            <div class="space-y-2">
+                                <Label for="description">Açıklama</Label>
+                                <Textarea
+                                    id="description"
+                                    v-model="form.description"
+                                    rows="2"
+                                />
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <Label
+                                        class="text-base font-semibold text-primary"
+                                        >Modül Bazlı Yetkiler</Label
+                                    >
+                                    <span class="text-xs text-muted-foreground"
+                                        >{{ form.permissions.length }} yetki
+                                        seçildi</span
+                                    >
+                                </div>
+
+                                <div class="grid gap-6 rounded-lg border p-4">
+                                    <div
+                                        v-for="(
+                                            groupPerms, groupName
+                                        ) in permissions"
+                                        :key="groupName"
+                                        class="space-y-3"
+                                    >
+                                        <div
+                                            class="flex items-center gap-2 border-b pb-2"
+                                        >
+                                            <Checkbox
+                                                :id="`group-${groupName}`"
+                                                :checked="
+                                                    groupPerms.every((p) =>
+                                                        form.permissions.includes(
+                                                            p.id,
+                                                        ),
+                                                    )
+                                                "
+                                                @update:checked="
+                                                    toggleGroup(groupPerms)
+                                                "
+                                            />
+                                            <Label :for="`group-${groupName}`" class="uppercase font-bold text-xs tracking-wider cursor-pointer">
+                                                {{ groupName }} YÖNETİMİ
+                                            </Label>
+                                        </div>
+
+                                        <div
+                                            class="grid grid-cols-1 gap-3 pl-6 sm:grid-cols-2"
+                                        >
+                                            <div
+                                                v-for="permission in groupPerms"
+                                                :key="permission.id"
+                                                class="flex items-start gap-2"
+                                            >
+                                                <Checkbox
+                                                    :id="`perm-${permission.id}`"
+                                                    :checked="
+                                                        form.permissions.includes(
+                                                            permission.id,
+                                                        )
+                                                    "
+                                                    @update:checked="
+                                                        togglePermission(
+                                                            permission.id,
+                                                        )
+                                                    "
+                                                />
+                                                <div
+                                                    class="grid gap-1.5 leading-none"
+                                                >
+                                                    <Label
+                                                        :for="`perm-${permission.id}`"
+                                                        class="cursor-pointer text-sm leading-none font-medium"
+                                                    >
+                                                        {{ permission.label }}
+                                                    </Label>
+                                                    <p
+                                                        v-if="
+                                                            permission.description
+                                                        "
+                                                        class="text-xs leading-snug text-muted-foreground"
+                                                    >
+                                                        {{
+                                                            permission.description
+                                                        }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <DialogFooter>
-                            <Button type="button" variant="outline" @click="showFormDialog = false">İptal</Button>
+                        <DialogFooter class="border-t bg-muted/20 p-6 pt-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                @click="showFormDialog = false"
+                                >İptal</Button
+                            >
                             <Button type="submit" :disabled="form.processing">
-                                {{ form.processing ? 'Kaydediliyor...' : 'Kaydet' }}
+                                {{
+                                    form.processing
+                                        ? 'Kaydediliyor...'
+                                        : 'Kaydet'
+                                }}
                             </Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
             </Dialog>
 
-            <!-- Delete Confirmation -->
             <AlertDialog v-model:open="showDeleteDialog">
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Rolü silmek istediğinize emin misiniz?</AlertDialogTitle>
+                        <AlertDialogTitle
+                            >Rolü silmek istediğinize emin
+                            misiniz?</AlertDialogTitle
+                        >
                         <AlertDialogDescription>
-                            <strong>{{ deletingRole?.label }}</strong> rolü kalıcı olarak silinecektir. Bu işlem geri
-                            alınamaz.
+                            <strong>{{ deletingRole?.label }}</strong> rolü
+                            silinecektir. Bu işlem geri alınamaz.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>İptal</AlertDialogCancel>
-                        <AlertDialogAction @click="confirmDelete">Sil</AlertDialogAction>
+                        <AlertDialogAction
+                            @click="confirmDelete"
+                            class="bg-destructive text-destructive-foreground"
+                            >Sil</AlertDialogAction
+                        >
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

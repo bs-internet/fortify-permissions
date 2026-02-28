@@ -131,6 +131,7 @@ class RoleService
     private function clearCache(): void
     {
         Cache::forget(self::CACHE_KEY_ALL);
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
     }
 }
 

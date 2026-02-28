@@ -117,4 +117,19 @@ enum PermissionEnum: string
             self::ACTIVITY_VIEW         => 'Sistem üzerindeki tüm işlem loglarını inceleme yetkisi.',
         };
     }
+
+    public static function getModuleLabel(string $module): string
+    {
+        return match ($module) {
+            'user'       => 'Kullanıcı',
+            'role'       => 'Rol ve Yetki',
+            'permission' => 'İzin',
+            'unit'       => 'Birim',
+            'language'   => 'Dil',
+            'currency'   => 'Para Birimi',
+            'setting'    => 'Sistem Ayarları',
+            'activity'   => 'Sistem Kayıtları',
+            default      => ucfirst($module),
+        };
+    }
 }
