@@ -85,7 +85,9 @@ Route::middleware([
             // Roles
             Route::controller(RoleController::class)->group(function () {
                 Route::get('/roles', 'index')->name('roles.index');
+                Route::get('/roles/create', 'create')->name('roles.create');
                 Route::post('/roles', 'store')->middleware('throttle:sensitiveActions')->name('roles.store');
+                Route::get('/roles/{role}/edit', 'edit')->name('roles.edit');
                 Route::put('/roles/{role}', 'update')->middleware('throttle:sensitiveActions')->name('roles.update');
                 Route::delete('/roles/{role}', 'destroy')->middleware('throttle:sensitiveActions')->name('roles.destroy');
             });

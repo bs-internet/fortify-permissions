@@ -31,6 +31,10 @@ class RolePolicy
      */
     public function update(User $user, Role $role): bool
     {
+        if ($role->name === 'Super Admin') {
+            return false;
+        }
+
         return $user->can(PermissionEnum::ROLE_UPDATE->value);
     }
 
@@ -39,6 +43,10 @@ class RolePolicy
      */
     public function delete(User $user, Role $role): bool
     {
+        if ($role->name === 'Super Admin') {
+            return false;
+        }
+        
         return $user->can(PermissionEnum::ROLE_DELETE->value);
     }
 }

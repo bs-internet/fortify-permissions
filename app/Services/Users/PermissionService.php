@@ -8,6 +8,7 @@ use App\Events\PermissionUpdated;
 use App\Models\Permission;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 
@@ -16,18 +17,15 @@ class PermissionService
     private const CACHE_KEY_ALL = 'permissions_all';
 
     /**
-     * @return Collection<int, Permission>
+     * @return LengthAwarePaginator
      */
-    public function all(): Collection
+    public function all(): LengthAwarePaginator
     {
         Gate::authorize('viewAny', Permission::class);
-
-        return Cache::rememberForever(self::CACHE_KEY_ALL, function () {
-            return Permission::query()
-                ->where('guard_name', 'web')
-                ->orderBy('name')
-                ->get();
-        });
+        return Permission::query()
+            ->where('guard_name', 'web')
+            ->orderBy('name')
+            ->paginate(config('otomasyon.pagination.per_page'));
     }
 
     /**

@@ -13,12 +13,10 @@ use App\Services\Users\RoleService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Request;
 
 class RoleController extends Controller
 {
-    /**
-     * RoleController constructor.
-     */
     public function __construct(
         protected RoleService $roleService,
         protected PermissionService $permissionService
@@ -26,39 +24,58 @@ class RoleController extends Controller
     }
 
     /**
-     * Display a listing of roles.
+     * Rol Listeleme Sayfası
      */
-    public function index(): Response|RedirectResponse
+    public function index(): Response
     {
-
         return Inertia::render('app/users/Role/Index', [
             'roles' => $this->roleService->all(),
+        ]);
+    }
+
+    /**
+     * Yeni Rol Oluşturma Sayfası
+     */
+    public function create(): Response
+    {
+        return Inertia::render('app/users/Role/Create', [
             'permissions' => $this->permissionService->groupedAll(),
         ]);
     }
 
     /**
-     * Store a newly created role.
+     * Yeni Rolü Kaydetme İşlemi
      */
     public function store(RoleCreateRequest $request): RedirectResponse
     {
-
         $this->roleService->store(
             $request->user(),
             $request->validated(),
             $request->ip() ?? config('otomasyon.defaults.ip_address', '127.0.0.1'),
             $request->userAgent() ?? config('otomasyon.defaults.user_agent', 'unknown')
         );
-
-        return back()->with('success', 'Rol başarıyla eklendi.');
+        
+        return redirect()->route('users.roles.index')->with('success', 'Rol başarıyla oluşturuldu.');
     }
 
     /**
-     * Update the specified role.
+     * Rol Düzenleme Sayfası
+     */
+    public function edit(Role $role): Response
+    {
+        $role->load('permissions:id');
+
+        return Inertia::render('app/users/Role/Edit', [
+            'role' => $role,
+            'permissions' => $this->permissionService->groupedAll(),
+        ]);
+    }
+
+    /**
+     * Rol Güncelleme İşlemi
      */
     public function update(RoleUpdateRequest $request, Role $role): RedirectResponse
     {
-
         $this->roleService->update(
             $role,
             $request->user(),
@@ -67,23 +84,25 @@ class RoleController extends Controller
             $request->userAgent() ?? config('otomasyon.defaults.user_agent', 'unknown')
         );
 
-        return back()->with('success', 'Rol başarıyla güncellendi.');
+        return redirect()->route('users.roles.index')->with('success', 'Rol başarıyla güncellendi.');
     }
 
     /**
-     * Remove the specified role.
+     * Rol Silme İşlemi
      */
     public function destroy(Role $role): RedirectResponse
     {
+        try {
+            $this->roleService->delete(
+                $role,
+                request()->user(),
+                request()->ip() ?? '127.0.0.1',
+                request()->userAgent() ?? 'unknown'
+            );
 
-        $this->roleService->delete(
-            $role,
-            request()->user(),
-            request()->ip() ?? '127.0.0.1',
-            request()->userAgent() ?? 'unknown'
-        );
-
-        return back()->with('success', 'Rol başarıyla silindi.');
+            return redirect()->route('users.roles.index')->with('success', 'Rol başarıyla silindi.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 }
-

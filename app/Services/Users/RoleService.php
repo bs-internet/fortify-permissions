@@ -10,29 +10,29 @@ use App\Events\RoleUpdated;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Str;
 
 class RoleService
 {
     private const CACHE_KEY_ALL = 'roles_all';
 
     /**
-     * @return Collection<int, Role>
+     * @return LengthAwarePaginator
      */
-    public function all(): Collection
+    public function all(): LengthAwarePaginator
     {
         Gate::authorize('viewAny', Role::class);
 
-        return Cache::rememberForever(self::CACHE_KEY_ALL, function () {
-            return Role::query()
-                ->where('guard_name', 'web')
-                ->with('permissions:id,name,label')
-                ->orderBy('name')
-                ->get();
-        });
+        return Role::query()
+            ->where('guard_name', 'web')
+            ->where('name', '!=', 'Super Admin')
+            ->with('permissions:id,name,label')
+            ->orderBy('name')
+            ->paginate(config('otomasyon.pagination.per_page', 15));
     }
 
     /**
@@ -48,6 +48,10 @@ class RoleService
         unset($data['permissions']);
 
         $data['guard_name'] = 'web';
+
+        if (empty($data['name'])) {
+            $data['name'] = Str::slug($data['label']);
+        }
 
         $role = Role::create($data);
 
@@ -73,8 +77,9 @@ class RoleService
 
         $permissionIds = $data['permissions'] ?? [];
         unset($data['permissions']);
+        unset($data['name']);
 
-        $originalData = $role->only(array_keys($data));
+        $originalData = $role->only(['label', 'description']);
 
         $role->fill($data);
         $role->save();
@@ -111,7 +116,7 @@ class RoleService
             throw new AuthorizationException('Bu role atanmış kullanıcılar var, önce kullanıcıları kaldırın.');
         }
 
-        if ($role->name === 'Admin' || $role->id === 1) {
+        if ($role->name === 'Super Admin' || $role->id === 1) {
             throw new AuthorizationException('Sistem yöneticisi rolü silinemez.');
         }
 
@@ -119,6 +124,7 @@ class RoleService
             'deleted' => $role->only(['name', 'label']),
         ];
 
+        $role->syncPermissions([]);
         $role->delete();
 
         $this->clearCache();
@@ -134,4 +140,3 @@ class RoleService
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
     }
 }
-

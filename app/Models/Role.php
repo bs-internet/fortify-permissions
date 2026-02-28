@@ -7,15 +7,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Spatie\Permission\Models\Role as SpatieRole;
+use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Role extends SpatieRole
 {
     use HasFactory;
     use HasUuids;
 
-    /**
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'guard_name',

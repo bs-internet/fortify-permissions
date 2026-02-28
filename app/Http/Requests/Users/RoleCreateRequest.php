@@ -9,8 +9,6 @@ use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * Request for creating user roles.
- *
- * Handles validation for role creation.
  */
 class RoleCreateRequest extends FormRequest
 {
@@ -22,8 +20,7 @@ class RoleCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', 'unique:roles,name'],
-            'label' => ['required', 'string', 'max:255'],
+            'label' => ['required', 'string', 'max:255', 'unique:roles,label'],
             'description' => ['nullable', 'string', 'max:500'],
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['exists:permissions,id'],
@@ -38,9 +35,8 @@ class RoleCreateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'Rol teknik adı zorunludur.',
-            'name.unique' => 'Bu rol adı zaten kullanılıyor.',
-            'label.required' => 'Rol görünen adı zorunludur.',
+            'label.required' => 'Rol adı zorunludur.',
+            'label.unique' => 'Bu rol adı zaten sistemde kayıtlı.',
             'permissions.*.exists' => 'Seçilen yetkilerden biri geçersiz.',
         ];
     }
