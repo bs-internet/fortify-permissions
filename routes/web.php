@@ -93,9 +93,7 @@ Route::middleware([
             // Permissions
             Route::controller(PermissionController::class)->group(function () {
                 Route::get('/permissions', 'index')->name('permissions.index');
-                Route::post('/permissions', 'store')->middleware('throttle:sensitiveActions')->name('permissions.store');
                 Route::put('/permissions/{permission}', 'update')->middleware('throttle:sensitiveActions')->name('permissions.update');
-                Route::delete('/permissions/{permission}', 'destroy')->middleware('throttle:sensitiveActions')->name('permissions.destroy');
             });
         });
 

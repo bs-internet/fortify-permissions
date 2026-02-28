@@ -6,6 +6,7 @@ namespace App\Policies;
 
 use App\Models\Permission;
 use App\Models\User;
+use App\Enums\PermissionEnum;
 
 class PermissionPolicy
 {
@@ -14,15 +15,7 @@ class PermissionPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('permission.management');
-    }
-
-    /**
-     * Determine whether the user can create permissions.
-     */
-    public function create(User $user): bool
-    {
-        return $user->can('permission.create');
+        return $user->can(PermissionEnum::PERMISSION_MANAGEMENT->value);
     }
 
     /**
@@ -30,14 +23,6 @@ class PermissionPolicy
      */
     public function update(User $user, Permission $permission): bool
     {
-        return $user->can('permission.update');
-    }
-
-    /**
-     * Determine whether the user can delete the given permission.
-     */
-    public function delete(User $user, Permission $permission): bool
-    {
-        return $user->can('permission.delete');
+        return $user->can(PermissionEnum::PERMISSION_UPDATE->value);
     }
 }

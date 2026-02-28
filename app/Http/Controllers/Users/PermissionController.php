@@ -35,22 +35,6 @@ class PermissionController extends Controller
     }
 
     /**
-     * Store a newly created permission.
-     */
-    public function store(PermissionCreateRequest $request): RedirectResponse
-    {
-
-        $this->permissionService->store(
-            $request->user(),
-            $request->validated(),
-            $request->ip() ?? config('otomasyon.defaults.ip_address', '127.0.0.1'),
-            $request->userAgent() ?? config('otomasyon.defaults.user_agent', 'unknown')
-        );
-
-        return back()->with('success', 'Yetki başarıyla eklendi.');
-    }
-
-    /**
      * Update the specified permission.
      */
     public function update(PermissionUpdateRequest $request, Permission $permission): RedirectResponse
@@ -65,22 +49,6 @@ class PermissionController extends Controller
         );
 
         return back()->with('success', 'Yetki başarıyla güncellendi.');
-    }
-
-    /**
-     * Remove the specified permission.
-     */
-    public function destroy(Permission $permission): RedirectResponse
-    {
-
-        $this->permissionService->delete(
-            $permission,
-            request()->user(),
-            request()->ip() ?? '127.0.0.1',
-            request()->userAgent() ?? 'unknown'
-        );
-
-        return back()->with('success', 'Yetki başarıyla silindi.');
     }
 }
 

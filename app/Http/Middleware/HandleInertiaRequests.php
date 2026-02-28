@@ -47,7 +47,7 @@ class HandleInertiaRequests extends Middleware
                     'email_verified_at' => $request->user()->email_verified_at,
                     'created_at' => $request->user()->created_at,
                     'updated_at' => $request->user()->updated_at,
-                    'can' => $request->user()->getPermissionsViaRoles()->pluck('name')->mapWithKeys(fn($permission) => [$permission => true]) ?? [],
+                    'can' => $request->user()->getAllPermissions()->pluck('name')->mapWithKeys(fn($permission) => [$permission => true]) ?? [],
                 ] : null,
                 'is_super_admin' => $request->user()?->hasRole('Super Admin') ?? false,
                 'roles' => $request->user()?->getRoleNames() ?? [],

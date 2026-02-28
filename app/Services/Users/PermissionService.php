@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\Users;
 
-use App\Events\PermissionCreated;
-use App\Events\PermissionDeleted;
 use App\Events\PermissionUpdated;
 use App\Models\Permission;
 use App\Models\User;
@@ -30,25 +28,6 @@ class PermissionService
                 ->orderBy('name')
                 ->get();
         });
-    }
-
-    /**
-     * Store a new permission.
-     *
-     * @param array<string, mixed> $data
-     */
-    public function store(User $user, array $data, string $ipAddress, string $userAgent): Permission
-    {
-        Gate::authorize('create', Permission::class);
-
-        $data['guard_name'] = 'web';
-
-        $permission = Permission::create($data);
-
-        $this->clearCache();
-        PermissionCreated::dispatch($user, $data, $ipAddress, $userAgent);
-
-        return $permission;
     }
 
     /**
@@ -81,23 +60,6 @@ class PermissionService
         }
 
         return $permission;
-    }
-
-    /**
-     * Delete a permission.
-     */
-    public function delete(Permission $permission, User $user, string $ipAddress, string $userAgent): void
-    {
-        Gate::authorize('delete', $permission);
-
-        $changes = [
-            'deleted' => $permission->only(['name', 'label']),
-        ];
-
-        $permission->delete();
-
-        $this->clearCache();
-        PermissionDeleted::dispatch($user, $changes, $ipAddress, $userAgent);
     }
 
     /**
