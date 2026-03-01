@@ -7,6 +7,7 @@ namespace App\Services\Users;
 use App\Events\UserCreated;
 use App\Events\UserDeleted;
 use App\Events\UserUpdated;
+use App\Models\Language;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
@@ -25,7 +26,7 @@ class UserService
         $perPage = $perPage ?? config('otomasyon.pagination.per_page', 15);
         Gate::authorize('viewAny', User::class);
 
-        return $this->getForExport($filters)
+        return $this->getFilteredQuery($filters)
             ->paginate($perPage)
             ->withQueryString();
     }
@@ -36,13 +37,14 @@ class UserService
      * @param array<string, mixed> $filters
      * @return Builder<User>
      */
-    public function getForExport(array $filters = []): Builder
+    public function getFilteredQuery(array $filters = []): Builder
     {
         Gate::authorize('viewAny', User::class);
 
         /** @var Builder $query */
         $query = User::query()
-            ->with(['roles:id,name,label', 'permissions:id,name,label', 'language:id,name,code']);
+            ->with(['roles:id,name,label', 'permissions:id,name,label', 'language:id,name,code'])
+            ->whereDoesntHave('roles', fn (Builder $q) => $q->where('name', 'Super Admin'));
 
         $query->when($filters['search'] ?? null, function (Builder $query, $search) {
             $query->where(function (Builder $q) use ($search) {
@@ -71,6 +73,10 @@ class UserService
         $roleIds = $data['roles'] ?? [];
         $permissionIds = $data['permissions'] ?? [];
         unset($data['roles'], $data['permissions'], $data['password_confirmation']);
+
+        if (empty($data['language_id'])) {
+            $data['language_id'] = Language::query()->where('is_default', true)->value('id');
+        }
 
         $user = User::create($data);
 
@@ -105,6 +111,10 @@ class UserService
         // Skip empty password
         if (empty($data['password'])) {
             unset($data['password']);
+        }
+
+        if (empty($data['language_id'])) {
+            $data['language_id'] = Language::query()->where('is_default', true)->value('id');
         }
 
         $originalData = $user->only(array_keys($data));

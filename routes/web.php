@@ -75,9 +75,10 @@ Route::middleware([
             // Users
             Route::controller(UserController::class)->group(function () {
                 Route::get('/users', 'index')->name('index');
-                Route::get('/users/export', 'export')->middleware('throttle:sensitiveActions')->name('export');
+                Route::get('/users/create', 'create')->name('create');
                 Route::post('/users', 'store')->middleware('throttle:sensitiveActions')->name('store');
                 Route::post('/users/bulk', 'bulkAction')->middleware('throttle:sensitiveActions')->name('bulk');
+                Route::get('/users/{user}/edit', 'edit')->name('edit');
                 Route::put('/users/{user}', 'update')->middleware('throttle:sensitiveActions')->name('update');
                 Route::delete('/users/{user}', 'destroy')->middleware('throttle:sensitiveActions')->name('destroy');
             });

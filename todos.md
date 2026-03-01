@@ -1,37 +1,22 @@
-# Rol & İzin Sayfaları - Yapılacaklar
+# Users Modülü Yeniden Yapılandırma
 
-## Fonksiyonel Hatalar
+## Backend Değişiklikleri
 
-- [ ] **Tümünü Seç / Tümünü Kaldır butonları** — Role Create ve Edit sayfalarında modül card'larındaki "Tümünü Seç" / "Tümünü Kaldır" butonlarına tıklandığında ilgili modüldeki tüm permission checkbox'ları seçilmeli veya kaldırılmalı.
-  - Dosyalar: `resources/js/pages/app/users/Role/Create.vue`, `Edit.vue`
-  - `toggleModule()` fonksiyonu ve Checkbox `@update:checked` event handler'ı gözden geçirilecek
+- [ ] **Route güncellemeleri** — `routes/web.php`'ye `create` ve `edit` route'ları ekle, `export` route'unu kaldır.
+- [ ] **Controller güncellemeleri** — `UserController`'a `create()` ve `edit()` metotları ekle, `export()` kaldır, `index()`'ten gereksiz veriyi temizle.
+- [ ] **Service/Backend dil desteği** — `UserService::store/update` içinde `language_id` boşsa default dil ata.
 
-- [ ] **Edit sayfasında izinler seçili gelmiyor** — Role düzenleme sayfası açıldığında, role'e tanımlı permission'lar checkbox'larda seçili olarak görünmüyor.
-  - Dosyalar: `app/Http/Controllers/Users/RoleController.php` (edit metodu), `resources/js/pages/app/users/Role/Edit.vue`
-  - Controller'da `$role->load('permissions:id')` ile yükleme ve frontend'de `String(p.id)` dönüşümü arasındaki tip uyumsuzluğu kontrol edilecek
+## Frontend — Yeni Sayfalar
 
-- [ ] **Tekil seçimde sayaç güncellenmiyor** — Permission'ları tek tek seçince üstteki "X Yetki Seçildi" / "X Aktif Yetki" sayacı güncellenmiyor, ama Tümünü Seç/Kaldır ile güncelleniyor.
-  - Dosyalar: `resources/js/pages/app/users/Role/Create.vue`, `Edit.vue`
-  - `togglePermission()` fonksiyonunda Inertia useForm reactivity sorunu, `@update:checked` handler'ı düzeltilecek
+- [ ] **Users/Create.vue oluştur** — Role/Create.vue ile aynı tasarım stili. Alanlar: Ad, E-posta, Ünvan, Durum, Şifre, Şifre Tekrar, Dil (koşullu), Roller (checkbox), Doğrudan Yetkiler (grouped checkbox).
+- [ ] **Users/Edit.vue oluştur** — Role/Edit.vue ile aynı tasarım stili. Mevcut kullanıcı verileri dolu gelecek. Sil butonu yok.
 
-## Yetki Kontrolleri
+## Frontend — Index.vue Sadeleştirme
 
-- [ ] **Role Index.vue yetki kontrolleri** — "Yeni Rol Ekle" butonu `role.create`, "Düzenle" butonu `role.update` yetkisi ile koşullu gösterilecek.
-  - Dosya: `resources/js/pages/app/users/Role/Index.vue`
-  - `usePermission` composable import edilip `can()` ile `v-if` kontrolü eklenecek
+- [ ] **Tablo sadeleştir** — Doğrudan Yetkiler, Dil sütunlarını kaldır. Durum'u Ad'ın önüne al. Sil butonunu kaldır. Düzenle butonu edit sayfasına link olacak.
+- [ ] **Dialog/modal CRUD kaldır** — Create/Edit dialog kodunu ve ilgili state'leri kaldır.
+- [ ] **Dışa Aktar kaldır** — Export butonu ve ilgili kodu kaldır.
 
-- [ ] **Role Edit.vue yetki kontrolü** — "Rolü Sil" butonu `role.delete` yetkisi ile koşullu gösterilecek.
-  - Dosya: `resources/js/pages/app/users/Role/Edit.vue`
-  - `usePermission` composable import edilip `can()` ile `v-if` kontrolü eklenecek
+## Koşullu Dil Alanı
 
-- [ ] **Permission Index.vue yetki kontrolü** — "Düzenle" butonu `permission.update` yetkisi ile koşullu gösterilecek.
-  - Dosya: `resources/js/pages/app/users/Permissions/Index.vue`
-  - `usePermission` composable import edilip `can()` ile `v-if` kontrolü eklenecek
-
-## Tasarım
-
-- [ ] **Role sayfaları tasarım standardizasyonu** — Index, Create ve Edit sayfalarındaki card ve tabloları daha köşeli (`rounded-lg` → `rounded-md`), gölgesiz (`shadow-none`), belirgin border'lı (`border-border`) ve tutarlı hale getir.
-  - Dosyalar: `resources/js/pages/app/users/Role/Index.vue`, `Create.vue`, `Edit.vue`
-  - Tüm card'larda: `rounded-md border border-border bg-card shadow-none`
-  - Modül card header: `bg-muted/40 px-4 py-2.5 border-b border-border`
-  - Font boyutları tutarlı hale getirilecek
+- [ ] **Dil alanı koşullu gösterim** — Create/Edit sayfalarında `languages.length > 1` ise Select göster, değilse gizle.

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import { ChevronLeft, Save, ShieldPlus, CheckCircle2, Loader2 } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, reactive } from 'vue';
 import Heading from '@/components/app/common/Heading.vue';
 import InputError from '@/components/app/common/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -30,14 +30,16 @@ const form = useForm({
     permissions: [] as string[],
 });
 
-const selectedPermissions = ref<Set<string>>(new Set());
+const selected = reactive<Record<string, boolean>>({});
 
-const selectedCount = computed(() => selectedPermissions.value.size);
-
-const isSelected = (id: string): boolean => selectedPermissions.value.has(id);
+const selectedCount = computed(() =>
+    Object.values(selected).filter(Boolean).length,
+);
 
 const syncFormPermissions = () => {
-    form.permissions = Array.from(selectedPermissions.value);
+    form.permissions = Object.keys(selected).filter(
+        (id) => selected[id],
+    );
 };
 
 const submit = () => {
@@ -45,31 +47,21 @@ const submit = () => {
 };
 
 const togglePermission = (id: string) => {
-    if (selectedPermissions.value.has(id)) {
-        selectedPermissions.value.delete(id);
-    } else {
-        selectedPermissions.value.add(id);
-    }
-    selectedPermissions.value = new Set(selectedPermissions.value);
+    selected[id] = !selected[id];
     syncFormPermissions();
 };
 
 const toggleModule = (modulePermissions: Permission[]) => {
-    const moduleIds = modulePermissions.map((p) => p.id);
     const allSelected = isModuleFullySelected(modulePermissions);
-
-    if (allSelected) {
-        moduleIds.forEach((id) => selectedPermissions.value.delete(id));
-    } else {
-        moduleIds.forEach((id) => selectedPermissions.value.add(id));
-    }
-    selectedPermissions.value = new Set(selectedPermissions.value);
+    modulePermissions.forEach((p) => {
+        selected[p.id] = !allSelected;
+    });
     syncFormPermissions();
 };
 
 const isModuleFullySelected = (modulePermissions: Permission[]): boolean => {
     if (modulePermissions.length === 0) return false;
-    return modulePermissions.every((p) => selectedPermissions.value.has(p.id));
+    return modulePermissions.every((p) => !!selected[p.id]);
 };
 </script>
 
@@ -130,7 +122,7 @@ const isModuleFullySelected = (modulePermissions: Permission[]): boolean => {
                         </div>
                     </div>
 
-                    <div class="space-y-4 px-2">
+                    <div class="space-y-4">
                         <div class="flex items-center justify-between border-b pb-2">
                             <div class="flex items-center gap-2 font-semibold">
                                 <CheckCircle2 class="h-5 w-5 text-green-600" />
@@ -168,16 +160,15 @@ const isModuleFullySelected = (modulePermissions: Permission[]): boolean => {
                                         class="flex items-center space-x-3 group"
                                     >
                                         <Checkbox
-                                            :id="permission.id"
-                                            :checked="isSelected(permission.id)"
+                                            :checked="!!selected[permission.id]"
                                             @update:checked="() => togglePermission(permission.id)"
                                         />
-                                        <label
-                                            :for="permission.id"
+                                        <span
                                             class="text-sm font-medium leading-none cursor-pointer group-hover:text-primary transition-colors select-none"
+                                            @click="togglePermission(permission.id)"
                                         >
                                             {{ permission.label }}
-                                        </label>
+                                        </span>
                                     </div>
                                 </div>
                             </div>

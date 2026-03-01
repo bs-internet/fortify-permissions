@@ -36,5 +36,19 @@ class DatabaseSeeder extends Seeder
         );
 
         $admin->assignRole('Super Admin');
+
+        $adminUser = User::firstOrCreate(
+            ['email' => 'yonetici@admin.com'],
+            [
+                'name' => 'Yönetici',
+                'password' => Hash::make('password'),
+                'status' => UserStatus::ACTIVE,
+                'language_id' => $defaultLanguage?->id,
+                'title' => 'Sistem Yöneticisi',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        $adminUser->assignRole('Admin');
     }
 }

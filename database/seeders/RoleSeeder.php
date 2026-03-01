@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Database\Seeder;
 
@@ -22,5 +23,16 @@ class RoleSeeder extends Seeder
                 'guard_name' => 'web',
             ]
         );
+
+        $admin = Role::updateOrCreate(
+            ['name' => 'Admin'],
+            [
+                'label' => 'Yönetici',
+                'description' => 'Kullanıcı ve rol yönetimi dahil genel sistem yönetim yetkilerine sahip.',
+                'guard_name' => 'web',
+            ]
+        );
+
+        $admin->syncPermissions(Permission::all());
     }
 }
