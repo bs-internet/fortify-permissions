@@ -80,6 +80,7 @@ Route::middleware([
                 Route::post('/users/bulk', 'bulkAction')->middleware('throttle:sensitiveActions')->name('bulk');
                 Route::get('/users/{user}/edit', 'edit')->name('edit');
                 Route::put('/users/{user}', 'update')->middleware('throttle:sensitiveActions')->name('update');
+                Route::post('/users/{user}/verify-email', 'verifyEmail')->middleware('throttle:sensitiveActions')->name('verify-email');
                 Route::delete('/users/{user}', 'destroy')->middleware('throttle:sensitiveActions')->name('destroy');
             });
 

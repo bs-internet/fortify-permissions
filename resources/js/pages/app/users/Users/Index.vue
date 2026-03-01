@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Plus, Pencil, ChevronLeft, ChevronRight, Users } from 'lucide-vue-next';
+import { Plus, Pencil, ChevronLeft, ChevronRight, Users, CheckCircle2, AlertCircle } from 'lucide-vue-next';
 import { ref, watch, computed } from 'vue';
 import Heading from '@/components/app/common/Heading.vue';
 import { Badge } from '@/components/ui/badge';
@@ -41,8 +41,10 @@ type UserItem = {
     id: string;
     name: string;
     email: string;
+    email_verified_at: string | null;
     title: string | null;
     status: number;
+    last_login_at: string | null;
     roles: Role[];
 };
 
@@ -59,8 +61,9 @@ type PaginatedUsers = {
 
 type Props = {
     users: PaginatedUsers;
-    filters: { search?: string; status?: string };
+    filters: { search?: string; status?: string; role?: string };
     statuses: Record<number, string>;
+    roles: Role[];
 };
 
 const props = defineProps<Props>();
@@ -75,19 +78,32 @@ const breadcrumbItems: BreadcrumbItem[] = [
 // Search & filter
 const search = ref(props.filters.search ?? '');
 const statusFilter = ref(props.filters.status ?? '');
+const roleFilter = ref(props.filters.role ?? '');
 let debounceTimer: ReturnType<typeof setTimeout>;
+
+function getFilterParams() {
+    return {
+        search: search.value || undefined,
+        status: statusFilter.value || undefined,
+        role: roleFilter.value || undefined,
+    };
+}
 
 watch(search, (value) => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
-        router.get(userRoute().url, { search: value || undefined, status: statusFilter.value || undefined }, { preserveState: true, replace: true });
+        router.get(userRoute().url, getFilterParams(), { preserveState: true, replace: true });
     }, 300);
 });
 
 function onStatusChange(value: string | null) {
-    const statusValue = value ?? '';
-    statusFilter.value = statusValue;
-    router.get(userRoute().url, { search: search.value || undefined, status: statusValue || undefined }, { preserveState: true, replace: true });
+    statusFilter.value = value ?? '';
+    router.get(userRoute().url, getFilterParams(), { preserveState: true, replace: true });
+}
+
+function onRoleChange(value: string | null) {
+    roleFilter.value = value ?? '';
+    router.get(userRoute().url, getFilterParams(), { preserveState: true, replace: true });
 }
 
 // Bulk Actions
@@ -125,7 +141,7 @@ function handleBulkAction(action: 'delete' | 'activate' | 'deactivate') {
 
 function handlePageChange(page: number) {
     router.visit(userRoute().url, {
-        data: { page, search: search.value || undefined, status: statusFilter.value || undefined },
+        data: { page, ...getFilterParams() },
         preserveScroll: true,
     });
 }
@@ -143,6 +159,13 @@ function getStatusBadgeVariant(status: number): 'default' | 'secondary' | 'destr
         default:
             return 'secondary';
     }
+}
+
+function formatDate(date: string): string {
+    return new Intl.DateTimeFormat('tr-TR', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit',
+    }).format(new Date(date));
 }
 </script>
 
@@ -189,6 +212,17 @@ function getStatusBadgeVariant(status: number): 'default' | 'secondary' | 'destr
                             </SelectItem>
                         </SelectContent>
                     </Select>
+                    <Select v-if="roles.length > 0" :model-value="roleFilter" @update:model-value="(val: any) => onRoleChange(val)">
+                        <SelectTrigger class="sm:w-48">
+                            <SelectValue placeholder="Tüm Roller" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="">Tüm Roller</SelectItem>
+                            <SelectItem v-for="role in roles" :key="role.id" :value="role.id">
+                                {{ role.label }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
 
                 <!-- Table -->
@@ -205,6 +239,7 @@ function getStatusBadgeVariant(status: number): 'default' | 'secondary' | 'destr
                                     <TableHead>E-posta</TableHead>
                                     <TableHead>Ünvan</TableHead>
                                     <TableHead>Roller</TableHead>
+                                    <TableHead>Son Giriş</TableHead>
                                     <TableHead v-if="can('user.update')" class="text-right w-[120px]">İşlemler</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -225,7 +260,13 @@ function getStatusBadgeVariant(status: number): 'default' | 'secondary' | 'destr
                                         </Badge>
                                     </TableCell>
                                     <TableCell class="font-medium">{{ user.name }}</TableCell>
-                                    <TableCell>{{ user.email }}</TableCell>
+                                    <TableCell>
+                                        <div class="flex items-center gap-1.5">
+                                            {{ user.email }}
+                                            <CheckCircle2 v-if="user.email_verified_at" class="h-3.5 w-3.5 text-green-500 shrink-0" />
+                                            <AlertCircle v-else class="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                                        </div>
+                                    </TableCell>
                                     <TableCell>{{ user.title ?? '-' }}</TableCell>
                                     <TableCell>
                                         <div class="flex flex-wrap gap-1">
@@ -234,6 +275,9 @@ function getStatusBadgeVariant(status: number): 'default' | 'secondary' | 'destr
                                             </Badge>
                                             <span v-if="user.roles.length === 0" class="text-sm text-muted-foreground">-</span>
                                         </div>
+                                    </TableCell>
+                                    <TableCell class="text-sm text-muted-foreground">
+                                        {{ user.last_login_at ? formatDate(user.last_login_at) : 'Hiç giriş yapmadı' }}
                                     </TableCell>
                                     <TableCell v-if="can('user.update')" class="text-right">
                                         <Link :href="user.id === authUser?.id ? profileEdit().url : `${userRoute().url}/${user.id}/edit`">

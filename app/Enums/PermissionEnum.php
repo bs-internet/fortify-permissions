@@ -8,7 +8,10 @@ enum PermissionEnum: string
     case USER_MANAGEMENT = 'user.management';
     case USER_CREATE     = 'user.create';
     case USER_UPDATE     = 'user.update';
-    case USER_DELETE     = 'user.delete';
+    case USER_DELETE       = 'user.delete';
+    case USER_CHANGE_EMAIL  = 'user.change-email';
+    case USER_VERIFY_EMAIL  = 'user.verify-email';
+    case USER_CHANGE_STATUS = 'user.change-status';
 
     // Role
     case ROLE_MANAGEMENT = 'role.management';
@@ -51,6 +54,9 @@ enum PermissionEnum: string
             self::USER_CREATE           => 'Kullanıcı Oluşturma',
             self::USER_UPDATE           => 'Kullanıcı Düzenleme',
             self::USER_DELETE           => 'Kullanıcı Silme',
+            self::USER_CHANGE_EMAIL    => 'E-posta Değiştirme',
+            self::USER_VERIFY_EMAIL    => 'E-posta Doğrulama',
+            self::USER_CHANGE_STATUS   => 'Durum Değiştirme',
 
             self::ROLE_MANAGEMENT       => 'Rol Yönetimi',
             self::ROLE_CREATE           => 'Rol Oluşturma',
@@ -88,6 +94,9 @@ enum PermissionEnum: string
             self::USER_CREATE           => 'Yeni kullanıcı hesabı açma yetkisi.',
             self::USER_UPDATE           => 'Mevcut kullanıcı bilgilerini değiştirme yetkisi.',
             self::USER_DELETE           => 'Kullanıcı hesaplarını sistemden kaldırma yetkisi.',
+            self::USER_CHANGE_EMAIL    => 'Kullanıcıların e-posta adreslerini değiştirme yetkisi.',
+            self::USER_VERIFY_EMAIL    => 'Kullanıcıların e-posta adreslerini manuel olarak onaylama yetkisi.',
+            self::USER_CHANGE_STATUS   => 'Kullanıcıların hesap durumlarını (aktif, pasif, taslak) değiştirme yetkisi.',
 
             self::ROLE_MANAGEMENT       => 'Kullanıcı rollerini listeleme ve yönetme yetkisi.',
             self::ROLE_CREATE           => 'Sisteme yeni yetki grupları (roller) ekleme yetkisi.',

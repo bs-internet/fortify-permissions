@@ -8,7 +8,6 @@ use App\Enums\UserStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password;
 
 /**
  * Request for updating a user.
@@ -28,7 +27,6 @@ class UserUpdateRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $this->route('user')->id],
             'title' => ['nullable', 'string', 'max:255'],
-            'password' => ['nullable', 'string', Password::min(8), 'confirmed'],
             'status' => ['required', Rule::enum(UserStatus::class)],
             'language_id' => ['nullable', 'exists:languages,id'],
             'roles' => ['nullable', 'array'],
@@ -50,9 +48,7 @@ class UserUpdateRequest extends FormRequest
             'email.required' => 'E-posta alanı zorunludur.',
             'email.email' => 'Geçerli bir e-posta adresi giriniz.',
             'email.unique' => 'Bu e-posta adresi zaten kullanılıyor.',
-            'password.min' => 'Şifre en az 8 karakter olmalıdır.',
-            'password.confirmed' => 'Şifre tekrarı eşleşmiyor.',
-            'status.required' => 'Durum alanı zorunludur.',
+'status.required' => 'Durum alanı zorunludur.',
             'language_id.exists' => 'Seçilen dil geçersiz.',
             'roles.*.exists' => 'Seçilen rollerden biri geçersiz.',
             'permissions.*.exists' => 'Seçilen yetkilerden biri geçersiz.',

@@ -38,10 +38,11 @@ class UserController extends Controller
     {
         return Inertia::render('app/users/Users/Index', [
             'users' => $this->userService->paginate(
-                filters: $request->only(['search', 'status'])
+                filters: $request->only(['search', 'status', 'role'])
             ),
-            'filters' => $request->only(['search', 'status']),
+            'filters' => $request->only(['search', 'status', 'role']),
             'statuses' => UserStatus::options(),
+            'roles' => $this->roleService->allForSelect(),
         ]);
     }
 
@@ -103,6 +104,16 @@ class UserController extends Controller
         );
 
         return redirect()->route('users.index')->with('success', 'Kullanıcı başarıyla güncellendi.');
+    }
+
+    /**
+     * Kullanıcının e-posta adresini manuel olarak doğrula.
+     */
+    public function verifyEmail(Request $request, User $user): RedirectResponse
+    {
+        $this->userService->verifyEmail($user, $request->user());
+
+        return back()->with('success', 'Kullanıcının e-posta adresi doğrulandı.');
     }
 
     /**

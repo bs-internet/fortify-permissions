@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Users;
 
+use App\Enums\PermissionEnum;
 use App\Events\UserCreated;
 use App\Events\UserDeleted;
 use App\Events\UserUpdated;
@@ -14,7 +15,9 @@ use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 
 class UserService
 {
@@ -58,6 +61,10 @@ class UserService
             $query->where('status', $filters['status']);
         });
 
+        $query->when($filters['role'] ?? null, function (Builder $query, $roleId) {
+            $query->whereHas('roles', fn (Builder $q) => $q->where('id', $roleId));
+        });
+
         return $query->orderBy('name');
     }
 
@@ -72,11 +79,13 @@ class UserService
 
         $roleIds = $data['roles'] ?? [];
         $permissionIds = $data['permissions'] ?? [];
-        unset($data['roles'], $data['permissions'], $data['password_confirmation']);
+        unset($data['roles'], $data['permissions']);
 
         if (empty($data['language_id'])) {
             $data['language_id'] = Language::query()->where('is_default', true)->value('id');
         }
+
+        $data['password'] = Str::password(16);
 
         $user = User::create($data);
 
@@ -106,11 +115,20 @@ class UserService
 
         $roleIds = $data['roles'] ?? [];
         $permissionIds = $data['permissions'] ?? [];
-        unset($data['roles'], $data['permissions'], $data['password_confirmation']);
+        unset($data['roles'], $data['permissions']);
 
-        // Skip empty password
-        if (empty($data['password'])) {
-            unset($data['password']);
+        if (isset($data['email']) && $data['email'] !== $user->email) {
+            if (!$authUser->can(PermissionEnum::USER_CHANGE_EMAIL->value)) {
+                $data['email'] = $user->email;
+            } else {
+                $data['email_verified_at'] = null;
+            }
+        }
+
+        if (isset($data['status']) && (int) $data['status'] !== $user->status->value) {
+            if (!$authUser->can(PermissionEnum::USER_CHANGE_STATUS->value)) {
+                $data['status'] = $user->status->value;
+            }
         }
 
         if (empty($data['language_id'])) {
@@ -130,10 +148,6 @@ class UserService
 
         $changes = [];
         foreach ($data as $key => $value) {
-            if ($key === 'password') {
-                $changes['password'] = ['old' => '***', 'new' => '***'];
-                continue;
-            }
             if (array_key_exists($key, $originalData) && $originalData[$key] !== $value) {
                 $changes[$key] = [
                     'old' => $originalData[$key],
@@ -150,6 +164,20 @@ class UserService
     }
 
     /**
+     * Manually verify a user's email address.
+     */
+    public function verifyEmail(User $user, User $authUser): void
+    {
+        Gate::authorize('update', $user);
+
+        if (!$authUser->can(PermissionEnum::USER_VERIFY_EMAIL->value)) {
+            throw new AuthorizationException('E-posta doğrulama yetkiniz yok.');
+        }
+
+        $user->forceFill(['email_verified_at' => now()])->save();
+    }
+
+    /**
      * Delete (soft) a user.
      */
     public function delete(User $user, User $authUser, string $ipAddress, string $userAgent): void
@@ -159,6 +187,8 @@ class UserService
         if ($user->id === 1 || $user->hasRole('Admin')) {
             throw new AuthorizationException('Sistem yöneticisi silinemez.');
         }
+
+        DB::table('sessions')->where('user_id', $user->id)->delete();
 
         $changes = [
             'deleted' => $user->only(['name', 'email']),

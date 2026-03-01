@@ -39,8 +39,6 @@ const form = useForm({
     name: '',
     email: '',
     title: '',
-    password: '',
-    password_confirmation: '',
     status: 1,
     language_id: '',
     roles: [] as string[],
@@ -161,19 +159,6 @@ const submit = () => {
                                     </SelectContent>
                                 </Select>
                                 <InputError :message="form.errors.status" />
-                            </div>
-                        </div>
-
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            <div class="space-y-2">
-                                <Label for="password">Şifre</Label>
-                                <Input id="password" v-model="form.password" type="password" class="shadow-none focus-visible:ring-1" />
-                                <InputError :message="form.errors.password" />
-                            </div>
-
-                            <div class="space-y-2">
-                                <Label for="password_confirmation">Şifre Tekrar</Label>
-                                <Input id="password_confirmation" v-model="form.password_confirmation" type="password" class="shadow-none focus-visible:ring-1" />
                             </div>
                         </div>
 
