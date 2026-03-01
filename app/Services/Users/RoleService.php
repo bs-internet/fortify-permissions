@@ -36,6 +36,20 @@ class RoleService
     }
 
     /**
+     * Tüm rolleri select/checkbox için döndür (Super Admin hariç, paginate yok).
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, Role>
+     */
+    public function allForSelect(): \Illuminate\Database\Eloquent\Collection
+    {
+        return Role::query()
+            ->where('guard_name', 'web')
+            ->where('name', '!=', 'Super Admin')
+            ->orderBy('name')
+            ->get(['id', 'name', 'label', 'description']);
+    }
+
+    /**
      * Store a new role.
      *
      * @param array<string, mixed> $data

@@ -51,7 +51,7 @@ class UserController extends Controller
     public function create(): Response
     {
         return Inertia::render('app/users/Users/Create', [
-            'roles' => $this->roleService->all(),
+            'roles' => $this->roleService->allForSelect(),
             'permissions' => $this->permissionService->groupedAll(),
             'languages' => $this->languageService->allActive(),
             'statuses' => UserStatus::options(),
@@ -82,7 +82,7 @@ class UserController extends Controller
 
         return Inertia::render('app/users/Users/Edit', [
             'user' => $user,
-            'roles' => $this->roleService->all(),
+            'roles' => $this->roleService->allForSelect(),
             'permissions' => $this->permissionService->groupedAll(),
             'languages' => $this->languageService->allActive(),
             'statuses' => UserStatus::options(),
