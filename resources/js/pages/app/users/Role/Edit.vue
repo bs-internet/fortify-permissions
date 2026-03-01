@@ -9,6 +9,7 @@ import {
     Loader2,
     AlertTriangle
 } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 import Heading from '@/components/app/common/Heading.vue';
 import InputError from '@/components/app/common/InputError.vue';
 import {
@@ -27,10 +28,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { usePermission } from '@/composables/usePermission';
 import AppLayout from '@/layouts/AppLayout.vue';
 import UsersLayout from '@/pages/app/users/partials/Layout.vue';
 import { index as roleIndex, update as roleUpdate, destroy as roleDelete } from '@/routes/users/roles';
 import { type BreadcrumbItem, type Permission, type Role } from '@/types';
+
+const { can } = usePermission();
 
 const props = defineProps<{
     role: Role & { permissions: { id: string }[] };
@@ -43,15 +47,22 @@ const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Rolü Düzenle', href: '#' },
 ];
 
-/** * Controller'dan gelen [{id: '...'}] yapısını
- * ['id1', 'id2'] yapısına dönüştürüyoruz.
- */
-const initialPermissions = props.role.permissions.map(p => String(p.id));
+const initialPermissionIds = props.role.permissions.map((p) => String(p.id));
+
+const selectedPermissions = ref<Set<string>>(new Set(initialPermissionIds));
+
+const selectedCount = computed(() => selectedPermissions.value.size);
+
+const isSelected = (id: string): boolean => selectedPermissions.value.has(String(id));
+
+const syncFormPermissions = () => {
+    form.permissions = Array.from(selectedPermissions.value);
+};
 
 const form = useForm({
     label: props.role.label,
     description: props.role.description,
-    permissions: initialPermissions, // Seçili gelmesini sağlayan satır
+    permissions: initialPermissionIds,
 });
 
 const submit = () => {
@@ -62,36 +73,33 @@ const confirmDelete = () => {
     router.delete(roleDelete(props.role).url);
 };
 
-// Tekil seçim ve UI güncelleme
 const togglePermission = (id: string) => {
     const permissionId = String(id);
-    const current = [...form.permissions];
-    const index = current.indexOf(permissionId);
-
-    if (index > -1) {
-        current.splice(index, 1);
+    if (selectedPermissions.value.has(permissionId)) {
+        selectedPermissions.value.delete(permissionId);
     } else {
-        current.push(permissionId);
+        selectedPermissions.value.add(permissionId);
     }
-    form.permissions = current;
+    selectedPermissions.value = new Set(selectedPermissions.value);
+    syncFormPermissions();
 };
 
-// Modül toplu seçim ve UI güncelleme
 const toggleModule = (modulePermissions: Permission[]) => {
-    const moduleIds = modulePermissions.map(p => String(p.id));
+    const moduleIds = modulePermissions.map((p) => String(p.id));
     const allSelected = isModuleFullySelected(modulePermissions);
 
     if (allSelected) {
-        form.permissions = form.permissions.filter(id => !moduleIds.includes(id));
+        moduleIds.forEach((id) => selectedPermissions.value.delete(id));
     } else {
-        const newSelection = new Set([...form.permissions, ...moduleIds]);
-        form.permissions = Array.from(newSelection);
+        moduleIds.forEach((id) => selectedPermissions.value.add(id));
     }
+    selectedPermissions.value = new Set(selectedPermissions.value);
+    syncFormPermissions();
 };
 
-const isModuleFullySelected = (modulePermissions: Permission[]) => {
+const isModuleFullySelected = (modulePermissions: Permission[]): boolean => {
     if (!modulePermissions.length) return false;
-    return modulePermissions.every(p => form.permissions.includes(String(p.id)));
+    return modulePermissions.every((p) => selectedPermissions.value.has(String(p.id)));
 };
 </script>
 
@@ -114,7 +122,7 @@ const isModuleFullySelected = (modulePermissions: Permission[]) => {
                         />
                     </div>
                     <div class="flex items-center gap-2">
-                        <AlertDialog>
+                        <AlertDialog v-if="can('role.delete')">
                             <AlertDialogTrigger as-child>
                                 <Button variant="outline" size="sm" class="h-9 text-destructive border-destructive/20 hover:bg-destructive/5 shadow-none">
                                     <Trash2 class="mr-2 h-4 w-4" />
@@ -154,7 +162,7 @@ const isModuleFullySelected = (modulePermissions: Permission[]) => {
                 </div>
 
                 <form id="roleEditForm" @submit.prevent="submit" class="space-y-6">
-                    <div class="rounded-lg border border-muted/60 bg-card p-6 shadow-none space-y-4">
+                    <div class="rounded-md border border-border bg-card p-6 shadow-none space-y-4">
                         <div class="flex items-center gap-2 mb-2 text-primary font-semibold text-sm uppercase tracking-wider">
                             <ShieldCheck class="h-5 w-5" />
                             <span>Genel Bilgiler</span>
@@ -182,7 +190,7 @@ const isModuleFullySelected = (modulePermissions: Permission[]) => {
                                 <span>Yetki Matrisi</span>
                             </div>
                             <span class="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded">
-                                {{ form.permissions.length }} Aktif Yetki
+                                {{ selectedCount }} Aktif Yetki
                             </span>
                         </div>
 
@@ -190,17 +198,17 @@ const isModuleFullySelected = (modulePermissions: Permission[]) => {
                             <div
                                 v-for="(modulePermissions, moduleName) in permissions"
                                 :key="moduleName"
-                                class="rounded-lg border border-muted/60 bg-card overflow-hidden shadow-none"
+                                class="rounded-md border border-border bg-card overflow-hidden shadow-none"
                             >
-                                <div class="bg-muted/30 px-4 py-2 border-b flex justify-between items-center">
-                                    <h3 class="font-bold text-[11px] uppercase tracking-tight text-foreground/70">
+                                <div class="bg-muted/40 px-4 py-2.5 border-b border-border flex justify-between items-center">
+                                    <h3 class="font-bold text-[12px] uppercase tracking-tight text-foreground/70">
                                         {{ moduleName }}
                                     </h3>
                                     <Button
                                         type="button"
                                         variant="ghost"
                                         size="sm"
-                                        class="h-7 text-[10px] hover:bg-primary/5 font-semibold transition-all"
+                                        class="h-7 text-[11px] hover:bg-primary/5 font-semibold transition-all"
                                         @click="toggleModule(modulePermissions)"
                                     >
                                         {{ isModuleFullySelected(modulePermissions) ? 'Tümünü Kaldır' : 'Tümünü Seç' }}
@@ -214,8 +222,8 @@ const isModuleFullySelected = (modulePermissions: Permission[]) => {
                                     >
                                         <Checkbox
                                             :id="permission.id"
-                                            :checked="form.permissions.includes(String(permission.id))"
-                                            @update:checked="togglePermission(permission.id)"
+                                            :checked="isSelected(permission.id)"
+                                            @update:checked="() => togglePermission(permission.id)"
                                         />
                                         <label
                                             :for="permission.id"

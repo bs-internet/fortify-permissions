@@ -1,7 +1,208 @@
-Kurallar
+# Otomasyon Projesi
 
-1. asla test yazma
-2. asla konsol komutu çalıştırma. php, npm vb. komutları söyle ben çalıştırırım.
+## Genel Kurallar
+
+1. Asla test yazma.
+2. Asla konsol komutu çalıştırma. `php`, `npm` vb. komutları söyle, ben çalıştırırım.
+3. Türkçe iletişim kur. Değişken/metot isimleri İngilizce, kullanıcı mesajları ve açıklamalar Türkçe olsun.
+
+---
+
+## Proje Hakkında
+
+Kullanıcı yönetimi, rol/izin sistemi, tanımlamalar ve sistem ayarlarını kapsayan bir otomasyon paneli. Tüm arayüz ve mesajlar Türkçe.
+
+**Teknoloji Yığını:**
+- Backend: Laravel 12 + PHP 8.4 + Fortify (kimlik doğrulama) + Spatie Permission (yetkilendirme)
+- Frontend: Vue 3 + Inertia.js v2 + Shadcn-Vue (Reka UI) + Tailwind CSS v4 + Lucide Icons
+- Rota Yönetimi: Laravel Wayfinder (tip-güvenli TypeScript rota fonksiyonları)
+- Veritabanı: Eloquent ORM, UUID birincil anahtar, soft delete
+- UI Kütüphanesi: Shadcn-Vue (PrimeVue KULLANILMIYOR, Reka UI tabanlı headless bileşenler)
+
+---
+
+## Mimari Yapı
+
+### Backend Katmanları
+
+**İstek akışı:** Route → Middleware → Controller → FormRequest (validasyon) → Service (iş mantığı) → Model → Event/Listener
+
+- **Controller:** Sadece HTTP katmanını yönetir, iş mantığı Service sınıflarında.
+- **Service:** Tüm CRUD, filtreleme, cache ve event dispatch işlemleri burada.
+- **FormRequest:** Her form için ayrı request sınıfı, Türkçe hata mesajları ile.
+- **Policy:** Her model için policy sınıfı, `Gate::before` ile Super Admin bypass.
+- **Event/Listener:** Her önemli işlem (CRUD, profil, ayar) event fırlatır → Listener'lar aktivite loglar ve bildirim gönderir.
+
+### Frontend Katmanları
+
+- **Sayfa yapısı:** `AppLayout` → `ModuleLayout (partials/Layout.vue)` → Sayfa içeriği
+- **Bileşen kütüphanesi:** `resources/js/components/ui/` altında Shadcn-Vue bileşenleri
+- **Uygulama bileşenleri:** `resources/js/components/app/` altında AppSidebar, NavMain, Heading vb.
+- **Composable'lar:** `usePermission`, `useAppearance`, `useCurrentUrl`, `useInitials`, `useTwoFactorAuth`
+- **Form yönetimi:** Inertia `useForm()` ile, Wayfinder action URL'leri kullanılarak submit edilir
+- **Bildirimler:** `vue-sonner` (toast) ile flash mesajlar AppLayout'ta izlenir
+
+---
+
+## Dizin Yapısı
+
+### Backend
+```
+app/
+├── Actions/Fortify/          # Fortify aksiyonları (şifre sıfırlama)
+├── Console/Commands/          # Artisan komutları (arşivleme, temizlik)
+├── Enums/                     # UserStatus, PermissionEnum, UnitType
+├── Events/                    # 22 event sınıfı (CRUD, profil, ayarlar)
+├── Helpers/site_helpers.php   # Global yardımcı fonksiyonlar (settings, site_name, logo)
+├── Http/
+│   ├── Controllers/
+│   │   ├── Definitions/       # Currency, Language, Unit controller'ları
+│   │   ├── Profile/           # Profil, şifre, 2FA, bildirim, oturum
+│   │   ├── Settings/          # Genel ayarlar, aktivite logları
+│   │   └── Users/             # Kullanıcı, rol, izin yönetimi
+│   ├── Middleware/             # HandleInertiaRequests, SetLocale, EnsureActiveUser, EnsureWriteAccess
+│   └── Requests/              # Form request sınıfları (Definitions, Profile, Settings, Users)
+├── Listeners/                 # 15+ listener (log, bildirim)
+├── Mail/Profile/              # Şifre ve 2FA mail sınıfları
+├── Models/                    # User, Role, Permission, Activity, Setting, Language, Currency, Unit, Notification, ArchivedNotification
+├── Notifications/             # Veritabanı ve mail bildirimleri
+├── Policies/                  # Her model için policy
+├── Providers/                 # App, Fortify, Helper provider'ları
+└── Services/                  # İş mantığı katmanı (Users, Definitions, Profile, Settings, Common)
+```
+
+### Frontend
+```
+resources/js/
+├── actions/                   # Wayfinder üretimi (controller bazlı rota fonksiyonları)
+├── components/
+│   ├── app/                   # AppSidebar, NavMain, NavUser, Heading, Breadcrumbs, InputError vb.
+│   │   └── common/            # Paylaşılan bileşenler (AlertError, AppLogo, UserInfo vb.)
+│   └── ui/                    # Shadcn-Vue bileşenleri (40+ bileşen grubu)
+├── composables/               # usePermission, useAppearance, useCurrentUrl, useInitials, useTwoFactorAuth
+├── layouts/
+│   ├── app/                   # AppSidebarLayout, AppHeaderLayout
+│   └── auth/                  # AuthCardLayout, AuthSimpleLayout, AuthSplitLayout
+├── lib/utils.ts               # cn() ve toUrl() yardımcı fonksiyonları
+├── pages/
+│   ├── app/
+│   │   ├── Dashboard.vue
+│   │   ├── definitions/       # Currency, Language, Unit Index sayfaları
+│   │   ├── profile/           # Profil, Şifre, 2FA, Bildirimler, Oturumlar, Görünüm
+│   │   ├── settings/          # Genel Ayarlar, Aktivite Logları
+│   │   └── users/             # Users/Index, Role/Index-Create-Edit, Permissions/Index
+│   └── auth/                  # Login, Register, ForgotPassword, ResetPassword, TwoFactorChallenge, VerifyEmail
+├── routes/                    # Wayfinder üretimi (isimli rota fonksiyonları)
+└── types/                     # TypeScript tip tanımları (auth, user, pagination, navigation, definitions, settings)
+```
+
+---
+
+## Modeller ve İlişkiler
+
+| Model | Özellikler |
+|-------|-----------|
+| **User** | UUID, SoftDeletes, HasRoles (Spatie), TwoFactorAuthenticatable, belongsTo(Language) |
+| **Role** | UUID, Spatie Role genişletmesi, özel label/description alanları |
+| **Permission** | UUID, Spatie Permission genişletmesi, name → PermissionEnum cast |
+| **Activity** | UUID, SoftDeletes, Prunable (6 ay), belongsTo(User), log alanı (JSON) |
+| **Setting** | UUID, key/value/type yapısı, getTypedValueAttribute ile tip dönüşümü |
+| **Language** | UUID, code/name/native_name, is_default, hasMany(User), cache: rememberForever |
+| **Currency** | UUID, code/name/symbol, decimal ayarları, is_default |
+| **Unit** | UUID, name/abbreviation, type → UnitType enum cast |
+| **Notification** | UUID, polymorphic (notifiable), read_at |
+| **ArchivedNotification** | UUID, SoftDeletes, Prunable (120 gün), polymorphic |
+
+---
+
+## Enum Tanımları
+
+- **UserStatus:** PASSIVE(0) - giriş yapamaz, ACTIVE(1) - tam erişim, DRAFT(2) - salt okunur
+- **PermissionEnum:** `user.*`, `role.*`, `permission.*`, `language.*`, `currency.*`, `unit.*`, `setting.*`, `activity.*`
+- **UnitType:** Weight, Length, Volume, Area, Piece
+
+---
+
+## Yetkilendirme Sistemi
+
+- **Spatie Laravel Permission** ile rol ve izin yönetimi
+- Her model için **Policy** sınıfı (`app/Policies/`)
+- `Gate::before` ile **Super Admin** tüm izinleri bypass eder
+- **EnsureActiveUser** middleware: PASSIVE kullanıcıları engeller
+- **EnsureWriteAccess** middleware: DRAFT kullanıcıların POST/PUT/PATCH/DELETE işlemlerini engeller
+- Frontend'de `usePermission()` composable ile `can()`, `canAny()`, `canAll()` kontrolleri
+
+### İzin Modülleri
+| Modül | İzinler |
+|-------|---------|
+| Kullanıcı | user.management, user.create, user.update, user.delete |
+| Rol | role.management, role.create, role.update, role.delete |
+| İzin | permission.management, permission.update |
+| Dil | language.management, language.create, language.update, language.delete |
+| Para Birimi | currency.management, currency.create, currency.update, currency.delete |
+| Birim | unit.management, unit.create, unit.update, unit.delete |
+| Ayarlar | setting.management, setting.update |
+| Aktivite | activity.view |
+
+---
+
+## Frontend Konvansiyonları
+
+### Sayfa Yapısı Şablonu
+```vue
+<script setup lang="ts">
+import AppLayout from '@/layouts/AppLayout.vue';
+import ModuleLayout from './partials/Layout.vue';
+// Wayfinder action import'ları
+// Props tanımı (defineProps)
+// useForm, ref, computed, watch
+</script>
+<template>
+    <AppLayout :breadcrumbs="breadcrumbItems">
+        <Head title="Sayfa Başlığı" />
+        <ModuleLayout>
+            <Heading title="..." description="..." />
+            <!-- İçerik -->
+        </ModuleLayout>
+    </AppLayout>
+</template>
+```
+
+### Form Yönetimi
+- Inertia `useForm()` kullan, doğrudan `axios` veya `fetch` kullanma
+- Submit URL'leri Wayfinder action'larından al: `form.post(store.url())`
+- Hata gösterimi: `<InputError :message="form.errors.fieldName" />`
+- İşlem durumu: `form.processing` ile buton disabled yap
+
+### Bileşen Kuralları
+- Yeni bileşen yazmadan önce `components/ui/` ve `components/app/` altında mevcut olanı kontrol et
+- UI bileşenleri Shadcn-Vue'dan, uygulama bileşenleri `components/app/` altında
+- Tüm sayfalar `AppLayout` wrapper'ı içinde olmalı
+- Modüller kendi `partials/Layout.vue` dosyasını kullanır (sidebar navigasyon)
+
+### Navigasyon
+- Sidebar navigasyonu `AppSidebar.vue` içinde tanımlı, izin bazlı filtreleme uygulanır
+- Link'ler Wayfinder `routes/` fonksiyonlarıyla üretilir, `<Link>` bileşeni ile `prefetch` kullanılır
+
+---
+
+## Önemli Dosya Yolları
+
+| Dosya | Açıklama |
+|-------|----------|
+| `bootstrap/app.php` | Middleware, exception, rota kayıtları |
+| `bootstrap/providers.php` | Service provider listesi |
+| `config/otomasyon.php` | Uygulama özel ayarlar (versiyon, pagination, cache) |
+| `app/Enums/PermissionEnum.php` | Tüm sistem izinleri |
+| `app/Enums/UserStatus.php` | Kullanıcı durumları |
+| `app/Http/Middleware/HandleInertiaRequests.php` | Inertia ile paylaşılan veriler (auth, settings, flash) |
+| `app/Helpers/site_helpers.php` | Global helper fonksiyonlar (settings, site_name, logo) |
+| `resources/js/composables/usePermission.ts` | Frontend izin kontrolleri |
+| `resources/js/components/app/AppSidebar.vue` | Sidebar navigasyon yapısı |
+| `resources/css/app.css` | Tailwind v4 tema değişkenleri ve dark mode |
+| `vite.config.ts` | Vite + Wayfinder + Tailwind yapılandırması |
+
+---
 
 <laravel-boost-guidelines>
 === foundation rules ===

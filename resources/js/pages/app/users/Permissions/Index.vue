@@ -4,6 +4,7 @@ import { Pencil, X, Check, Loader2, ChevronLeft, ChevronRight } from 'lucide-vue
 import { ref } from 'vue';
 import { update } from '@/actions/App/Http/Controllers/Users/PermissionController';
 import Heading from '@/components/app/common/Heading.vue';
+import { usePermission } from '@/composables/usePermission';
 import InputError from '@/components/app/common/InputError.vue';
 import { Button } from '@/components/ui/button';
 import EmptyState from '@/components/ui/empty-state/EmptyState.vue';
@@ -42,6 +43,8 @@ import { type BreadcrumbItem, type Permission, type PaginationResponse } from '@
 const props = defineProps<{
     permissions: PaginationResponse<Permission>;
 }>();
+
+const { can } = usePermission();
 
 const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Kullanıcılar', href: '#' },
@@ -104,7 +107,7 @@ function handlePageChange(page: number) {
                             <TableRow>
                                 <TableHead class="w-[350px]">Görünen Ad</TableHead>
                                 <TableHead>Açıklama</TableHead>
-                                <TableHead class="text-right w-[140px]">İşlemler</TableHead>
+                                <TableHead v-if="can('permission.update')" class="text-right w-[140px]">İşlemler</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -120,7 +123,7 @@ function handlePageChange(page: number) {
                                 <TableCell class="text-muted-foreground text-sm">
                                     {{ permission.description ?? '-' }}
                                 </TableCell>
-                                <TableCell class="text-right">
+                                <TableCell v-if="can('permission.update')" class="text-right">
                                     <Button variant="outline" size="sm" @click="openEditSheet(permission)">
                                         <Pencil class="mr-2 h-4 w-4" />
                                         Düzenle

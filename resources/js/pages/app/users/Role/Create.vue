@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import { ChevronLeft, Save, ShieldPlus, CheckCircle2, Loader2 } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 import Heading from '@/components/app/common/Heading.vue';
 import InputError from '@/components/app/common/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -29,37 +30,46 @@ const form = useForm({
     permissions: [] as string[],
 });
 
+const selectedPermissions = ref<Set<string>>(new Set());
+
+const selectedCount = computed(() => selectedPermissions.value.size);
+
+const isSelected = (id: string): boolean => selectedPermissions.value.has(id);
+
+const syncFormPermissions = () => {
+    form.permissions = Array.from(selectedPermissions.value);
+};
+
 const submit = () => {
     form.post(roleStore().url);
 };
 
 const togglePermission = (id: string) => {
-    const currentPermissions = [...form.permissions];
-    const index = currentPermissions.indexOf(id);
-
-    if (index > -1) {
-        currentPermissions.splice(index, 1);
+    if (selectedPermissions.value.has(id)) {
+        selectedPermissions.value.delete(id);
     } else {
-        currentPermissions.push(id);
+        selectedPermissions.value.add(id);
     }
-    form.permissions = currentPermissions;
+    selectedPermissions.value = new Set(selectedPermissions.value);
+    syncFormPermissions();
 };
 
 const toggleModule = (modulePermissions: Permission[]) => {
-    const moduleIds = modulePermissions.map(p => p.id);
+    const moduleIds = modulePermissions.map((p) => p.id);
     const allSelected = isModuleFullySelected(modulePermissions);
 
     if (allSelected) {
-        form.permissions = form.permissions.filter(id => !moduleIds.includes(id));
+        moduleIds.forEach((id) => selectedPermissions.value.delete(id));
     } else {
-        const newSelection = new Set([...form.permissions, ...moduleIds]);
-        form.permissions = Array.from(newSelection);
+        moduleIds.forEach((id) => selectedPermissions.value.add(id));
     }
+    selectedPermissions.value = new Set(selectedPermissions.value);
+    syncFormPermissions();
 };
 
-const isModuleFullySelected = (modulePermissions: Permission[]) => {
+const isModuleFullySelected = (modulePermissions: Permission[]): boolean => {
     if (modulePermissions.length === 0) return false;
-    return modulePermissions.every(p => form.permissions.includes(p.id));
+    return modulePermissions.every((p) => selectedPermissions.value.has(p.id));
 };
 </script>
 
@@ -89,7 +99,7 @@ const isModuleFullySelected = (modulePermissions: Permission[]) => {
                 </div>
 
                 <form id="roleCreateForm" @submit.prevent="submit" class="space-y-6">
-                    <div class="rounded-lg border border-muted/20 bg-card p-6 shadow-none space-y-4">
+                    <div class="rounded-md border border-border bg-card p-6 shadow-none space-y-4">
                         <div class="flex items-center gap-2 mb-2 text-primary font-semibold text-sm uppercase tracking-wider">
                             <ShieldPlus class="h-5 w-5" />
                             <span>Genel Bilgiler</span>
@@ -127,7 +137,7 @@ const isModuleFullySelected = (modulePermissions: Permission[]) => {
                                 <span>Yetkilendirme Matrisi</span>
                             </div>
                             <span class="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded">
-                                {{ form.permissions.length }} Yetki Seçildi
+                                {{ selectedCount }} Yetki Seçildi
                             </span>
                         </div>
 
@@ -135,9 +145,9 @@ const isModuleFullySelected = (modulePermissions: Permission[]) => {
                             <div
                                 v-for="(modulePermissions, moduleName) in permissions"
                                 :key="moduleName"
-                                class="rounded-lg border border-muted/20 bg-card overflow-hidden shadow-none"
+                                class="rounded-md border border-border bg-card overflow-hidden shadow-none"
                             >
-                                <div class="bg-muted/30 px-4 py-2 border-b flex justify-between items-center">
+                                <div class="bg-muted/40 px-4 py-2.5 border-b border-border flex justify-between items-center">
                                     <h3 class="font-bold text-[12px] uppercase tracking-tight text-foreground/70">
                                         {{ moduleName }}
                                     </h3>
@@ -159,8 +169,8 @@ const isModuleFullySelected = (modulePermissions: Permission[]) => {
                                     >
                                         <Checkbox
                                             :id="permission.id"
-                                            :checked="form.permissions.includes(permission.id)"
-                                            @update:checked="togglePermission(permission.id)"
+                                            :checked="isSelected(permission.id)"
+                                            @update:checked="() => togglePermission(permission.id)"
                                         />
                                         <label
                                             :for="permission.id"

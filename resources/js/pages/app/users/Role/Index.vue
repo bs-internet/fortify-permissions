@@ -19,6 +19,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { usePermission } from '@/composables/usePermission';
 import AppLayout from '@/layouts/AppLayout.vue';
 import UsersLayout from '@/pages/app/users/partials/Layout.vue';
 import { index as roleRoute, create as createRoute, edit as editRoute } from '@/routes/users/roles';
@@ -27,6 +28,8 @@ import { type BreadcrumbItem, type Role, type PaginationResponse } from '@/types
 defineProps<{
     roles: PaginationResponse<Role>;
 }>();
+
+const { can } = usePermission();
 
 const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Kullanıcılar', href: '#' },
@@ -52,7 +55,7 @@ function handlePageChange(page: number) {
                         title="Rol Yönetimi"
                         description="Sistem rollerini listeleyin ve yönetin."
                     />
-                    <Link v-if="roles.data.length > 0" :href="createRoute().url">
+                    <Link v-if="roles.data.length > 0 && can('role.create')" :href="createRoute().url">
                         <Button size="sm" class="h-9">
                             <Plus class="mr-2 h-4 w-4" />
                             Yeni Rol Ekle
@@ -61,13 +64,13 @@ function handlePageChange(page: number) {
                 </div>
 
                 <template v-if="roles.data.length > 0">
-                    <div class="rounded-md border bg-card shadow-sm mx-2">
+                    <div class="rounded-md border border-border bg-card shadow-none mx-2">
                         <Table>
                             <TableHeader>
                                 <TableRow>
                                     <TableHead class="w-[250px]">Rol Adı</TableHead>
                                     <TableHead>Açıklama</TableHead>
-                                    <TableHead class="text-right w-[120px]">İşlemler</TableHead>
+                                    <TableHead v-if="can('role.update')" class="text-right w-[120px]">İşlemler</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -81,7 +84,7 @@ function handlePageChange(page: number) {
                                     <TableCell class="text-muted-foreground italic">
                                         {{ role.description || 'Açıklama belirtilmemiş.' }}
                                     </TableCell>
-                                    <TableCell class="text-right">
+                                    <TableCell v-if="can('role.update')" class="text-right">
                                         <Link :href="editRoute(role).url">
                                             <Button variant="outline" size="sm" class="h-8">
                                                 <Pencil class="mr-2 h-3.5 w-3.5" />
@@ -134,8 +137,8 @@ function handlePageChange(page: number) {
                         title="Rol Bulunamadı"
                         description="Henüz bir rol tanımlanmamış veya arama kriterlerine uygun sonuç yok."
                         :icon="Shield"
-                        action-label="Yeni Rol Ekle"
-                        @action="router.visit(createRoute().url)"
+                        :action-label="can('role.create') ? 'Yeni Rol Ekle' : undefined"
+                        @action="can('role.create') && router.visit(createRoute().url)"
                     />
                 </div>
             </div>
