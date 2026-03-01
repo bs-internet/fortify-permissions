@@ -9,7 +9,6 @@ import {
     Loader2,
     AlertTriangle
 } from 'lucide-vue-next';
-import { ref } from 'vue';
 import Heading from '@/components/app/common/Heading.vue';
 import InputError from '@/components/app/common/InputError.vue';
 import {
@@ -44,46 +43,55 @@ const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Rolü Düzenle', href: '#' },
 ];
 
-// Mevcut yetkileri formun içine başlangıç değeri olarak atıyoruz
+/** * Controller'dan gelen [{id: '...'}] yapısını
+ * ['id1', 'id2'] yapısına dönüştürüyoruz.
+ */
+const initialPermissions = props.role.permissions.map(p => String(p.id));
+
 const form = useForm({
     label: props.role.label,
     description: props.role.description,
-    permissions: props.role.permissions.map(p => p.id),
+    permissions: initialPermissions, // Seçili gelmesini sağlayan satır
 });
 
 const submit = () => {
     form.put(roleUpdate(props.role).url);
 };
 
-// Silme işlemi için ayrı bir form durumu (processing kontrolü için)
-const isDeleting = ref(false);
-
 const confirmDelete = () => {
-    router.delete(roleDelete(props.role).url, {
-        onBefore: () => { isDeleting.value = true },
-        onFinish: () => { isDeleting.value = false },
-    });
+    router.delete(roleDelete(props.role).url);
 };
 
+// Tekil seçim ve UI güncelleme
 const togglePermission = (id: string) => {
-    const index = form.permissions.indexOf(id);
+    const permissionId = String(id);
+    const current = [...form.permissions];
+    const index = current.indexOf(permissionId);
+
     if (index > -1) {
-        form.permissions.splice(index, 1);
+        current.splice(index, 1);
     } else {
-        form.permissions.push(id);
+        current.push(permissionId);
     }
+    form.permissions = current;
 };
 
+// Modül toplu seçim ve UI güncelleme
 const toggleModule = (modulePermissions: Permission[]) => {
-    const moduleIds = modulePermissions.map(p => p.id);
-    const allSelected = moduleIds.every(id => form.permissions.includes(id));
+    const moduleIds = modulePermissions.map(p => String(p.id));
+    const allSelected = isModuleFullySelected(modulePermissions);
 
     if (allSelected) {
         form.permissions = form.permissions.filter(id => !moduleIds.includes(id));
     } else {
-        const newIds = moduleIds.filter(id => !form.permissions.includes(id));
-        form.permissions.push(...newIds);
+        const newSelection = new Set([...form.permissions, ...moduleIds]);
+        form.permissions = Array.from(newSelection);
     }
+};
+
+const isModuleFullySelected = (modulePermissions: Permission[]) => {
+    if (!modulePermissions.length) return false;
+    return modulePermissions.every(p => form.permissions.includes(String(p.id)));
 };
 </script>
 
@@ -95,8 +103,8 @@ const toggleModule = (modulePermissions: Permission[]) => {
                 <div class="flex items-center justify-between px-2">
                     <div class="flex items-center gap-4">
                         <Link :href="roleIndex().url">
-                            <Button variant="ghost" size="icon" class="rounded-full">
-                                <ChevronLeft class="h-5 w-5" />
+                            <Button variant="secondary" size="icon" class="rounded-full bg-muted hover:bg-muted/80 shadow-none border">
+                                <ChevronLeft class="h-5 w-5 text-foreground" />
                             </Button>
                         </Link>
                         <Heading
@@ -108,7 +116,7 @@ const toggleModule = (modulePermissions: Permission[]) => {
                     <div class="flex items-center gap-2">
                         <AlertDialog>
                             <AlertDialogTrigger as-child>
-                                <Button variant="destructive" size="sm" class="h-9">
+                                <Button variant="outline" size="sm" class="h-9 text-destructive border-destructive/20 hover:bg-destructive/5 shadow-none">
                                     <Trash2 class="mr-2 h-4 w-4" />
                                     Rolü Sil
                                 </Button>
@@ -117,13 +125,13 @@ const toggleModule = (modulePermissions: Permission[]) => {
                                 <AlertDialogHeader>
                                     <AlertDialogTitle>Bu rolü silmek istediğinize emin misiniz?</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        <div class="bg-amber-50 border border-amber-200 p-3 rounded-md text-amber-800 text-xs mt-2 space-y-2">
+                                        <div class="bg-amber-50 border border-amber-200 p-3 rounded-md text-amber-800 text-xs mt-2 space-y-1">
                                             <p class="font-bold flex items-center gap-1">
                                                 <AlertTriangle class="h-3 w-3" /> Dikkat:
                                             </p>
                                             <ul class="list-disc ml-4">
                                                 <li>Rolü kullanan kullanıcı varsa silinemez.</li>
-                                                <li>Rol üzerinde hala yetki tanımlıysa silinemez (Önce tüm yetkileri kaldırmalısınız).</li>
+                                                <li>Tanımlı yetkileri önce kaldırmanız önerilir.</li>
                                             </ul>
                                         </div>
                                     </AlertDialogDescription>
@@ -137,45 +145,33 @@ const toggleModule = (modulePermissions: Permission[]) => {
                             </AlertDialogContent>
                         </AlertDialog>
 
-                        <Button type="submit" form="roleEditForm" :disabled="form.processing">
+                        <Button type="submit" form="roleEditForm" :disabled="form.processing" class="shadow-none px-6">
                             <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
                             <Save v-else class="mr-2 h-4 w-4" />
-                            Değişiklikleri Kaydet
+                            Kaydet
                         </Button>
                     </div>
                 </div>
 
                 <form id="roleEditForm" @submit.prevent="submit" class="space-y-6">
-                    <div class="rounded-xl border bg-card p-6 shadow-sm space-y-4">
-                        <div class="flex items-center gap-2 mb-2 text-primary font-semibold">
+                    <div class="rounded-lg border border-muted/60 bg-card p-6 shadow-none space-y-4">
+                        <div class="flex items-center gap-2 mb-2 text-primary font-semibold text-sm uppercase tracking-wider">
                             <ShieldCheck class="h-5 w-5" />
                             <span>Genel Bilgiler</span>
                         </div>
 
-                        <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="grid gap-4">
                             <div class="space-y-2">
                                 <Label for="label">Rol Adı</Label>
-                                <Input
-                                    id="label"
-                                    v-model="form.label"
-                                    :error="!!form.errors.label"
-                                />
+                                <Input id="label" v-model="form.label" class="shadow-none focus-visible:ring-1" />
                                 <InputError :message="form.errors.label" />
                             </div>
-                            <div class="space-y-2">
-                                <Label class="opacity-70">Teknik Ad (Güncellenemez)</Label>
-                                <Input :value="role.name" disabled class="bg-muted cursor-not-allowed" />
-                            </div>
-                        </div>
 
-                        <div class="space-y-2">
-                            <Label for="description">Açıklama</Label>
-                            <Textarea
-                                id="description"
-                                v-model="form.description"
-                                class="min-h-[100px] resize-none"
-                            />
-                            <InputError :message="form.errors.description" />
+                            <div class="space-y-2">
+                                <Label for="description">Açıklama</Label>
+                                <Textarea id="description" v-model="form.description" class="min-h-[100px] resize-none shadow-none focus-visible:ring-1" />
+                                <InputError :message="form.errors.description" />
+                            </div>
                         </div>
                     </div>
 
@@ -183,31 +179,31 @@ const toggleModule = (modulePermissions: Permission[]) => {
                         <div class="flex items-center justify-between border-b pb-2">
                             <div class="flex items-center gap-2 font-semibold">
                                 <CheckCircle2 class="h-5 w-5 text-green-600" />
-                                <span>Yetkileri Düzenle</span>
+                                <span>Yetki Matrisi</span>
                             </div>
-                            <span class="text-xs font-medium text-muted-foreground">
+                            <span class="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded">
                                 {{ form.permissions.length }} Aktif Yetki
                             </span>
                         </div>
 
-                        <div class="grid gap-6 sm:grid-cols-2">
+                        <div class="grid gap-4 sm:grid-cols-2">
                             <div
                                 v-for="(modulePermissions, moduleName) in permissions"
                                 :key="moduleName"
-                                class="rounded-xl border bg-card overflow-hidden shadow-sm border-t-2 border-t-primary/20"
+                                class="rounded-lg border border-muted/60 bg-card overflow-hidden shadow-none"
                             >
-                                <div class="bg-muted/30 px-4 py-3 border-b flex justify-between items-center">
-                                    <h3 class="font-bold text-xs uppercase tracking-tighter text-foreground/70">
+                                <div class="bg-muted/30 px-4 py-2 border-b flex justify-between items-center">
+                                    <h3 class="font-bold text-[11px] uppercase tracking-tight text-foreground/70">
                                         {{ moduleName }}
                                     </h3>
                                     <Button
                                         type="button"
                                         variant="ghost"
                                         size="sm"
-                                        class="h-7 text-[10px]"
+                                        class="h-7 text-[10px] hover:bg-primary/5 font-semibold transition-all"
                                         @click="toggleModule(modulePermissions)"
                                     >
-                                        Tümünü Seç
+                                        {{ isModuleFullySelected(modulePermissions) ? 'Tümünü Kaldır' : 'Tümünü Seç' }}
                                     </Button>
                                 </div>
                                 <div class="p-4 grid gap-3">
@@ -218,12 +214,12 @@ const toggleModule = (modulePermissions: Permission[]) => {
                                     >
                                         <Checkbox
                                             :id="permission.id"
-                                            :checked="form.permissions.includes(permission.id)"
+                                            :checked="form.permissions.includes(String(permission.id))"
                                             @update:checked="togglePermission(permission.id)"
                                         />
                                         <label
                                             :for="permission.id"
-                                            class="text-sm font-medium leading-none cursor-pointer group-hover:text-primary transition-colors"
+                                            class="text-sm font-medium leading-none cursor-pointer group-hover:text-primary transition-colors select-none"
                                         >
                                             {{ permission.label }}
                                         </label>
