@@ -2,8 +2,10 @@
 
 
 use App\Http\Controllers\Definitions\{
+    CountryController,
     CurrencyController,
     LanguageController,
+    TaxController,
     UnitController
 };
 use App\Http\Controllers\Settings\{
@@ -135,6 +137,22 @@ Route::middleware([
                     Route::post('/currencies', 'store')->middleware('throttle:sensitiveActions')->name('currencies.store');
                     Route::put('/currencies/{currency}', 'update')->middleware('throttle:sensitiveActions')->name('currencies.update');
                     Route::delete('/currencies/{currency}', 'destroy')->middleware('throttle:sensitiveActions')->name('currencies.destroy');
+                });
+
+                // Countries
+                Route::controller(CountryController::class)->group(function () {
+                    Route::get('/countries', 'index')->name('countries.index');
+                    Route::post('/countries', 'store')->middleware('throttle:sensitiveActions')->name('countries.store');
+                    Route::put('/countries/{country}', 'update')->middleware('throttle:sensitiveActions')->name('countries.update');
+                    Route::delete('/countries/{country}', 'destroy')->middleware('throttle:sensitiveActions')->name('countries.destroy');
+                });
+
+                // Taxes
+                Route::controller(TaxController::class)->group(function () {
+                    Route::get('/taxes', 'index')->name('taxes.index');
+                    Route::post('/taxes', 'store')->middleware('throttle:sensitiveActions')->name('taxes.store');
+                    Route::put('/taxes/{tax}', 'update')->middleware('throttle:sensitiveActions')->name('taxes.update');
+                    Route::delete('/taxes/{tax}', 'destroy')->middleware('throttle:sensitiveActions')->name('taxes.destroy');
                 });
             });
 

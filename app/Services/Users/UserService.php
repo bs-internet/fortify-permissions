@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Users;
 
-use App\Enums\PermissionEnum;
+use App\Enums\CorePermission;
 use App\Events\UserCreated;
 use App\Events\UserDeleted;
 use App\Events\UserUpdated;
@@ -118,7 +118,7 @@ class UserService
         unset($data['roles'], $data['permissions']);
 
         if (isset($data['email']) && $data['email'] !== $user->email) {
-            if (!$authUser->can(PermissionEnum::USER_CHANGE_EMAIL->value)) {
+            if (!$authUser->can(CorePermission::USER_CHANGE_EMAIL->value)) {
                 $data['email'] = $user->email;
             } else {
                 $data['email_verified_at'] = null;
@@ -126,7 +126,7 @@ class UserService
         }
 
         if (isset($data['status']) && (int) $data['status'] !== $user->status->value) {
-            if (!$authUser->can(PermissionEnum::USER_CHANGE_STATUS->value)) {
+            if (!$authUser->can(CorePermission::USER_CHANGE_STATUS->value)) {
                 $data['status'] = $user->status->value;
             }
         }
@@ -170,7 +170,7 @@ class UserService
     {
         Gate::authorize('update', $user);
 
-        if (!$authUser->can(PermissionEnum::USER_VERIFY_EMAIL->value)) {
+        if (!$authUser->can(CorePermission::USER_VERIFY_EMAIL->value)) {
             throw new AuthorizationException('E-posta doğrulama yetkiniz yok.');
         }
 

@@ -6,7 +6,7 @@ namespace App\Policies;
 
 use App\Models\Unit;
 use App\Models\User;
-use App\Enums\PermissionEnum;
+use App\Enums\DefinitionPermission;
 
 class UnitPolicy
 {
@@ -15,7 +15,7 @@ class UnitPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can(PermissionEnum::UNIT_MANAGEMENT->value);
+        return $user->can(DefinitionPermission::UNIT_MANAGEMENT->value);
     }
 
     /**
@@ -23,7 +23,7 @@ class UnitPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can(PermissionEnum::UNIT_CREATE->value);
+        return $user->can(DefinitionPermission::UNIT_CREATE->value);
     }
 
     /**
@@ -31,7 +31,7 @@ class UnitPolicy
      */
     public function update(User $user, Unit $unit): bool
     {
-        return $user->can(PermissionEnum::UNIT_UPDATE->value);
+        return $user->can(DefinitionPermission::UNIT_UPDATE->value);
     }
 
     /**
@@ -39,6 +39,6 @@ class UnitPolicy
      */
     public function delete(User $user, Unit $unit): bool
     {
-        return $user->can(PermissionEnum::UNIT_DELETE->value);
+        return $user->can(DefinitionPermission::UNIT_DELETE->value);
     }
 }

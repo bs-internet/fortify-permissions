@@ -6,7 +6,7 @@ namespace App\Policies;
 
 use App\Models\Role;
 use App\Models\User;
-use App\Enums\PermissionEnum;
+use App\Enums\CorePermission;
 
 class RolePolicy
 {
@@ -15,7 +15,7 @@ class RolePolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can(PermissionEnum::ROLE_MANAGEMENT->value);
+        return $user->can(CorePermission::ROLE_MANAGEMENT->value);
     }
 
     /**
@@ -23,7 +23,7 @@ class RolePolicy
      */
     public function create(User $user): bool
     {
-        return $user->can(PermissionEnum::ROLE_CREATE->value);
+        return $user->can(CorePermission::ROLE_CREATE->value);
     }
 
     /**
@@ -35,7 +35,7 @@ class RolePolicy
             return false;
         }
 
-        return $user->can(PermissionEnum::ROLE_UPDATE->value);
+        return $user->can(CorePermission::ROLE_UPDATE->value);
     }
 
     /**
@@ -47,6 +47,6 @@ class RolePolicy
             return false;
         }
         
-        return $user->can(PermissionEnum::ROLE_DELETE->value);
+        return $user->can(CorePermission::ROLE_DELETE->value);
     }
 }

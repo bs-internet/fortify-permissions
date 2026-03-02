@@ -104,12 +104,14 @@ resources/js/
 |-------|-----------|
 | **User** | UUID, SoftDeletes, HasRoles (Spatie), TwoFactorAuthenticatable, belongsTo(Language) |
 | **Role** | UUID, Spatie Role genişletmesi, özel label/description alanları |
-| **Permission** | UUID, Spatie Permission genişletmesi, name → PermissionEnum cast |
+| **Permission** | UUID, Spatie Permission genişletmesi |
 | **Activity** | UUID, SoftDeletes, Prunable (6 ay), belongsTo(User), log alanı (JSON) |
 | **Setting** | UUID, key/value/type yapısı, getTypedValueAttribute ile tip dönüşümü |
 | **Language** | UUID, code/name/native_name, is_default, hasMany(User), cache: rememberForever |
 | **Currency** | UUID, code/name/symbol, decimal ayarları, is_default |
 | **Unit** | UUID, name/abbreviation, type → UnitType enum cast |
+| **Country** | UUID, code/name, is_default, is_active, belongsToMany(Tax) |
+| **Tax** | UUID, name/rate, is_active, belongsToMany(Country), pivot: country_tax |
 | **Notification** | UUID, polymorphic (notifiable), read_at |
 | **ArchivedNotification** | UUID, SoftDeletes, Prunable (120 gün), polymorphic |
 
@@ -118,7 +120,8 @@ resources/js/
 ## Enum Tanımları
 
 - **UserStatus:** PASSIVE(0) - giriş yapamaz, ACTIVE(1) - tam erişim, DRAFT(2) - salt okunur
-- **PermissionEnum:** `user.*`, `role.*`, `permission.*`, `language.*`, `currency.*`, `unit.*`, `setting.*`, `activity.*`
+- **CorePermission:** `user.*`, `role.*`, `permission.*`, `setting.*`, `activity.*`
+- **DefinitionPermission:** `language.*`, `currency.*`, `unit.*`, `country.*`, `tax.*`
 - **UnitType:** Weight, Length, Volume, Area, Piece
 
 ---
@@ -132,17 +135,23 @@ resources/js/
 - **EnsureWriteAccess** middleware: DRAFT kullanıcıların POST/PUT/PATCH/DELETE işlemlerini engeller
 - Frontend'de `usePermission()` composable ile `can()`, `canAny()`, `canAll()` kontrolleri
 
-### İzin Modülleri
+### İzin Modülleri (CorePermission)
 | Modül | İzinler |
 |-------|---------|
-| Kullanıcı | user.management, user.create, user.update, user.delete |
+| Kullanıcı | user.management, user.create, user.update, user.delete, user.change-email, user.verify-email, user.change-status |
 | Rol | role.management, role.create, role.update, role.delete |
 | İzin | permission.management, permission.update |
+| Ayarlar | setting.management, setting.update |
+| Aktivite | activity.view |
+
+### İzin Modülleri (DefinitionPermission)
+| Modül | İzinler |
+|-------|---------|
 | Dil | language.management, language.create, language.update, language.delete |
 | Para Birimi | currency.management, currency.create, currency.update, currency.delete |
 | Birim | unit.management, unit.create, unit.update, unit.delete |
-| Ayarlar | setting.management, setting.update |
-| Aktivite | activity.view |
+| Ülke | country.management, country.create, country.update, country.delete |
+| Vergi | tax.management, tax.create, tax.update, tax.delete |
 
 ---
 
@@ -193,7 +202,8 @@ import ModuleLayout from './partials/Layout.vue';
 | `bootstrap/app.php` | Middleware, exception, rota kayıtları |
 | `bootstrap/providers.php` | Service provider listesi |
 | `config/otomasyon.php` | Uygulama özel ayarlar (versiyon, pagination, cache) |
-| `app/Enums/PermissionEnum.php` | Tüm sistem izinleri |
+| `app/Enums/CorePermission.php` | Çekirdek sistem izinleri (user, role, permission, setting, activity) |
+| `app/Enums/DefinitionPermission.php` | Tanımlama izinleri (language, currency, unit, country, tax) |
 | `app/Enums/UserStatus.php` | Kullanıcı durumları |
 | `app/Http/Middleware/HandleInertiaRequests.php` | Inertia ile paylaşılan veriler (auth, settings, flash) |
 | `app/Helpers/site_helpers.php` | Global helper fonksiyonlar (settings, site_name, logo) |

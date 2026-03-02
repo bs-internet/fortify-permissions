@@ -6,7 +6,7 @@ namespace App\Policies;
 
 use App\Models\Currency;
 use App\Models\User;
-use App\Enums\PermissionEnum;
+use App\Enums\DefinitionPermission;
 
 class CurrencyPolicy
 {
@@ -15,7 +15,7 @@ class CurrencyPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can(PermissionEnum::CURRENCY_MANAGEMENT->value);
+        return $user->can(DefinitionPermission::CURRENCY_MANAGEMENT->value);
     }
 
     /**
@@ -23,7 +23,7 @@ class CurrencyPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can(PermissionEnum::CURRENCY_CREATE->value);
+        return $user->can(DefinitionPermission::CURRENCY_CREATE->value);
     }
 
     /**
@@ -31,7 +31,7 @@ class CurrencyPolicy
      */
     public function update(User $user, Currency $currency): bool
     {
-        return $user->can(PermissionEnum::CURRENCY_UPDATE->value);
+        return $user->can(DefinitionPermission::CURRENCY_UPDATE->value);
     }
 
     /**
@@ -39,6 +39,6 @@ class CurrencyPolicy
      */
     public function delete(User $user, Currency $currency): bool
     {
-        return $user->can(PermissionEnum::CURRENCY_DELETE->value);
+        return $user->can(DefinitionPermission::CURRENCY_DELETE->value);
     }
 }

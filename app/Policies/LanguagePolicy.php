@@ -6,7 +6,7 @@ namespace App\Policies;
 
 use App\Models\Language;
 use App\Models\User;
-use App\Enums\PermissionEnum;
+use App\Enums\DefinitionPermission;
 
 class LanguagePolicy
 {
@@ -15,7 +15,7 @@ class LanguagePolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can(PermissionEnum::LANGUAGE_MANAGEMENT->value);
+        return $user->can(DefinitionPermission::LANGUAGE_MANAGEMENT->value);
     }
 
     /**
@@ -23,7 +23,7 @@ class LanguagePolicy
      */
     public function create(User $user): bool
     {
-        return $user->can(PermissionEnum::LANGUAGE_CREATE->value);
+        return $user->can(DefinitionPermission::LANGUAGE_CREATE->value);
     }
 
     /**
@@ -31,7 +31,7 @@ class LanguagePolicy
      */
     public function update(User $user, Language $language): bool
     {
-        return $user->can(PermissionEnum::LANGUAGE_UPDATE->value);
+        return $user->can(DefinitionPermission::LANGUAGE_UPDATE->value);
     }
 
     /**
@@ -39,6 +39,6 @@ class LanguagePolicy
      */
     public function delete(User $user, Language $language): bool
     {
-        return $user->can(PermissionEnum::LANGUAGE_DELETE->value);
+        return $user->can(DefinitionPermission::LANGUAGE_DELETE->value);
     }
 }

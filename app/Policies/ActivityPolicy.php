@@ -6,7 +6,7 @@ namespace App\Policies;
 
 use App\Models\Activity;
 use App\Models\User;
-use App\Enums\PermissionEnum;
+use App\Enums\CorePermission;
 
 class ActivityPolicy
 {
@@ -15,6 +15,6 @@ class ActivityPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can(PermissionEnum::ACTIVITY_VIEW->value);
+        return $user->can(CorePermission::ACTIVITY_VIEW->value);
     }
 }

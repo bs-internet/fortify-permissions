@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Users;
 
+use App\Enums\CorePermission;
+use App\Enums\DefinitionPermission;
 use App\Events\PermissionUpdated;
 use App\Models\Permission;
 use App\Models\User;
@@ -69,17 +71,22 @@ class PermissionService
     {
         Gate::authorize('viewAny', Permission::class);
 
+        $moduleLabels = array_merge(
+            CorePermission::moduleLabels(),
+            DefinitionPermission::moduleLabels(),
+        );
+
         return Permission::query()
             ->where('guard_name', 'web')
             ->orderBy('name')
             ->get()
-            ->groupBy(function (Permission $permission) {
+            ->groupBy(function (Permission $permission) use ($moduleLabels) {
                 $name = $permission->name;
-                $moduleKey = str_contains($name->value, '.')
-                    ? explode('.', $name->value)[0]
+                $moduleKey = str_contains($name, '.')
+                    ? explode('.', $name)[0]
                     : 'other';
 
-                return \App\Enums\PermissionEnum::getModuleLabel($moduleKey);
+                return $moduleLabels[$moduleKey] ?? ucfirst($moduleKey);
             })->toArray();
     }
 

@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Enums\PermissionEnum;
+use App\Enums\CorePermission;
+use App\Enums\DefinitionPermission;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Spatie\Permission\Models\Permission as SpatiePermission;
 
-/**
- * @property \App\Enums\PermissionEnum $name
- */
 class Permission extends SpatiePermission
 {
     use HasFactory;
@@ -27,13 +25,18 @@ class Permission extends SpatiePermission
      * @return array<string, string>
      */
     protected $casts = [
-        'name' => PermissionEnum::class,
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
 
-    public function scopeByName($query, string|PermissionEnum $name)
+    public function scopeByName($query, string|CorePermission|DefinitionPermission $name)
     {
-        return $query->where('name', $name instanceof PermissionEnum ? $name->value : $name);
+        $value = match (true) {
+            $name instanceof CorePermission,
+            $name instanceof DefinitionPermission => $name->value,
+            default => $name,
+        };
+
+        return $query->where('name', $value);
     }
 }

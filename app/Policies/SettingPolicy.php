@@ -6,7 +6,7 @@ namespace App\Policies;
 
 use App\Models\Setting;
 use App\Models\User;
-use App\Enums\PermissionEnum;
+use App\Enums\CorePermission;
 
 class SettingPolicy
 {
@@ -15,7 +15,7 @@ class SettingPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can(PermissionEnum::SETTING_MANAGEMENT->value);
+        return $user->can(CorePermission::SETTING_MANAGEMENT->value);
     }
 
     /**
@@ -23,6 +23,6 @@ class SettingPolicy
      */
     public function update(User $user): bool
     {
-        return $user->can(PermissionEnum::SETTING_UPDATE->value);
+        return $user->can(CorePermission::SETTING_UPDATE->value);
     }
 }

@@ -35,3 +35,25 @@ export type Unit = {
     created_at: string;
     updated_at: string;
 };
+
+export type Country = {
+    id: string;
+    code: string;
+    name: string;
+    is_default: boolean;
+    is_active: boolean;
+    sort_order: number;
+    created_at: string;
+    updated_at: string;
+};
+
+export type Tax = {
+    id: string;
+    name: string;
+    rate: number;
+    is_active: boolean;
+    sort_order: number;
+    countries: Country[];
+    created_at: string;
+    updated_at: string;
+};

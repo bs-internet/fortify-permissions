@@ -1,0 +1,30 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Events;
+
+use App\Models\User;
+use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
+
+class TaxDeleted
+{
+    use Dispatchable, InteractsWithSockets, SerializesModels;
+
+    /**
+     * Create a new event instance.
+     *
+     * @param User $user The user who deleted the tax
+     * @param array<string, mixed> $changes The changes made to the tax
+     * @param string $ipAddress IP address of the request
+     * @param string $userAgent User agent of the request
+     */
+    public function __construct(
+        public readonly User $user,
+        public readonly array $changes,
+        public readonly string $ipAddress,
+        public readonly string $userAgent
+    ) {}
+}

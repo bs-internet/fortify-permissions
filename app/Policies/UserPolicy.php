@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Policies;
 
 use App\Models\User;
-use App\Enums\PermissionEnum;
+use App\Enums\CorePermission;
 
 class UserPolicy
 {
@@ -14,7 +14,7 @@ class UserPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can(PermissionEnum::USER_MANAGEMENT->value);
+        return $user->can(CorePermission::USER_MANAGEMENT->value);
     }
 
     /**
@@ -22,7 +22,7 @@ class UserPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can(PermissionEnum::USER_CREATE->value);
+        return $user->can(CorePermission::USER_CREATE->value);
     }
 
     /**
@@ -30,7 +30,7 @@ class UserPolicy
      */
     public function update(User $user, User $model): bool
     {
-        if (!$user->can(PermissionEnum::USER_UPDATE->value)) {
+        if (!$user->can(CorePermission::USER_UPDATE->value)) {
             return false;
         }
 
@@ -43,7 +43,7 @@ class UserPolicy
      */
     public function delete(User $user, User $model): bool
     {
-        if (!$user->can(PermissionEnum::USER_DELETE->value)) {
+        if (!$user->can(CorePermission::USER_DELETE->value)) {
             return false;
         }
 
