@@ -25,7 +25,6 @@ class LanguageCreateRequest extends FormRequest
             'code' => ['required', 'string', 'max:10', 'unique:languages,code'],
             'name' => ['required', 'string', 'max:255'],
             'native_name' => ['required', 'string', 'max:255'],
-            'is_default' => ['boolean'],
             'is_active' => ['boolean'],
             'sort_order' => ['integer', 'min:0'],
         ];

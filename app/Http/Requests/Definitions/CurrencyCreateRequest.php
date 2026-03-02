@@ -28,7 +28,6 @@ class CurrencyCreateRequest extends FormRequest
             'decimal_places' => ['integer', 'min:0', 'max:10'],
             'thousand_separator' => ['string', 'max:5'],
             'decimal_separator' => ['string', 'max:5'],
-            'is_default' => ['boolean'],
             'is_active' => ['boolean'],
             'sort_order' => ['integer', 'min:0'],
         ];

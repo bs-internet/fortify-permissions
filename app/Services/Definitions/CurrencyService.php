@@ -41,10 +41,6 @@ class CurrencyService
     {
         Gate::authorize('create', Currency::class);
 
-        if (!empty($data['is_default'])) {
-            Currency::query()->where('is_default', true)->update(['is_default' => false]);
-        }
-
         $currency = Currency::create($data);
 
         $this->clearCache();
@@ -61,10 +57,6 @@ class CurrencyService
     public function update(Currency $currency, User $user, array $data, string $ipAddress, string $userAgent): Currency
     {
         Gate::authorize('update', $currency);
-
-        if (!empty($data['is_default'])) {
-            Currency::query()->where('is_default', true)->where('id', '!=', $currency->id)->update(['is_default' => false]);
-        }
 
         $originalData = $currency->only(array_keys($data));
 

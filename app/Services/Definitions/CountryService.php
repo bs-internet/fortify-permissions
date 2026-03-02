@@ -56,10 +56,6 @@ class CountryService
     {
         Gate::authorize('create', Country::class);
 
-        if (!empty($data['is_default'])) {
-            Country::query()->where('is_default', true)->update(['is_default' => false]);
-        }
-
         $country = Country::create($data);
 
         $this->clearCache();
@@ -76,10 +72,6 @@ class CountryService
     public function update(Country $country, User $user, array $data, string $ipAddress, string $userAgent): Country
     {
         Gate::authorize('update', $country);
-
-        if (!empty($data['is_default'])) {
-            Country::query()->where('is_default', true)->where('id', '!=', $country->id)->update(['is_default' => false]);
-        }
 
         $originalData = $country->only(array_keys($data));
 

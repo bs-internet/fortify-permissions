@@ -56,10 +56,6 @@ class LanguageService
     {
         Gate::authorize('create', Language::class);
 
-        if (!empty($data['is_default'])) {
-            Language::query()->where('is_default', true)->update(['is_default' => false]);
-        }
-
         $language = Language::create($data);
 
         $this->clearCache();
@@ -76,10 +72,6 @@ class LanguageService
     public function update(Language $language, User $user, array $data, string $ipAddress, string $userAgent): Language
     {
         Gate::authorize('update', $language);
-
-        if (!empty($data['is_default'])) {
-            Language::query()->where('is_default', true)->where('id', '!=', $language->id)->update(['is_default' => false]);
-        }
 
         $originalData = $language->only(array_keys($data));
 
@@ -110,6 +102,10 @@ class LanguageService
     public function delete(Language $language, User $user, string $ipAddress, string $userAgent): void
     {
         Gate::authorize('delete', $language);
+
+        if (Language::query()->count() <= 1) {
+            abort(403, 'Sistemde en az bir dil bulunmalıdır.');
+        }
 
         $changes = [
             'deleted' => $language->only(['code', 'name']),

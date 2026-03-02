@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
-import { Plus, Pencil, Trash2, Loader2 } from 'lucide-vue-next';
+import { Plus, Pencil, Trash2, Loader2, X, Check } from 'lucide-vue-next';
 import { ref } from 'vue';
 import { store, update, destroy } from '@/actions/App/Http/Controllers/Definitions/LanguageController';
 import Heading from '@/components/app/common/Heading.vue';
@@ -17,26 +17,12 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import EmptyState from '@/components/ui/empty-state/EmptyState.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useClearFormErrors } from '@/composables/useClearFormErrors';
 import { usePermission } from '@/composables/usePermission';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -44,23 +30,18 @@ import DefinitionsLayout from '@/pages/app/definitions/partials/Layout.vue';
 import { index as languageRoute } from '@/routes/settings/definitions/languages';
 import { type BreadcrumbItem, type Language } from '@/types';
 
-type Props = {
-    languages: Language[];
-};
+const props = defineProps<{ languages: Language[] }>();
 
-defineProps<Props>();
-
-const { can, canAny } = usePermission();
+const { can } = usePermission();
 
 const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Tanımlamalar', href: '#' },
     { title: 'Diller', href: languageRoute().url },
 ];
 
-const showFormDialog = ref(false);
+const isSheetOpen = ref(false);
 const showDeleteDialog = ref(false);
 const editingLanguage = ref<Language | null>(null);
-const deletingLanguage = ref<Language | null>(null);
 
 const form = useForm({
     code: '',
@@ -73,14 +54,14 @@ const form = useForm({
 
 useClearFormErrors(form);
 
-function openCreateDialog() {
+function openCreateSheet() {
     editingLanguage.value = null;
     form.reset();
     form.clearErrors();
-    showFormDialog.value = true;
+    isSheetOpen.value = true;
 }
 
-function openEditDialog(language: Language) {
+function openEditSheet(language: Language) {
     editingLanguage.value = language;
     form.code = language.code;
     form.name = language.name;
@@ -89,38 +70,32 @@ function openEditDialog(language: Language) {
     form.is_active = language.is_active;
     form.sort_order = language.sort_order;
     form.clearErrors();
-    showFormDialog.value = true;
-}
-
-function openDeleteDialog(language: Language) {
-    deletingLanguage.value = language;
-    showDeleteDialog.value = true;
+    isSheetOpen.value = true;
 }
 
 function submitForm() {
     if (editingLanguage.value) {
         form.put(update.url(editingLanguage.value.id), {
-            onSuccess: () => {
-                showFormDialog.value = false;
-            },
+            onSuccess: () => { isSheetOpen.value = false; },
         });
     } else {
         form.post(store.url(), {
-            onSuccess: () => {
-                showFormDialog.value = false;
-                form.reset();
-            },
+            onSuccess: () => { isSheetOpen.value = false; form.reset(); },
         });
     }
 }
 
-function confirmDelete() {
-    if (!deletingLanguage.value) return;
+function openDeleteDialog() {
+    showDeleteDialog.value = true;
+}
 
-    form.delete(destroy.url(deletingLanguage.value.id), {
+function confirmDelete() {
+    if (!editingLanguage.value) return;
+    form.delete(destroy.url(editingLanguage.value.id), {
         onSuccess: () => {
             showDeleteDialog.value = false;
-            deletingLanguage.value = null;
+            isSheetOpen.value = false;
+            editingLanguage.value = null;
         },
     });
 }
@@ -134,9 +109,8 @@ function confirmDelete() {
             <div class="space-y-6">
                 <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center px-2">
                     <Heading variant="small" title="Diller" description="Sistem üzerinde kullanılan diller." />
-
                     <div v-if="can('language.create')">
-                        <Button size="sm" class="h-9" @click="openCreateDialog">
+                        <Button size="sm" class="h-9" @click="openCreateSheet">
                             <Plus class="mr-2 h-4 w-4" />
                             Yeni Dil Ekle
                         </Button>
@@ -154,7 +128,7 @@ function confirmDelete() {
                                     <TableHead class="text-center">Varsayılan</TableHead>
                                     <TableHead class="text-center">Durum</TableHead>
                                     <TableHead class="text-center">Sıra</TableHead>
-                                    <TableHead v-if="canAny(['language.update', 'language.delete'])" class="text-right w-[160px]">İşlemler</TableHead>
+                                    <TableHead v-if="can('language.update')" class="text-right w-[100px]">İşlemler</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -171,17 +145,11 @@ function confirmDelete() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell class="text-center">{{ language.sort_order }}</TableCell>
-                                    <TableCell v-if="canAny(['language.update', 'language.delete'])" class="text-right">
-                                        <div class="flex justify-end gap-2">
-                                            <Button v-if="can('language.update')" variant="outline" size="sm" class="h-8" @click="openEditDialog(language)">
-                                                <Pencil class="mr-2 h-3.5 w-3.5" />
-                                                Düzenle
-                                            </Button>
-                                            <Button v-if="can('language.delete')" variant="outline" size="sm" class="h-8 text-destructive border-destructive/30 hover:bg-destructive/5" @click="openDeleteDialog(language)">
-                                                <Trash2 class="mr-2 h-3.5 w-3.5" />
-                                                Sil
-                                            </Button>
-                                        </div>
+                                    <TableCell v-if="can('language.update')" class="text-right">
+                                        <Button variant="outline" size="sm" class="h-8" @click="openEditSheet(language)">
+                                            <Pencil class="mr-2 h-3.5 w-3.5" />
+                                            Düzenle
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             </TableBody>
@@ -194,80 +162,88 @@ function confirmDelete() {
                         title="Dil Bulunamadı"
                         description="Sistemde henüz hiç dil oluşturulmamış."
                         :action-label="can('language.create') ? 'Yeni Dil Ekle' : undefined"
-                        @action="can('language.create') && openCreateDialog()"
+                        @action="can('language.create') && openCreateSheet()"
                     />
                 </div>
             </div>
 
-            <!-- Create/Edit Dialog -->
-            <Dialog v-model:open="showFormDialog">
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{{ editingLanguage ? 'Dil Düzenle' : 'Yeni Dil Ekle' }}</DialogTitle>
-                        <DialogDescription>
+            <Sheet v-model:open="isSheetOpen">
+                <SheetContent side="right" class="sm:max-w-[400px] p-0 flex flex-col h-full">
+                    <SheetHeader class="p-6 border-b shrink-0">
+                        <SheetTitle class="flex items-center gap-2 text-xl">
+                            <Pencil v-if="editingLanguage" class="h-5 w-5 text-primary" />
+                            <Plus v-else class="h-5 w-5 text-primary" />
+                            {{ editingLanguage ? 'Dil Düzenle' : 'Yeni Dil Ekle' }}
+                        </SheetTitle>
+                        <SheetDescription>
                             {{ editingLanguage ? 'Dil bilgilerini güncelleyin.' : 'Sisteme yeni bir dil ekleyin.' }}
-                        </DialogDescription>
-                    </DialogHeader>
+                        </SheetDescription>
+                    </SheetHeader>
 
-                    <form class="space-y-4" @submit.prevent="submitForm">
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            <div class="space-y-2">
-                                <Label for="code">Dil Kodu</Label>
-                                <Input id="code" v-model="form.code" placeholder="tr" class="shadow-none focus-visible:ring-1" />
-                                <InputError :message="form.errors.code" />
-                            </div>
-
-                            <div class="space-y-2">
-                                <Label for="sort_order">Sıralama</Label>
-                                <Input id="sort_order" v-model.number="form.sort_order" type="number" min="0" class="shadow-none focus-visible:ring-1" />
-                                <InputError :message="form.errors.sort_order" />
-                            </div>
+                    <form id="languageForm" class="flex-1 overflow-y-auto p-6 space-y-6" @submit.prevent="submitForm">
+                        <div class="space-y-2">
+                            <Label for="code" class="text-sm font-bold">Dil Kodu</Label>
+                            <Input id="code" v-model="form.code" placeholder="tr" class="h-11" />
+                            <InputError :message="form.errors.code" />
                         </div>
-
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            <div class="space-y-2">
-                                <Label for="name">Ad</Label>
-                                <Input id="name" v-model="form.name" placeholder="Türkçe" class="shadow-none focus-visible:ring-1" />
-                                <InputError :message="form.errors.name" />
-                            </div>
-
-                            <div class="space-y-2">
-                                <Label for="native_name">Yerel Ad</Label>
-                                <Input id="native_name" v-model="form.native_name" placeholder="Türkçe" class="shadow-none focus-visible:ring-1" />
-                                <InputError :message="form.errors.native_name" />
-                            </div>
+                        <div class="space-y-2">
+                            <Label for="name" class="text-sm font-bold">Ad</Label>
+                            <Input id="name" v-model="form.name" placeholder="Türkçe" class="h-11" />
+                            <InputError :message="form.errors.name" />
                         </div>
-
+                        <div class="space-y-2">
+                            <Label for="native_name" class="text-sm font-bold">Yerel Ad</Label>
+                            <Input id="native_name" v-model="form.native_name" placeholder="Türkçe" class="h-11" />
+                            <InputError :message="form.errors.native_name" />
+                        </div>
+                        <div class="space-y-2">
+                            <Label for="sort_order" class="text-sm font-bold">Sıralama</Label>
+                            <Input id="sort_order" v-model.number="form.sort_order" type="number" min="0" class="h-11" />
+                            <InputError :message="form.errors.sort_order" />
+                        </div>
                         <div class="flex items-center gap-6">
                             <div class="flex items-center gap-2">
                                 <Switch id="is_active" :checked="form.is_active" @update:checked="form.is_active = $event" />
                                 <Label for="is_active">Aktif</Label>
                             </div>
-
                             <div class="flex items-center gap-2">
                                 <Switch id="is_default" :checked="form.is_default" @update:checked="form.is_default = $event" />
                                 <Label for="is_default">Varsayılan</Label>
                             </div>
                         </div>
-
-                        <DialogFooter>
-                            <Button type="button" variant="outline" @click="showFormDialog = false">İptal</Button>
-                            <Button type="submit" :disabled="form.processing">
-                                <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
-                                {{ form.processing ? 'Kaydediliyor...' : 'Kaydet' }}
-                            </Button>
-                        </DialogFooter>
                     </form>
-                </DialogContent>
-            </Dialog>
 
-            <!-- Delete Confirmation -->
+                    <SheetFooter class="p-6 border-t bg-muted/10 shrink-0">
+                        <div class="flex w-full flex-col gap-3">
+                            <Button type="submit" form="languageForm" class="w-full h-11" :disabled="form.processing">
+                                <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
+                                <Check v-else class="mr-2 h-4 w-4" />
+                                {{ form.processing ? 'Kaydediliyor...' : (editingLanguage ? 'Değişiklikleri Kaydet' : 'Dil Ekle') }}
+                            </Button>
+                            <Button type="button" variant="ghost" class="w-full h-11" @click="isSheetOpen = false">
+                                <X class="mr-2 h-4 w-4" /> İptal
+                            </Button>
+                            <Button
+                                v-if="editingLanguage && can('language.delete') && props.languages.length > 1"
+                                type="button"
+                                variant="outline"
+                                class="w-full h-11 text-destructive border-destructive/30 hover:bg-destructive/5"
+                                @click="openDeleteDialog"
+                            >
+                                <Trash2 class="mr-2 h-4 w-4" />
+                                Dili Sil
+                            </Button>
+                        </div>
+                    </SheetFooter>
+                </SheetContent>
+            </Sheet>
+
             <AlertDialog v-model:open="showDeleteDialog">
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Dili silmek istediğinize emin misiniz?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            <strong>{{ deletingLanguage?.name }}</strong> dili kalıcı olarak silinecektir. Bu işlem geri alınamaz.
+                            <strong>{{ editingLanguage?.name }}</strong> dili kalıcı olarak silinecektir. Bu işlem geri alınamaz.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

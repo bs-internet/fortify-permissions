@@ -20,23 +20,9 @@ import { Button } from '@/components/ui/button';
 import EmptyState from '@/components/ui/empty-state/EmptyState.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useClearFormErrors } from '@/composables/useClearFormErrors';
 import { usePermission } from '@/composables/usePermission';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -44,13 +30,9 @@ import DefinitionsLayout from '@/pages/app/definitions/partials/Layout.vue';
 import { index as countryRoute } from '@/routes/settings/definitions/countries';
 import { type BreadcrumbItem, type Country } from '@/types';
 
-type Props = {
-    countries: Country[];
-};
+defineProps<{ countries: Country[] }>();
 
-defineProps<Props>();
-
-const { can, canAny } = usePermission();
+const { can } = usePermission();
 
 const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Tanımlamalar', href: '#' },
@@ -60,7 +42,6 @@ const breadcrumbItems: BreadcrumbItem[] = [
 const isSheetOpen = ref(false);
 const showDeleteDialog = ref(false);
 const editingCountry = ref<Country | null>(null);
-const deletingCountry = ref<Country | null>(null);
 
 const form = useForm({
     code: '',
@@ -90,35 +71,29 @@ function openEditSheet(country: Country) {
     isSheetOpen.value = true;
 }
 
-function openDeleteDialog(country: Country) {
-    deletingCountry.value = country;
-    showDeleteDialog.value = true;
-}
-
 function submitForm() {
     if (editingCountry.value) {
         form.put(update.url(editingCountry.value.id), {
-            onSuccess: () => {
-                isSheetOpen.value = false;
-            },
+            onSuccess: () => { isSheetOpen.value = false; },
         });
     } else {
         form.post(store.url(), {
-            onSuccess: () => {
-                isSheetOpen.value = false;
-                form.reset();
-            },
+            onSuccess: () => { isSheetOpen.value = false; form.reset(); },
         });
     }
 }
 
-function confirmDelete() {
-    if (!deletingCountry.value) return;
+function openDeleteDialog() {
+    showDeleteDialog.value = true;
+}
 
-    form.delete(destroy.url(deletingCountry.value.id), {
+function confirmDelete() {
+    if (!editingCountry.value) return;
+    form.delete(destroy.url(editingCountry.value.id), {
         onSuccess: () => {
             showDeleteDialog.value = false;
-            deletingCountry.value = null;
+            isSheetOpen.value = false;
+            editingCountry.value = null;
         },
     });
 }
@@ -132,7 +107,6 @@ function confirmDelete() {
             <div class="space-y-6">
                 <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center px-2">
                     <Heading variant="small" title="Ülkeler" description="Sistem üzerinde kullanılan ülke tanımlamaları." />
-
                     <div v-if="can('country.create')">
                         <Button size="sm" class="h-9" @click="openCreateSheet">
                             <Plus class="mr-2 h-4 w-4" />
@@ -150,7 +124,7 @@ function confirmDelete() {
                                     <TableHead>Ad</TableHead>
                                     <TableHead class="text-center">Varsayılan</TableHead>
                                     <TableHead class="text-center">Durum</TableHead>
-                                    <TableHead v-if="canAny(['country.update', 'country.delete'])" class="text-right w-[160px]">İşlemler</TableHead>
+                                    <TableHead v-if="can('country.update')" class="text-right w-[100px]">İşlemler</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -165,17 +139,11 @@ function confirmDelete() {
                                             {{ country.is_active ? 'Aktif' : 'Pasif' }}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell v-if="canAny(['country.update', 'country.delete'])" class="text-right">
-                                        <div class="flex justify-end gap-2">
-                                            <Button v-if="can('country.update')" variant="outline" size="sm" class="h-8" @click="openEditSheet(country)">
-                                                <Pencil class="mr-2 h-3.5 w-3.5" />
-                                                Düzenle
-                                            </Button>
-                                            <Button v-if="can('country.delete')" variant="outline" size="sm" class="h-8 text-destructive border-destructive/30 hover:bg-destructive/5" @click="openDeleteDialog(country)">
-                                                <Trash2 class="mr-2 h-3.5 w-3.5" />
-                                                Sil
-                                            </Button>
-                                        </div>
+                                    <TableCell v-if="can('country.update')" class="text-right">
+                                        <Button variant="outline" size="sm" class="h-8" @click="openEditSheet(country)">
+                                            <Pencil class="mr-2 h-3.5 w-3.5" />
+                                            Düzenle
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             </TableBody>
@@ -193,7 +161,6 @@ function confirmDelete() {
                 </div>
             </div>
 
-            <!-- Create/Edit Sheet -->
             <Sheet v-model:open="isSheetOpen">
                 <SheetContent side="right" class="sm:max-w-[400px] p-0 flex flex-col h-full">
                     <SheetHeader class="p-6 border-b shrink-0">
@@ -207,31 +174,27 @@ function confirmDelete() {
                         </SheetDescription>
                     </SheetHeader>
 
-                    <form id="countryForm" @submit.prevent="submitForm" class="flex-1 overflow-y-auto p-6 space-y-6">
+                    <form id="countryForm" class="flex-1 overflow-y-auto p-6 space-y-6" @submit.prevent="submitForm">
                         <div class="space-y-2">
                             <Label for="code" class="text-sm font-bold">Kod</Label>
                             <Input id="code" v-model="form.code" placeholder="TR" class="h-11" />
                             <InputError :message="form.errors.code" />
                         </div>
-
                         <div class="space-y-2">
                             <Label for="name" class="text-sm font-bold">Ad</Label>
                             <Input id="name" v-model="form.name" placeholder="Türkiye" class="h-11" />
                             <InputError :message="form.errors.name" />
                         </div>
-
                         <div class="space-y-2">
                             <Label for="sort_order" class="text-sm font-bold">Sıralama</Label>
                             <Input id="sort_order" v-model.number="form.sort_order" type="number" min="0" class="h-11" />
                             <InputError :message="form.errors.sort_order" />
                         </div>
-
                         <div class="flex items-center gap-6">
                             <div class="flex items-center gap-2">
                                 <Switch id="is_active" :checked="form.is_active" @update:checked="form.is_active = $event" />
                                 <Label for="is_active">Aktif</Label>
                             </div>
-
                             <div class="flex items-center gap-2">
                                 <Switch id="is_default" :checked="form.is_default" @update:checked="form.is_default = $event" />
                                 <Label for="is_default">Varsayılan</Label>
@@ -249,18 +212,27 @@ function confirmDelete() {
                             <Button type="button" variant="ghost" class="w-full h-11" @click="isSheetOpen = false">
                                 <X class="mr-2 h-4 w-4" /> İptal
                             </Button>
+                            <Button
+                                v-if="editingCountry && can('country.delete')"
+                                type="button"
+                                variant="outline"
+                                class="w-full h-11 text-destructive border-destructive/30 hover:bg-destructive/5"
+                                @click="openDeleteDialog"
+                            >
+                                <Trash2 class="mr-2 h-4 w-4" />
+                                Ülkeyi Sil
+                            </Button>
                         </div>
                     </SheetFooter>
                 </SheetContent>
             </Sheet>
 
-            <!-- Delete Confirmation -->
             <AlertDialog v-model:open="showDeleteDialog">
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Ülkeyi silmek istediğinize emin misiniz?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            <strong>{{ deletingCountry?.name }} ({{ deletingCountry?.code }})</strong> kalıcı olarak silinecektir. Bu işlem geri alınamaz.
+                            <strong>{{ editingCountry?.name }} ({{ editingCountry?.code }})</strong> kalıcı olarak silinecektir. Bu işlem geri alınamaz.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
