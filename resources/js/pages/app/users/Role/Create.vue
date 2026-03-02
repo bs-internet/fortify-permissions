@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import { ChevronLeft, Save, ShieldPlus, CheckCircle2, Loader2 } from 'lucide-vue-next';
-import { computed, reactive } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import Heading from '@/components/app/common/Heading.vue';
 import InputError from '@/components/app/common/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -9,12 +9,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useClearFormErrors } from '@/composables/useClearFormErrors';
 import AppLayout from '@/layouts/AppLayout.vue';
 import UsersLayout from '@/pages/app/users/partials/Layout.vue';
 import { index as roleIndex, store as roleStore } from '@/routes/users/roles';
 import { type BreadcrumbItem, type Permission } from '@/types';
 
-defineProps<{
+const props = defineProps<{
     permissions: Record<string, Permission[]>;
 }>();
 
@@ -29,6 +30,8 @@ const form = useForm({
     description: '',
     permissions: [] as string[],
 });
+
+useClearFormErrors(form);
 
 const selected = reactive<Record<string, boolean>>({});
 
@@ -63,6 +66,24 @@ const isModuleFullySelected = (modulePermissions: Permission[]): boolean => {
     if (modulePermissions.length === 0) return false;
     return modulePermissions.every((p) => !!selected[p.id]);
 };
+
+const permissionSearch = ref('');
+
+const filteredPermissions = computed(() => {
+    const query = permissionSearch.value.toLowerCase().trim();
+    if (!query) return props.permissions;
+
+    const result: Record<string, Permission[]> = {};
+    for (const [moduleName, modulePermissions] of Object.entries(props.permissions)) {
+        const filtered = modulePermissions.filter(
+            (p) => p.label.toLowerCase().includes(query) || moduleName.toLowerCase().includes(query),
+        );
+        if (filtered.length > 0) {
+            result[moduleName] = filtered;
+        }
+    }
+    return result;
+});
 </script>
 
 <template>
@@ -133,9 +154,15 @@ const isModuleFullySelected = (modulePermissions: Permission[]): boolean => {
                             </span>
                         </div>
 
+                        <Input
+                            v-model="permissionSearch"
+                            placeholder="İzin veya modül adı ara..."
+                            class="shadow-none focus-visible:ring-1"
+                        />
+
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div
-                                v-for="(modulePermissions, moduleName) in permissions"
+                                v-for="(modulePermissions, moduleName) in filteredPermissions"
                                 :key="moduleName"
                                 class="rounded-md border border-border bg-card overflow-hidden shadow-none"
                             >

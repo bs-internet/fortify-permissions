@@ -16,6 +16,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { useClearFormErrors } from '@/composables/useClearFormErrors';
 import AppLayout from '@/layouts/AppLayout.vue';
 import UsersLayout from '@/pages/app/users/partials/Layout.vue';
 import { index as userIndex } from '@/routes/users';
@@ -45,6 +46,8 @@ const form = useForm({
     permissions: [] as string[],
 });
 
+useClearFormErrors(form);
+
 const selectedRoles = reactive<Record<string, boolean>>({});
 const selectedPermissions = reactive<Record<string, boolean>>({});
 
@@ -59,6 +62,10 @@ const selectedPermissionCount = computed(() =>
 const syncForm = () => {
     form.roles = Object.keys(selectedRoles).filter((id) => selectedRoles[id]);
     form.permissions = Object.keys(selectedPermissions).filter((id) => selectedPermissions[id]);
+
+    if (form.roles.length > 0 || form.permissions.length > 0) {
+        form.clearErrors('roles');
+    }
 };
 
 const toggleRole = (id: string) => {
@@ -189,6 +196,7 @@ const submit = () => {
                                 {{ selectedRoleCount }} Rol Seçildi
                             </span>
                         </div>
+                        <InputError :message="form.errors.roles" />
 
                         <div class="grid gap-3 sm:grid-cols-2">
                             <div

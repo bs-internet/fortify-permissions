@@ -37,6 +37,21 @@ class UserCreateRequest extends FormRequest
     }
 
     /**
+     * Configure the validator instance.
+     */
+    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    {
+        $validator->after(function (\Illuminate\Validation\Validator $validator): void {
+            $roles = $this->input('roles', []);
+            $permissions = $this->input('permissions', []);
+
+            if (empty($roles) && empty($permissions)) {
+                $validator->errors()->add('roles', 'En az bir rol veya bir yetki seçilmelidir.');
+            }
+        });
+    }
+
+    /**
      * Get custom messages for validator errors.
      *
      * @return array<string, string>

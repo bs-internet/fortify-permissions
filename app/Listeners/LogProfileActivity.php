@@ -35,7 +35,7 @@ class LogProfileActivity
         $this->activityService->log(
             user: $event->user,
             type: 'profile',
-            description: 'Kullanıcı profil bilgilerini güncelledi',
+            description: $event->user->name . ' profil bilgilerini güncelledi',
             log: [
                 'user_name' => $event->user->name,
                 'title' => $event->user->title,

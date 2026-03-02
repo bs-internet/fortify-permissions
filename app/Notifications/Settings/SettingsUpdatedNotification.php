@@ -34,6 +34,7 @@ class SettingsUpdatedNotification extends Notification
         return [
             'title' => 'Sistem Ayarları Güncellendi',
             'message' => 'Genel sistem ayarları başarıyla güncellendi.',
+            'type' => 'settings',
             'updated_at' => now()->toIso8601String(),
         ];
     }

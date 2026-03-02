@@ -29,7 +29,7 @@ class LogUserActivity
         $this->activityService->log(
             user: $event->user,
             type: 'system',
-            description: 'Yeni kullanıcı eklendi',
+            description: $event->user->name . ' yeni bir kullanıcı ekledi',
             log: [
                 'changes' => $event->changes,
             ],
@@ -46,7 +46,7 @@ class LogUserActivity
         $this->activityService->log(
             user: $event->user,
             type: 'system',
-            description: 'Kullanıcı bilgisi güncellendi',
+            description: $event->user->name . ' kullanıcı bilgisini güncelledi',
             log: [
                 'changes' => $event->changes,
             ],
@@ -63,7 +63,7 @@ class LogUserActivity
         $this->activityService->log(
             user: $event->user,
             type: 'system',
-            description: 'Kullanıcı silindi',
+            description: $event->user->name . ' bir kullanıcı sildi',
             log: [
                 'changes' => $event->changes,
             ],

@@ -29,7 +29,7 @@ class LogLanguageActivity
         $this->activityService->log(
             user: $event->user,
             type: 'system',
-            description: 'Yeni dil eklendi',
+            description: $event->user->name . ' yeni bir dil ekledi',
             log: [
                 'changes' => $event->changes,
             ],
@@ -46,7 +46,7 @@ class LogLanguageActivity
         $this->activityService->log(
             user: $event->user,
             type: 'system',
-            description: 'Dil bilgisi güncellendi',
+            description: $event->user->name . ' dil bilgisini güncelledi',
             log: [
                 'changes' => $event->changes,
             ],
@@ -63,7 +63,7 @@ class LogLanguageActivity
         $this->activityService->log(
             user: $event->user,
             type: 'system',
-            description: 'Dil silindi',
+            description: $event->user->name . ' bir dil sildi',
             log: [
                 'changes' => $event->changes,
             ],

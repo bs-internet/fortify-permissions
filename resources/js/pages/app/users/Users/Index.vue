@@ -3,6 +3,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { Plus, Pencil, ChevronLeft, ChevronRight, Users, CheckCircle2, AlertCircle } from 'lucide-vue-next';
 import { ref, watch, computed } from 'vue';
 import Heading from '@/components/app/common/Heading.vue';
+import TableSkeleton from '@/components/app/common/TableSkeleton.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -77,15 +78,15 @@ const breadcrumbItems: BreadcrumbItem[] = [
 
 // Search & filter
 const search = ref(props.filters.search ?? '');
-const statusFilter = ref(props.filters.status ?? '');
-const roleFilter = ref(props.filters.role ?? '');
+const statusFilter = ref(props.filters.status || 'all');
+const roleFilter = ref(props.filters.role || 'all');
 let debounceTimer: ReturnType<typeof setTimeout>;
 
 function getFilterParams() {
     return {
         search: search.value || undefined,
-        status: statusFilter.value || undefined,
-        role: roleFilter.value || undefined,
+        status: statusFilter.value === 'all' ? undefined : statusFilter.value,
+        role: roleFilter.value === 'all' ? undefined : roleFilter.value,
     };
 }
 
@@ -97,12 +98,12 @@ watch(search, (value) => {
 });
 
 function onStatusChange(value: string | null) {
-    statusFilter.value = value ?? '';
+    statusFilter.value = value ?? 'all';
     router.get(userRoute().url, getFilterParams(), { preserveState: true, replace: true });
 }
 
 function onRoleChange(value: string | null) {
-    roleFilter.value = value ?? '';
+    roleFilter.value = value ?? 'all';
     router.get(userRoute().url, getFilterParams(), { preserveState: true, replace: true });
 }
 
@@ -167,6 +168,11 @@ function formatDate(date: string): string {
         hour: '2-digit', minute: '2-digit',
     }).format(new Date(date));
 }
+
+const tableLoading = ref(false);
+
+router.on('start', () => { tableLoading.value = true; });
+router.on('finish', () => { tableLoading.value = false; });
 </script>
 
 <template>
@@ -206,7 +212,7 @@ function formatDate(date: string): string {
                             <SelectValue placeholder="Tüm Durumlar" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">Tüm Durumlar</SelectItem>
+                            <SelectItem value="all">Tüm Durumlar</SelectItem>
                             <SelectItem v-for="(label, value) in statuses" :key="value" :value="String(value)">
                                 {{ label }}
                             </SelectItem>
@@ -217,7 +223,7 @@ function formatDate(date: string): string {
                             <SelectValue placeholder="Tüm Roller" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">Tüm Roller</SelectItem>
+                            <SelectItem value="all">Tüm Roller</SelectItem>
                             <SelectItem v-for="role in roles" :key="role.id" :value="role.id">
                                 {{ role.label }}
                             </SelectItem>
@@ -226,7 +232,10 @@ function formatDate(date: string): string {
                 </div>
 
                 <!-- Table -->
-                <template v-if="users.data.length > 0">
+                <div v-if="tableLoading" class="mx-2">
+                    <TableSkeleton :rows="5" :columns="8" />
+                </div>
+                <template v-else-if="users.data.length > 0">
                     <div class="rounded-md border border-border bg-card shadow-none mx-2">
                         <Table>
                             <TableHeader>

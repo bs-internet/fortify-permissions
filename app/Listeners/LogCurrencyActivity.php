@@ -29,7 +29,7 @@ class LogCurrencyActivity
         $this->activityService->log(
             user: $event->user,
             type: 'system',
-            description: 'Yeni para birimi eklendi',
+            description: $event->user->name . ' yeni bir para birimi ekledi',
             log: [
                 'changes' => $event->changes,
             ],
@@ -46,7 +46,7 @@ class LogCurrencyActivity
         $this->activityService->log(
             user: $event->user,
             type: 'system',
-            description: 'Para birimi bilgisi güncellendi',
+            description: $event->user->name . ' para birimi bilgisini güncelledi',
             log: [
                 'changes' => $event->changes,
             ],
@@ -63,7 +63,7 @@ class LogCurrencyActivity
         $this->activityService->log(
             user: $event->user,
             type: 'system',
-            description: 'Para birimi silindi',
+            description: $event->user->name . ' bir para birimi sildi',
             log: [
                 'changes' => $event->changes,
             ],

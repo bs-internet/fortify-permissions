@@ -73,10 +73,22 @@ class ActivityService
         array $filters = [],
         int $perPage = 25
     ): LengthAwarePaginator {
-        $query = Activity::query()->with('user');
+        $query = Activity::query()->with('user:id,name');
 
         if (!empty($filters['type']) && $filters['type'] !== 'all') {
             $query->where('type', $filters['type']);
+        }
+
+        if (!empty($filters['user_id'])) {
+            $query->where('user_id', $filters['user_id']);
+        }
+
+        if (!empty($filters['date_from'])) {
+            $query->whereDate('created_at', '>=', $filters['date_from']);
+        }
+
+        if (!empty($filters['date_to'])) {
+            $query->whereDate('created_at', '<=', $filters['date_to']);
         }
 
         $sortField = $filters['sort_field'] ?? 'created_at';
@@ -90,9 +102,32 @@ class ActivityService
                 'type' => $activity->type,
                 'description' => $activity->description,
                 'ip_address' => $activity->ip_address,
+                'user_name' => $activity->user?->name,
                 'date_human' => $activity->created_at->translatedFormat('d F Y H:i'),
                 'log' => $activity->log,
             ]);
+    }
+
+    /**
+     * Aktivite kaydı olan kullanıcıları getirir.
+     *
+     * @return array<int, array{id: string, name: string}>
+     */
+    public function getUsersWithActivities(): array
+    {
+        return Activity::query()
+            ->whereNotNull('user_id')
+            ->with('user:id,name')
+            ->select('user_id')
+            ->distinct()
+            ->get()
+            ->map(fn($activity) => [
+                'id' => $activity->user_id,
+                'name' => $activity->user?->name ?? 'Silinmiş Kullanıcı',
+            ])
+            ->sortBy('name')
+            ->values()
+            ->toArray();
     }
 
     /**

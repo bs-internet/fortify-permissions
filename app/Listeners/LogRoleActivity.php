@@ -29,7 +29,7 @@ class LogRoleActivity
         $this->activityService->log(
             user: $event->user,
             type: 'system',
-            description: 'Yeni kullanıcı birimi eklendi',
+            description: $event->user->name . ' yeni bir rol ekledi',
             log: [
                 'changes' => $event->changes,
             ],
@@ -46,7 +46,7 @@ class LogRoleActivity
         $this->activityService->log(
             user: $event->user,
             type: 'system',
-            description: 'Kullanıcı birimi bilgisi güncellendi',
+            description: $event->user->name . ' rol bilgisini güncelledi',
             log: [
                 'changes' => $event->changes,
             ],
@@ -63,7 +63,7 @@ class LogRoleActivity
         $this->activityService->log(
             user: $event->user,
             type: 'system',
-            description: 'Kullanıcı birimi silindi',
+            description: $event->user->name . ' bir rol sildi',
             log: [
                 'changes' => $event->changes,
             ],

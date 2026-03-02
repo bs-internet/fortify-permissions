@@ -38,6 +38,7 @@ class UserCreatedNotification extends Notification
         return [
             'title' => 'Hesabınız Oluşturuldu',
             'message' => 'Sistem yöneticisi tarafından hesabınız oluşturuldu.',
+            'type' => 'success',
             'created_at' => now()->toISOString(),
         ];
     }

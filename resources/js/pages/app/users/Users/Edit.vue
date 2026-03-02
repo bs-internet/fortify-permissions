@@ -21,6 +21,7 @@ import UsersLayout from '@/pages/app/users/partials/Layout.vue';
 import { index as userIndex } from '@/routes/users';
 import { update as userUpdate, verifyEmail as verifyEmailAction } from '@/actions/App/Http/Controllers/Users/UserController';
 import { type BreadcrumbItem, type Language, type Permission, type Role } from '@/types';
+import { useClearFormErrors } from '@/composables/useClearFormErrors';
 import { usePermission } from '@/composables/usePermission';
 
 type EditUser = {
@@ -59,6 +60,8 @@ const form = useForm({
     roles: props.user.roles.map((r) => String(r.id)),
     permissions: props.user.permissions.map((p) => String(p.id)),
 });
+
+useClearFormErrors(form);
 
 const selectedRoles = reactive<Record<string, boolean>>({});
 props.user.roles.forEach((r) => { selectedRoles[String(r.id)] = true; });

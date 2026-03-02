@@ -40,6 +40,6 @@ watch(
             <AppSidebarHeader :breadcrumbs="breadcrumbs" />
             <slot />
         </AppContent>
-        <Toaster position="top-right" :duration="4000" rich-colors />
+        <Toaster position="top-right" :duration="4000" rich-colors close-button />
     </AppShell>
 </template>

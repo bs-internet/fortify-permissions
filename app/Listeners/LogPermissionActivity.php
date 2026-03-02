@@ -27,7 +27,7 @@ class LogPermissionActivity
         $this->activityService->log(
             user: $event->user,
             type: 'system',
-            description: 'Kullanım yetkisi bilgisi güncellendi',
+            description: $event->user->name . ' yetki bilgisini güncelledi',
             log: [
                 'changes' => $event->changes,
             ],

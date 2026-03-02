@@ -49,6 +49,7 @@ class UserUpdatedNotification extends Notification
         return [
             'title' => 'Hesap Bilgileriniz Güncellendi',
             'message' => "Aşağıdaki bilgileriniz güncellendi: {$fieldLabels}.",
+            'type' => 'info',
             'changes' => $this->changes,
             'created_at' => now()->toISOString(),
         ];

@@ -36,7 +36,7 @@ class LogTwoFactorActivity
         $this->activityService->log(
             user: $event->user,
             type: 'profile',
-            description: 'Kullanıcı iki faktörlü doğrulamayı etkinleştirdi',
+            description: $event->user->name . ' iki faktörlü doğrulamayı etkinleştirdi',
             log: [
                 'user_name' => $event->user->name,
                 'user_email' => $event->user->email,
@@ -58,7 +58,7 @@ class LogTwoFactorActivity
         $this->activityService->log(
             user: $event->user,
             type: 'profile',
-            description: 'Kullanıcı iki faktörlü doğrulamayı devre dışı bıraktı',
+            description: $event->user->name . ' iki faktörlü doğrulamayı devre dışı bıraktı',
             log: [
                 'user_name' => $event->user->name,
                 'user_email' => $event->user->email,

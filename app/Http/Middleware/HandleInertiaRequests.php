@@ -44,7 +44,9 @@ class HandleInertiaRequests extends Middleware
                     'id' => $request->user()->id,
                     'name' => $request->user()->name,
                     'email' => $request->user()->email,
+                    'title' => $request->user()->title,
                     'email_verified_at' => $request->user()->email_verified_at,
+                    'last_login_at' => $request->user()->last_login_at,
                     'created_at' => $request->user()->created_at,
                     'updated_at' => $request->user()->updated_at,
                     'can' => $request->user()->getAllPermissions()->pluck('name')->mapWithKeys(fn($permission) => [$permission => true]) ?? [],
@@ -62,6 +64,7 @@ class HandleInertiaRequests extends Middleware
                 'logo_dark' => logo('dark'),
                 'favicon' => favicon(),
             ],
+            'unreadNotificationCount' => fn() => $request->user()?->unreadNotifications()->count() ?? 0,
             'flash' => [
                 'success' => fn() => $request->session()->get('success'),
                 'error' => fn() => $request->session()->get('error'),

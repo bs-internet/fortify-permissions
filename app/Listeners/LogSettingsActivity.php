@@ -27,7 +27,7 @@ class LogSettingsActivity
         $this->activityService->log(
             user: $event->user,
             type: 'system',
-            description: 'Sistem genel ayarlarını güncelledi',
+            description: $event->user->name . ' sistem genel ayarlarını güncelledi',
             log: [
                 'changes' => $event->changes,
             ],

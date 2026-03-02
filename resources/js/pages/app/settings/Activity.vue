@@ -2,6 +2,8 @@
 import { Head, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 import Heading from '@/components/app/common/Heading.vue';
+import TableSkeleton from '@/components/app/common/TableSkeleton.vue';
+import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -22,6 +24,11 @@ import SettingsLayout from '@/pages/app/settings/partials/Layout.vue';
 import { index as activityIndex } from '@/routes/settings/activities';
 import { type BreadcrumbItem } from '@/types';
 
+interface ActivityUser {
+    id: string;
+    name: string;
+}
+
 interface Props {
     activities: {
         data: any[];
@@ -29,28 +36,46 @@ interface Props {
     };
     filters: {
         type?: string;
+        user_id?: string;
+        date_from?: string;
+        date_to?: string;
     };
     availableTypes: string[];
+    availableUsers: ActivityUser[];
 }
 
 const props = defineProps<Props>();
 
-// Filtreleme durumu
 const selectedType = ref(props.filters.type || 'all');
+const selectedUser = ref(props.filters.user_id || 'all');
+const dateFrom = ref(props.filters.date_from || '');
+const dateTo = ref(props.filters.date_to || '');
 
-// Seçim değiştiğinde sayfayı yenileyen watch
-watch(selectedType, (value) => {
-    router.get(
-        activityIndex().url,
-        { type: value === 'all' ? null : value },
-        { preserveState: true, replace: true },
-    );
+function getFilterParams() {
+    return {
+        type: selectedType.value === 'all' ? undefined : selectedType.value,
+        user_id: selectedUser.value === 'all' ? undefined : selectedUser.value,
+        date_from: dateFrom.value || undefined,
+        date_to: dateTo.value || undefined,
+    };
+}
+
+function applyFilters() {
+    router.get(activityIndex().url, getFilterParams(), {
+        preserveState: true,
+        replace: true,
+    });
+}
+
+watch(selectedType, () => applyFilters());
+watch(selectedUser, () => applyFilters());
+
+let dateDebounce: ReturnType<typeof setTimeout>;
+watch([dateFrom, dateTo], () => {
+    clearTimeout(dateDebounce);
+    dateDebounce = setTimeout(() => applyFilters(), 500);
 });
 
-/**
- * Dinamik tipleri formatlayan yardımcı fonksiyon.
- * Örn: 'profile_update' -> 'Profile Update'
- */
 const formatType = (type: string) => {
     return type
         .replace(/_/g, ' ')
@@ -63,6 +88,10 @@ const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Ayarlar', href: '#' },
     { title: 'Etkinlik Kayıtları', href: activityIndex().url },
 ];
+
+const tableLoading = ref(false);
+router.on('start', () => { tableLoading.value = true; });
+router.on('finish', () => { tableLoading.value = false; });
 </script>
 
 <template>
@@ -71,41 +100,67 @@ const breadcrumbItems: BreadcrumbItem[] = [
 
         <SettingsLayout>
             <div class="space-y-6">
-                <div
-                    class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"
-                >
+                <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                     <Heading
                         variant="small"
                         title="Etkinlik Kayıtları"
                         description="Sistem üzerinde gerçekleştirdiğiniz tüm işlemlerin dökümü."
                     />
-
-                    <div class="w-full sm:w-[220px] flex sm:justify-end">
-                        <Select v-model="selectedType">
-                            <SelectTrigger>
-                                <SelectValue placeholder="Tüm İşlemler" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all"
-                                    >Tüm İşlemler</SelectItem
-                                >
-                                <SelectItem
-                                    v-for="type in availableTypes"
-                                    :key="type"
-                                    :value="type"
-                                >
-                                    {{ formatType(type) }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
                 </div>
 
-                <div class="rounded-md border bg-card">
+                <!-- Filtreler -->
+                <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                    <Select v-model="selectedType">
+                        <SelectTrigger class="sm:w-[200px]">
+                            <SelectValue placeholder="Tüm İşlemler" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Tüm İşlemler</SelectItem>
+                            <SelectItem
+                                v-for="type in availableTypes"
+                                :key="type"
+                                :value="type"
+                            >
+                                {{ formatType(type) }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    <Select v-if="availableUsers.length > 0" v-model="selectedUser">
+                        <SelectTrigger class="sm:w-[200px]">
+                            <SelectValue placeholder="Tüm Kullanıcılar" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Tüm Kullanıcılar</SelectItem>
+                            <SelectItem
+                                v-for="user in availableUsers"
+                                :key="user.id"
+                                :value="user.id"
+                            >
+                                {{ user.name }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    <Input
+                        v-model="dateFrom"
+                        type="date"
+                        class="sm:w-[170px]"
+                    />
+                    <Input
+                        v-model="dateTo"
+                        type="date"
+                        class="sm:w-[170px]"
+                    />
+                </div>
+
+                <TableSkeleton v-if="tableLoading" :rows="5" :columns="5" />
+                <div v-else class="rounded-md border bg-card">
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead class="w-[50%]">İşlem</TableHead>
+                                <TableHead class="w-[40%]">İşlem</TableHead>
+                                <TableHead>Kullanıcı</TableHead>
                                 <TableHead>Tip</TableHead>
                                 <TableHead>IP Adresi</TableHead>
                                 <TableHead class="text-right">Tarih</TableHead>
@@ -119,6 +174,9 @@ const breadcrumbItems: BreadcrumbItem[] = [
                             >
                                 <TableCell class="text-sm font-medium">
                                     {{ item.description }}
+                                </TableCell>
+                                <TableCell class="text-sm text-muted-foreground">
+                                    {{ item.user_name ?? 'Sistem' }}
                                 </TableCell>
                                 <TableCell>
                                     <span
@@ -143,7 +201,7 @@ const breadcrumbItems: BreadcrumbItem[] = [
 
                             <TableRow v-if="activities.data.length === 0">
                                 <TableCell
-                                    colspan="4"
+                                    colspan="5"
                                     class="h-32 text-center text-muted-foreground"
                                 >
                                     Henüz bir etkinlik kaydı bulunmuyor.

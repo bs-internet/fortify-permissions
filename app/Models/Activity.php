@@ -40,7 +40,7 @@ class Activity extends Model
     }
 
     /**
-     * 12 aydan eski soft deleted kayıtları kalıcı sil
+     * 6 aydan eski soft deleted kayıtları kalıcı sil
      */
     public function prunable(): Builder
     {

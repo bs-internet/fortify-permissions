@@ -32,13 +32,16 @@ class ActivityController extends Controller
             return back()->with('error', 'Aktivite loglarını görüntüleme yetkiniz bulunmuyor.');
         }
 
+        $filterKeys = ['type', 'user_id', 'date_from', 'date_to'];
+
         return Inertia::render('app/settings/Activity', [
             'activities' => $this->activityService->getPaginatedActivities(
-                filters: $request->only(['type']),
+                filters: $request->only($filterKeys),
                 perPage: 25
             ),
-            'filters' => $request->only(['type']),
-            'availableTypes' => $this->activityService->getExistingTypes()
+            'filters' => $request->only($filterKeys),
+            'availableTypes' => $this->activityService->getExistingTypes(),
+            'availableUsers' => $this->activityService->getUsersWithActivities(),
         ]);
     }
 }

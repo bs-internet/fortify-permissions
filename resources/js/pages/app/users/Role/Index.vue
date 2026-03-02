@@ -1,7 +1,19 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Plus, Pencil, ChevronLeft, ChevronRight, Shield } from 'lucide-vue-next';
+import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Shield } from 'lucide-vue-next';
+import { ref } from 'vue';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import Heading from '@/components/app/common/Heading.vue';
+import TableSkeleton from '@/components/app/common/TableSkeleton.vue';
 import { Button } from '@/components/ui/button';
 import EmptyState from '@/components/ui/empty-state/EmptyState.vue';
 import {
@@ -23,6 +35,7 @@ import { usePermission } from '@/composables/usePermission';
 import AppLayout from '@/layouts/AppLayout.vue';
 import UsersLayout from '@/pages/app/users/partials/Layout.vue';
 import { index as roleRoute, create as createRoute, edit as editRoute } from '@/routes/users/roles';
+import { destroy as destroyRole } from '@/actions/App/Http/Controllers/Users/RoleController';
 import { type BreadcrumbItem, type Role, type PaginationResponse } from '@/types';
 
 defineProps<{
@@ -39,7 +52,30 @@ const breadcrumbItems: BreadcrumbItem[] = [
 function handlePageChange(page: number) {
     router.visit(roleRoute().url, {
         data: { page },
-        preserveScroll: true
+        preserveScroll: true,
+    });
+}
+
+const deleteDialogOpen = ref(false);
+const roleToDelete = ref<Role | null>(null);
+
+function openDeleteDialog(role: Role) {
+    roleToDelete.value = role;
+    deleteDialogOpen.value = true;
+}
+
+const tableLoading = ref(false);
+router.on('start', () => { tableLoading.value = true; });
+router.on('finish', () => { tableLoading.value = false; });
+
+function confirmDelete() {
+    if (!roleToDelete.value) return;
+    router.delete(destroyRole(roleToDelete.value).url, {
+        preserveScroll: true,
+        onFinish: () => {
+            deleteDialogOpen.value = false;
+            roleToDelete.value = null;
+        },
     });
 }
 </script>
@@ -63,14 +99,17 @@ function handlePageChange(page: number) {
                     </Link>
                 </div>
 
-                <template v-if="roles.data.length > 0">
+                <div v-if="tableLoading" class="mx-2">
+                    <TableSkeleton :rows="5" :columns="3" />
+                </div>
+                <template v-else-if="roles.data.length > 0">
                     <div class="rounded-md border border-border bg-card shadow-none mx-2">
                         <Table>
                             <TableHeader>
                                 <TableRow>
                                     <TableHead class="w-[250px]">Rol Adı</TableHead>
                                     <TableHead>Açıklama</TableHead>
-                                    <TableHead v-if="can('role.update')" class="text-right w-[120px]">İşlemler</TableHead>
+                                    <TableHead v-if="can('role.update') || can('role.delete')" class="text-right w-[180px]">İşlemler</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -84,13 +123,25 @@ function handlePageChange(page: number) {
                                     <TableCell class="text-muted-foreground italic">
                                         {{ role.description || 'Açıklama belirtilmemiş.' }}
                                     </TableCell>
-                                    <TableCell v-if="can('role.update')" class="text-right">
-                                        <Link :href="editRoute(role).url">
-                                            <Button variant="outline" size="sm" class="h-8">
-                                                <Pencil class="mr-2 h-3.5 w-3.5" />
-                                                Düzenle
+                                    <TableCell v-if="can('role.update') || can('role.delete')" class="text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <Link v-if="can('role.update')" :href="editRoute(role).url">
+                                                <Button variant="outline" size="sm" class="h-8">
+                                                    <Pencil class="mr-2 h-3.5 w-3.5" />
+                                                    Düzenle
+                                                </Button>
+                                            </Link>
+                                            <Button
+                                                v-if="can('role.delete')"
+                                                variant="outline"
+                                                size="sm"
+                                                class="h-8 text-destructive hover:text-destructive"
+                                                @click="openDeleteDialog(role)"
+                                            >
+                                                <Trash2 class="mr-2 h-3.5 w-3.5" />
+                                                Sil
                                             </Button>
-                                        </Link>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             </TableBody>
@@ -142,6 +193,28 @@ function handlePageChange(page: number) {
                     />
                 </div>
             </div>
+
+            <!-- Silme Onay Dialogu -->
+            <AlertDialog v-model:open="deleteDialogOpen">
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Rolü Sil</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            <strong>{{ roleToDelete?.label }}</strong> rolünü silmek istediğinize emin misiniz?
+                            Bu işlem geri alınamaz. Role atanmış kullanıcılar varsa silme işlemi engellenecektir.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>İptal</AlertDialogCancel>
+                        <AlertDialogAction
+                            class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            @click="confirmDelete"
+                        >
+                            Evet, Sil
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </UsersLayout>
     </AppLayout>
 </template>

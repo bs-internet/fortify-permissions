@@ -29,6 +29,7 @@ import { index as notificationsIndex } from '@/routes/profile/notifications';
 
 const page = usePage();
 const auth = computed(() => page.props.auth);
+const unreadCount = computed(() => (page.props.unreadNotificationCount as number) ?? 0);
 const { isMobile } = useSidebar();
 
 const handleLogout = () => {
@@ -90,6 +91,12 @@ const handleLogout = () => {
                             >
                                 <Bell class="mr-2 h-4 w-4" />
                                 Bildirimler
+                                <span
+                                    v-if="unreadCount > 0"
+                                    class="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground"
+                                >
+                                    {{ unreadCount > 99 ? '99+' : unreadCount }}
+                                </span>
                             </Link>
                         </DropdownMenuItem>
                     </DropdownMenuGroup>

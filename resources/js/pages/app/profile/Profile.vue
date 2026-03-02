@@ -43,6 +43,12 @@ const user = page.props.auth.user;
                     description="Hesabınızdaki temel bilgileri buradan güncelleyebilirsiniz."
                 />
 
+                <div v-if="user.last_login_at" class="rounded-md border bg-muted/30 px-4 py-3">
+                    <p class="text-sm text-muted-foreground">
+                        Son giriş: <span class="font-medium text-foreground">{{ new Date(user.last_login_at).toLocaleString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }}</span>
+                    </p>
+                </div>
+
                 <Form
                     v-bind="ProfileController.update.form()"
                     class="space-y-6"

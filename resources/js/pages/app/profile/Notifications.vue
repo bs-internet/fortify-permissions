@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { CheckCheck, Bell, Archive, ArchiveRestore, BellOff } from 'lucide-vue-next';
+import { CheckCheck, Bell, Archive, ArchiveRestore, BellOff, ShieldCheck, Info, CheckCircle2, Settings } from 'lucide-vue-next';
+import { computed, type Component } from 'vue';
 import Heading from '@/components/app/common/Heading.vue';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -20,11 +21,29 @@ type Notification = {
     data: {
         title: string;
         message: string;
+        type?: string;
         updated_at?: string;
     };
     read_at: string | null;
     created_at_human: string;
 };
+
+const notificationStyles: Record<string, { icon: Component; color: string; bg: string }> = {
+    security: { icon: ShieldCheck, color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/30' },
+    info: { icon: Info, color: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/30' },
+    success: { icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-100 dark:bg-green-900/30' },
+    settings: { icon: Settings, color: 'text-violet-600', bg: 'bg-violet-100 dark:bg-violet-900/30' },
+};
+
+const defaultStyle = { icon: Bell, color: 'text-primary', bg: 'bg-primary/10' };
+
+function getStyle(notification: Notification) {
+    const type = notification.data?.type;
+    if (type && notificationStyles[type]) {
+        return notificationStyles[type];
+    }
+    return defaultStyle;
+}
 
 interface Props {
     notifications: {
@@ -133,8 +152,15 @@ function archiveAllRead() {
                         ]"
                     >
                         <div class="flex gap-3">
-                            <div class="mt-1">
-                                <Bell :class="['h-4 w-4', !notification.read_at ? 'text-primary' : 'text-muted-foreground']" />
+                            <div
+                                class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+                                :class="!notification.read_at ? getStyle(notification).bg : 'bg-muted'"
+                            >
+                                <component
+                                    :is="getStyle(notification).icon"
+                                    class="h-4 w-4"
+                                    :class="!notification.read_at ? getStyle(notification).color : 'text-muted-foreground'"
+                                />
                             </div>
                             <div class="space-y-1">
                                 <h4 class="text-sm font-medium leading-none">

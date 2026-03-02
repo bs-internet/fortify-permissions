@@ -35,7 +35,7 @@ class LogPasswordActivity
         $this->activityService->log(
             user: $event->user,
             type: 'profile',
-            description: 'Kullanıcı şifresini değiştirdi',
+            description: $event->user->name . ' şifresini değiştirdi',
             log: [
                 'user_name' => $event->user->name,
                 'user_email' => $event->user->email,

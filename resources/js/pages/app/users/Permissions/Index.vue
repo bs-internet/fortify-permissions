@@ -4,6 +4,7 @@ import { Pencil, X, Check, Loader2, ChevronLeft, ChevronRight } from 'lucide-vue
 import { ref } from 'vue';
 import { update } from '@/actions/App/Http/Controllers/Users/PermissionController';
 import Heading from '@/components/app/common/Heading.vue';
+import TableSkeleton from '@/components/app/common/TableSkeleton.vue';
 import { usePermission } from '@/composables/usePermission';
 import InputError from '@/components/app/common/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -35,6 +36,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import { useClearFormErrors } from '@/composables/useClearFormErrors';
 import AppLayout from '@/layouts/AppLayout.vue';
 import UsersLayout from '@/pages/app/users/partials/Layout.vue';
 import { index as permissionRoute } from '@/routes/users/permissions';
@@ -58,6 +60,8 @@ const form = useForm({
     label: '',
     description: '',
 });
+
+useClearFormErrors(form);
 
 function openEditSheet(permission: Permission) {
     editingPermission.value = permission;
@@ -85,6 +89,11 @@ function handlePageChange(page: number) {
         preserveScroll: true,
     });
 }
+
+const tableLoading = ref(false);
+
+router.on('start', () => { tableLoading.value = true; });
+router.on('finish', () => { tableLoading.value = false; });
 </script>
 
 <template>
@@ -101,7 +110,10 @@ function handlePageChange(page: number) {
                     />
                 </div>
 
-                <div class="rounded-md border bg-card shadow-sm">
+                <div v-if="tableLoading">
+                    <TableSkeleton :rows="10" :columns="3" />
+                </div>
+                <div v-else class="rounded-md border bg-card shadow-sm">
                     <Table>
                         <TableHeader>
                             <TableRow>

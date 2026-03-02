@@ -29,7 +29,7 @@ class LogUnitActivity
         $this->activityService->log(
             user: $event->user,
             type: 'system',
-            description: 'Yeni birim eklendi',
+            description: $event->user->name . ' yeni bir birim ekledi',
             log: [
                 'changes' => $event->changes,
             ],
@@ -46,7 +46,7 @@ class LogUnitActivity
         $this->activityService->log(
             user: $event->user,
             type: 'system',
-            description: 'Birim bilgisi güncellendi',
+            description: $event->user->name . ' birim bilgisini güncelledi',
             log: [
                 'changes' => $event->changes,
             ],
@@ -63,7 +63,7 @@ class LogUnitActivity
         $this->activityService->log(
             user: $event->user,
             type: 'system',
-            description: 'Birim silindi',
+            description: $event->user->name . ' bir birim sildi',
             log: [
                 'changes' => $event->changes,
             ],
