@@ -21,7 +21,6 @@ class Language extends Model
         'code',
         'name',
         'native_name',
-        'is_default',
         'is_active',
         'sort_order',
     ];
@@ -32,7 +31,6 @@ class Language extends Model
     protected function casts(): array
     {
         return [
-            'is_default' => 'boolean',
             'is_active' => 'boolean',
             'sort_order' => 'integer',
         ];

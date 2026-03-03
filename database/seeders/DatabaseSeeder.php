@@ -3,7 +3,10 @@
 namespace Database\Seeders;
 
 use App\Enums\UserStatus;
+use App\Models\Country;
+use App\Models\Currency;
 use App\Models\Language;
+use App\Models\Tax;
 use App\Models\User;
 use App\Services\Settings\SettingService;
 use Illuminate\Database\Seeder;
@@ -17,16 +20,22 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            LanguageSeeder::class,
+            DefinitionsSeeder::class,
             PermissionSeeder::class,
             RoleSeeder::class,
         ]);
 
-        $defaultLanguage = Language::query()->first();
+        $defaultLanguage = Language::where('code', 'tr')->first();
+        $defaultCountry = Country::where('code', 'TR')->first();
+        $defaultCurrency = Currency::where('code', 'TRY')->first();
+        $defaultTax = Tax::where('name', 'KDV')->first();
 
         /** @var SettingService $settingService */
         $settingService = app(SettingService::class);
         $settingService->set('default_language', $defaultLanguage?->id, 'string');
+        $settingService->set('default_country', $defaultCountry?->id, 'string');
+        $settingService->set('default_currency', $defaultCurrency?->id, 'string');
+        $settingService->set('default_tax', $defaultTax?->id, 'string');
 
         $admin = User::firstOrCreate(
             ['email' => 'admin@admin.com'],

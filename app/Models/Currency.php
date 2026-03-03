@@ -23,7 +23,6 @@ class Currency extends Model
         'decimal_places',
         'thousand_separator',
         'decimal_separator',
-        'is_default',
         'is_active',
         'sort_order',
     ];
@@ -35,7 +34,6 @@ class Currency extends Model
     {
         return [
             'decimal_places' => 'integer',
-            'is_default' => 'boolean',
             'is_active' => 'boolean',
             'sort_order' => 'integer',
         ];

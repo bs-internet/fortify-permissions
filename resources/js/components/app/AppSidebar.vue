@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LayoutGrid, Users, Settings2 } from 'lucide-vue-next';
+import { LayoutGrid, Users, Settings2, FileCheckCorner } from 'lucide-vue-next';
 import { computed } from 'vue';
 import AppLogo from '@/components/app/common/AppLogo.vue';
 import NavMain from '@/components/app/NavMain.vue';
@@ -17,6 +17,10 @@ import { usePermission } from '@/composables/usePermission';
 import { dashboard } from '@/routes';
 import { index as generalSettings } from '@/routes/settings';
 import { index as activities } from '@/routes/settings/activities';
+import { index as countries } from '@/routes/settings/definitions/countries';
+import { index as currencies } from '@/routes/settings/definitions/currencies';
+import { index as languages } from '@/routes/settings/definitions/languages';
+import { index as taxes } from '@/routes/settings/definitions/taxes';
 import { index as units } from '@/routes/settings/definitions/units';
 import { index as usersRoute } from '@/routes/users';
 import { index as permissionsRoute } from '@/routes/users/permissions';
@@ -61,6 +65,38 @@ const moduleNav = computed(() => {
             ].filter((item) => item.show),
         },
         {
+            title: 'Tanımlamalar',
+            url: '#',
+            icon: FileCheckCorner,
+            items: [
+                {
+                    title: 'Birimler',
+                    url: units().url,
+                    show: can('unit.management'),
+                },
+                {
+                    title: 'Para Birimi',
+                    url: currencies().url,
+                    show: can('currency.management'),
+                },
+                {
+                    title: 'Diller',
+                    url: languages().url,
+                    show: can('language.management'),
+                },
+                {
+                    title: 'Ülke',
+                    url: countries().url,
+                    show: can('country.management'),
+                },
+                {
+                    title: 'Vergi Oranları',
+                    url: taxes().url,
+                    show: can('tax.management'),
+                },
+            ].filter((item) => item.show),
+        },
+        {
             title: 'Ayarlar',
             url: '#',
             icon: Settings2,
@@ -69,11 +105,6 @@ const moduleNav = computed(() => {
                     title: 'Genel Ayarlar',
                     url: generalSettings().url,
                     show: can('setting.management'),
-                },
-                {
-                    title: 'Tanımlamalar',
-                    url: units().url,
-                    show: can('unit.management'),
                 },
                 {
                     title: 'Etkinlik Kayıtları',

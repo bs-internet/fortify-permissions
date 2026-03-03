@@ -3,7 +3,6 @@ export type Language = {
     code: string;
     name: string;
     native_name: string;
-    is_default: boolean;
     is_active: boolean;
     sort_order: number;
     created_at: string;
@@ -18,7 +17,6 @@ export type Currency = {
     decimal_places: number;
     thousand_separator: string;
     decimal_separator: string;
-    is_default: boolean;
     is_active: boolean;
     sort_order: number;
     created_at: string;
@@ -40,7 +38,6 @@ export type Country = {
     id: string;
     code: string;
     name: string;
-    is_default: boolean;
     is_active: boolean;
     sort_order: number;
     created_at: string;

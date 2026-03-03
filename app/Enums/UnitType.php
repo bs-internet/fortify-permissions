@@ -24,7 +24,7 @@ enum UnitType: string
             self::Length => 'Uzunluk',
             self::Volume => 'Hacim',
             self::Area => 'Alan',
-            self::Piece => 'Adet',
+            self::Piece => 'Miktar',
         };
     }
 

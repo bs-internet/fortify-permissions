@@ -14,7 +14,6 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('code', 10)->unique();
             $table->string('name');
-            $table->boolean('is_default')->default(false);
             $table->boolean('is_active')->default(true);
             $table->smallInteger('sort_order')->default(0);
             $table->timestamps();

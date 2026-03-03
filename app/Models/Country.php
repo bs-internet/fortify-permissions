@@ -20,7 +20,6 @@ class Country extends Model
     protected $fillable = [
         'code',
         'name',
-        'is_default',
         'is_active',
         'sort_order',
     ];
@@ -31,7 +30,6 @@ class Country extends Model
     protected function casts(): array
     {
         return [
-            'is_default' => 'boolean',
             'is_active' => 'boolean',
             'sort_order' => 'integer',
         ];

@@ -18,7 +18,6 @@ return new class extends Migration
             $table->tinyInteger('decimal_places')->default(2);
             $table->string('thousand_separator', 5)->default('.');
             $table->string('decimal_separator', 5)->default(',');
-            $table->boolean('is_default')->default(false);
             $table->boolean('is_active')->default(true);
             $table->smallInteger('sort_order')->default(0);
             $table->timestamps();

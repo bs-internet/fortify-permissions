@@ -130,10 +130,10 @@ resources/js/
 | **Permission** | UUID, Spatie Permission genişletmesi |
 | **Activity** | UUID, SoftDeletes, Prunable (6 ay), belongsTo(User), log alanı (JSON) |
 | **Setting** | UUID, key/value/type yapısı, getTypedValueAttribute ile tip dönüşümü |
-| **Language** | UUID, code/name/native_name, is_default, hasMany(User), cache: rememberForever |
-| **Currency** | UUID, code/name/symbol, decimal ayarları, is_default |
+| **Language** | UUID, code/name/native_name, hasMany(User), cache: rememberForever |
+| **Currency** | UUID, code/name/symbol, decimal ayarları |
 | **Unit** | UUID, name/abbreviation, type → UnitType enum cast |
-| **Country** | UUID, code/name, is_default, is_active, belongsToMany(Tax) |
+| **Country** | UUID, code/name, is_active, belongsToMany(Tax) |
 | **Tax** | UUID, name/rate, is_active, belongsToMany(Country), pivot: country_tax |
 | **Notification** | UUID, polymorphic (notifiable), read_at |
 | **ArchivedNotification** | UUID, SoftDeletes, Prunable (120 gün), polymorphic |

@@ -241,7 +241,7 @@ const handleFilePreview = (event: Event, preview: Ref<string | null>) => {
                         </div>
 
                         <div class="grid gap-2">
-                            <Label>Varsayılan Vergi</Label>
+                            <Label>Varsayılan Vergi Dilimi</Label>
                             <input type="hidden" name="default_tax" :value="defaultTax" />
                             <Select v-model="defaultTax">
                                 <SelectTrigger>
