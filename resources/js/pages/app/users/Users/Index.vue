@@ -37,17 +37,7 @@ import UsersLayout from '@/pages/app/users/partials/Layout.vue';
 import { edit as profileEdit } from '@/routes/profile';
 import { bulk as bulkRoute, index as userRoute } from '@/routes/users';
 import { type BreadcrumbItem, type Role } from '@/types';
-
-type UserItem = {
-    id: string;
-    name: string;
-    email: string;
-    email_verified_at: string | null;
-    title: string | null;
-    status: number;
-    last_login_at: string | null;
-    roles: Role[];
-};
+import {type User as UserItem} from '@/types';
 
 type PaginatedUsers = {
     data: UserItem[];

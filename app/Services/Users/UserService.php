@@ -184,7 +184,7 @@ class UserService
     {
         Gate::authorize('delete', $user);
 
-        if ($user->id === 1 || $user->hasRole('Admin')) {
+        if ($user->hasRole('Super Admin')) {
             throw new AuthorizationException('Sistem yöneticisi silinemez.');
         }
 

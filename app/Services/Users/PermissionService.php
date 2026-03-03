@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
+use Spatie\Permission\PermissionRegistrar;
 
 class PermissionService
 {
@@ -96,6 +97,7 @@ class PermissionService
     private function clearCache(): void
     {
         Cache::forget(self::CACHE_KEY_ALL);
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 }
 

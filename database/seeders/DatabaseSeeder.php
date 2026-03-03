@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
         $defaultLanguage = Language::where('code', 'tr')->first();
         $defaultCountry = Country::where('code', 'TR')->first();
         $defaultCurrency = Currency::where('code', 'TRY')->first();
-        $defaultTax = Tax::where('name', 'KDV')->first();
+        $defaultTax = Tax::where('name', 'KDV %20')->first();
 
         /** @var SettingService $settingService */
         $settingService = app(SettingService::class);

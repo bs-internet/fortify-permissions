@@ -6,19 +6,6 @@
 
 ## KRİTİK (Hata/Güvenlik)
 
-### 1. Settings key tutarsızlığı
-`DefinitionsSeeder` `default_language_id` key'i kullanırken, `DatabaseSeeder` + `SettingsController` + `UpdateGeneralSettingsRequest` `default_language` kullanıyor. Varsayılan dil/para birimi/ülke/vergi değerleri hiçbir zaman doğru okunmuyor.
-- [ ] `database/seeders/DefinitionsSeeder.php` — key'leri `_id` suffix'siz yap
-- [ ] `database/seeders/DatabaseSeeder.php` — tutarlılığı doğrula
-
-### 3. `UserService::delete()` UUID ile `=== 1` karşılaştırması
-UUID birincil anahtar kullanıldığı halde `$user->id === 1` kontrolü yapılıyor. Bu kontrol hiçbir zaman true olmaz, Super Admin silme koruması devre dışı.
-- [ ] `app/Services/Users/UserService.php:186` — UUID veya rol bazlı kontrol yap
-
-### 6. `PermissionService::clearCache()` Spatie cache temizlemiyor
-İzin güncellendiğinde Spatie'nin `PermissionRegistrar::forgetCachedPermissions()` çağrılmıyor. İzin değişiklikleri anlık efekt göstermez.
-- [ ] `app/Services/Users/PermissionService.php:96-99` — `app(PermissionRegistrar::class)->forgetCachedPermissions()` ekle
-
 ### 7. `ActivityService` sort_field whitelist kontrolü yok
 `$sortField` kullanıcı girdisinden geliyor ve hiçbir whitelist kontrolü yok. Potansiyel SQL injection riski.
 - [ ] `app/Services/Common/ActivityService.php:94-98` — İzin verilen alan listesi tanımla

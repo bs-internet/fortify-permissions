@@ -85,26 +85,5 @@ class DefinitionsSeeder extends Seeder
                 'sort_order' => 1,
             ]
         );
-
-        // ---- Default Settings ----
-        Setting::updateOrCreate(
-            ['key' => 'default_language_id'],
-            ['value' => $tr->id]
-        );
-
-        Setting::updateOrCreate(
-            ['key' => 'default_country_id'],
-            ['value' => $turkey->id]
-        );
-
-        Setting::updateOrCreate(
-            ['key' => 'default_currency_id'],
-            ['value' => $try->id]
-        );
-
-        Setting::updateOrCreate(
-            ['key' => 'default_tax_id'],
-            ['value' => $kdv->id]
-        );
     }
 }
