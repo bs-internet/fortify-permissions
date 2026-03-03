@@ -23,15 +23,21 @@ class UpdateGeneralSettingsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'site_name'    => ['required', 'string', 'max:255'],
-            'site_slogan'  => ['nullable', 'string', 'max:255'],
-            'email'        => ['required', 'email', 'max:255'],
-            'sender_name'  => ['required', 'string', 'max:255'],
+            'site_name' => ['required', 'string', 'max:255'],
+            'site_slogan' => ['nullable', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
+            'sender_name' => ['required', 'string', 'max:255'],
+
+            // Varsayılan tanımlamalar
+            'default_language' => ['nullable', 'uuid', 'exists:languages,id'],
+            'default_currency' => ['nullable', 'uuid', 'exists:currencies,id'],
+            'default_country' => ['nullable', 'uuid', 'exists:countries,id'],
+            'default_tax' => ['nullable', 'uuid', 'exists:taxes,id'],
 
             // Dosya yükleme kuralları
-            'logo_light'   => ['nullable', 'image', 'mimes:png,jpg,jpeg,svg', 'max:2048'],
-            'logo_dark'    => ['nullable', 'image', 'mimes:png,jpg,jpeg,svg', 'max:2048'],
-            'favicon'      => ['nullable', 'image', 'mimes:png,ico', 'max:512'],
+            'logo_light' => ['nullable', 'image', 'mimes:png,jpg,jpeg,svg', 'max:2048'],
+            'logo_dark' => ['nullable', 'image', 'mimes:png,jpg,jpeg,svg', 'max:2048'],
+            'favicon' => ['nullable', 'image', 'mimes:png,ico', 'max:512'],
         ];
     }
 
@@ -44,14 +50,19 @@ class UpdateGeneralSettingsRequest extends FormRequest
     {
         return [
             'site_name.required' => 'Site adı alanı zorunludur.',
-            'email.required'     => 'Sistem e-posta adresi zorunludur.',
-            'email.email'        => 'Lütfen geçerli bir e-posta adresi giriniz.',
+            'email.required' => 'Sistem e-posta adresi zorunludur.',
+            'email.email' => 'Lütfen geçerli bir e-posta adresi giriniz.',
             'sender_name.required' => 'E-posta gönderen adı zorunludur.',
 
-            'logo_light.image'   => 'Logo bir resim dosyası olmalıdır.',
-            'logo_light.max'     => 'Logo boyutu en fazla 2MB olabilir.',
-            'favicon.image'      => 'Favicon bir resim dosyası olmalıdır.',
-            'favicon.max'        => 'Favicon boyutu en fazla 512KB olabilir.',
+            'logo_light.image' => 'Logo (açık tema) bir resim dosyası olmalıdır.',
+            'logo_light.mimes' => 'Logo (açık tema) PNG, JPG, JPEG veya SVG formatında olmalıdır.',
+            'logo_light.max' => 'Logo (açık tema) boyutu en fazla 2MB olabilir.',
+            'logo_dark.image' => 'Logo (koyu tema) bir resim dosyası olmalıdır.',
+            'logo_dark.mimes' => 'Logo (koyu tema) PNG, JPG, JPEG veya SVG formatında olmalıdır.',
+            'logo_dark.max' => 'Logo (koyu tema) boyutu en fazla 2MB olabilir.',
+            'favicon.image' => 'Favicon bir resim dosyası olmalıdır.',
+            'favicon.mimes' => 'Favicon PNG veya ICO formatında olmalıdır.',
+            'favicon.max' => 'Favicon boyutu en fazla 512KB olabilir.',
         ];
     }
 }

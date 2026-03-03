@@ -20,8 +20,7 @@ class CurrencyController extends Controller
      */
     public function __construct(
         protected CurrencyService $currencyService
-    ) {
-    }
+    ) {}
 
     /**
      * Display a listing of currencies.
@@ -31,6 +30,7 @@ class CurrencyController extends Controller
 
         return Inertia::render('app/definitions/Currency/Index', [
             'currencies' => $this->currencyService->all(),
+            'defaultCurrencyId' => settings('default_currency'),
         ]);
     }
 
@@ -83,4 +83,3 @@ class CurrencyController extends Controller
         return back()->with('success', 'Para birimi başarıyla silindi.');
     }
 }
-

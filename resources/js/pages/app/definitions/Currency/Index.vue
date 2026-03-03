@@ -30,7 +30,10 @@ import DefinitionsLayout from '@/pages/app/definitions/partials/Layout.vue';
 import { index as currencyRoute } from '@/routes/settings/definitions/currencies';
 import { type BreadcrumbItem, type Currency } from '@/types';
 
-defineProps<{ currencies: Currency[] }>();
+const props = defineProps<{
+    currencies: Currency[];
+    defaultCurrencyId: string | null;
+}>();
 
 const { can } = usePermission();
 
@@ -50,7 +53,6 @@ const form = useForm({
     decimal_places: 2,
     thousand_separator: '.',
     decimal_separator: ',',
-    is_default: false,
     is_active: true,
     sort_order: 0,
 });
@@ -72,7 +74,6 @@ function openEditSheet(currency: Currency) {
     form.decimal_places = currency.decimal_places;
     form.thousand_separator = currency.thousand_separator;
     form.decimal_separator = currency.decimal_separator;
-    form.is_default = currency.is_default;
     form.is_active = currency.is_active;
     form.sort_order = currency.sort_order;
     form.clearErrors();
@@ -144,7 +145,7 @@ function confirmDelete() {
                                     <TableCell>{{ currency.symbol }}</TableCell>
                                     <TableCell class="text-center">{{ currency.decimal_places }}</TableCell>
                                     <TableCell class="text-center">
-                                        <Badge v-if="currency.is_default" variant="default">Varsayılan</Badge>
+                                        <Badge v-if="currency.id === props.defaultCurrencyId" variant="default">Varsayılan</Badge>
                                     </TableCell>
                                     <TableCell class="text-center">
                                         <Badge :variant="currency.is_active ? 'default' : 'secondary'">
@@ -228,15 +229,9 @@ function confirmDelete() {
                                 <InputError :message="form.errors.decimal_separator" />
                             </div>
                         </div>
-                        <div class="flex items-center gap-6">
-                            <div class="flex items-center gap-2">
-                                <Switch id="is_active" :checked="form.is_active" @update:checked="form.is_active = $event" />
-                                <Label for="is_active">Aktif</Label>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <Switch id="is_default" :checked="form.is_default" @update:checked="form.is_default = $event" />
-                                <Label for="is_default">Varsayılan</Label>
-                            </div>
+                        <div class="flex items-center gap-2">
+                            <Switch id="is_active" :checked="form.is_active" @update:checked="form.is_active = $event" />
+                            <Label for="is_active">Aktif</Label>
                         </div>
                     </form>
 

@@ -20,8 +20,7 @@ class LanguageController extends Controller
      */
     public function __construct(
         protected LanguageService $languageService
-    ) {
-    }
+    ) {}
 
     /**
      * Display a listing of languages.
@@ -31,6 +30,7 @@ class LanguageController extends Controller
 
         return Inertia::render('app/definitions/Language/Index', [
             'languages' => $this->languageService->all(),
+            'defaultLanguageId' => settings('default_language'),
         ]);
     }
 
@@ -83,4 +83,3 @@ class LanguageController extends Controller
         return back()->with('success', 'Dil başarıyla silindi.');
     }
 }
-

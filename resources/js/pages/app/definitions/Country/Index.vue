@@ -30,7 +30,10 @@ import DefinitionsLayout from '@/pages/app/definitions/partials/Layout.vue';
 import { index as countryRoute } from '@/routes/settings/definitions/countries';
 import { type BreadcrumbItem, type Country } from '@/types';
 
-defineProps<{ countries: Country[] }>();
+const props = defineProps<{
+    countries: Country[];
+    defaultCountryId: string | null;
+}>();
 
 const { can } = usePermission();
 
@@ -46,7 +49,6 @@ const editingCountry = ref<Country | null>(null);
 const form = useForm({
     code: '',
     name: '',
-    is_default: false,
     is_active: true,
     sort_order: 0,
 });
@@ -64,7 +66,6 @@ function openEditSheet(country: Country) {
     editingCountry.value = country;
     form.code = country.code;
     form.name = country.name;
-    form.is_default = country.is_default;
     form.is_active = country.is_active;
     form.sort_order = country.sort_order;
     form.clearErrors();
@@ -132,7 +133,7 @@ function confirmDelete() {
                                     <TableCell class="font-medium">{{ country.code }}</TableCell>
                                     <TableCell>{{ country.name }}</TableCell>
                                     <TableCell class="text-center">
-                                        <Badge v-if="country.is_default" variant="default">Varsayılan</Badge>
+                                        <Badge v-if="country.id === props.defaultCountryId" variant="default">Varsayılan</Badge>
                                     </TableCell>
                                     <TableCell class="text-center">
                                         <Badge :variant="country.is_active ? 'default' : 'secondary'">
@@ -190,15 +191,9 @@ function confirmDelete() {
                             <Input id="sort_order" v-model.number="form.sort_order" type="number" min="0" class="h-11" />
                             <InputError :message="form.errors.sort_order" />
                         </div>
-                        <div class="flex items-center gap-6">
-                            <div class="flex items-center gap-2">
-                                <Switch id="is_active" :checked="form.is_active" @update:checked="form.is_active = $event" />
-                                <Label for="is_active">Aktif</Label>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <Switch id="is_default" :checked="form.is_default" @update:checked="form.is_default = $event" />
-                                <Label for="is_default">Varsayılan</Label>
-                            </div>
+                        <div class="flex items-center gap-2">
+                            <Switch id="is_active" :checked="form.is_active" @update:checked="form.is_active = $event" />
+                            <Label for="is_active">Aktif</Label>
                         </div>
                     </form>
 

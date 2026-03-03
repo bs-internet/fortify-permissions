@@ -6,7 +6,10 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\UpdateGeneralSettingsRequest;
-use App\Models\Setting;
+use App\Models\Country;
+use App\Models\Currency;
+use App\Models\Language;
+use App\Models\Tax;
 use App\Services\Settings\SettingService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -25,8 +28,7 @@ class SettingsController extends Controller
      */
     public function __construct(
         private readonly SettingService $settingService
-    ) {
-    }
+    ) {}
 
     /**
      * Display the general settings page.
@@ -43,7 +45,15 @@ class SettingsController extends Controller
                 'logo_light' => logo('light'),
                 'logo_dark' => logo('dark'),
                 'favicon' => favicon(),
+                'default_language' => settings('default_language'),
+                'default_currency' => settings('default_currency'),
+                'default_country' => settings('default_country'),
+                'default_tax' => settings('default_tax'),
             ],
+            'languages' => Language::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'code']),
+            'currencies' => Currency::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'code', 'symbol']),
+            'countries' => Country::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'code']),
+            'taxes' => Tax::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'rate']),
         ]);
     }
 
@@ -63,4 +73,3 @@ class SettingsController extends Controller
         return back()->with('success', 'Sistem ayarları başarıyla güncellendi.');
     }
 }
-

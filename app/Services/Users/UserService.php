@@ -8,7 +8,6 @@ use App\Enums\CorePermission;
 use App\Events\UserCreated;
 use App\Events\UserDeleted;
 use App\Events\UserUpdated;
-use App\Models\Language;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
@@ -22,7 +21,7 @@ use Illuminate\Support\Str;
 class UserService
 {
     /**
-     * @param array<string, mixed> $filters
+     * @param  array<string, mixed>  $filters
      */
     public function paginate(array $filters = [], ?int $perPage = null): LengthAwarePaginator
     {
@@ -37,7 +36,7 @@ class UserService
     /**
      * Get unpaginated builder for export.
      *
-     * @param array<string, mixed> $filters
+     * @param  array<string, mixed>  $filters
      * @return Builder<User>
      */
     public function getFilteredQuery(array $filters = []): Builder
@@ -71,7 +70,7 @@ class UserService
     /**
      * Store a new user.
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function store(User $authUser, array $data, string $ipAddress, string $userAgent): User
     {
@@ -82,19 +81,19 @@ class UserService
         unset($data['roles'], $data['permissions']);
 
         if (empty($data['language_id'])) {
-            $data['language_id'] = Language::query()->where('is_default', true)->value('id');
+            $data['language_id'] = settings('default_language');
         }
 
         $data['password'] = Str::password(16);
 
         $user = User::create($data);
 
-        if (!empty($roleIds)) {
+        if (! empty($roleIds)) {
             $roles = Role::whereIn('id', $roleIds)->get();
             $user->syncRoles($roles);
         }
 
-        if (!empty($permissionIds)) {
+        if (! empty($permissionIds)) {
             $permissions = Permission::whereIn('id', $permissionIds)->get();
             $user->syncPermissions($permissions);
         }
@@ -107,7 +106,7 @@ class UserService
     /**
      * Update an existing user.
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function update(User $user, User $authUser, array $data, string $ipAddress, string $userAgent): User
     {
@@ -118,7 +117,7 @@ class UserService
         unset($data['roles'], $data['permissions']);
 
         if (isset($data['email']) && $data['email'] !== $user->email) {
-            if (!$authUser->can(CorePermission::USER_CHANGE_EMAIL->value)) {
+            if (! $authUser->can(CorePermission::USER_CHANGE_EMAIL->value)) {
                 $data['email'] = $user->email;
             } else {
                 $data['email_verified_at'] = null;
@@ -126,13 +125,13 @@ class UserService
         }
 
         if (isset($data['status']) && (int) $data['status'] !== $user->status->value) {
-            if (!$authUser->can(CorePermission::USER_CHANGE_STATUS->value)) {
+            if (! $authUser->can(CorePermission::USER_CHANGE_STATUS->value)) {
                 $data['status'] = $user->status->value;
             }
         }
 
         if (empty($data['language_id'])) {
-            $data['language_id'] = Language::query()->where('is_default', true)->value('id');
+            $data['language_id'] = settings('default_language');
         }
 
         $originalData = $user->only(array_keys($data));
@@ -156,7 +155,7 @@ class UserService
             }
         }
 
-        if (!empty($changes)) {
+        if (! empty($changes)) {
             UserUpdated::dispatch($authUser, $changes, $ipAddress, $userAgent);
         }
 
@@ -170,7 +169,7 @@ class UserService
     {
         Gate::authorize('update', $user);
 
-        if (!$authUser->can(CorePermission::USER_VERIFY_EMAIL->value)) {
+        if (! $authUser->can(CorePermission::USER_VERIFY_EMAIL->value)) {
             throw new AuthorizationException('E-posta doğrulama yetkiniz yok.');
         }
 

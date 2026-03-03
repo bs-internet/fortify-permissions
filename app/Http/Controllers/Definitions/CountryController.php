@@ -29,6 +29,7 @@ class CountryController extends Controller
     {
         return Inertia::render('app/definitions/Country/Index', [
             'countries' => $this->countryService->all(),
+            'defaultCountryId' => settings('default_country'),
         ]);
     }
 

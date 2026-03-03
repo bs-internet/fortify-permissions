@@ -7,6 +7,13 @@ import InputError from '@/components/app/common/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/pages/app/settings/partials/Layout.vue';
@@ -14,11 +21,23 @@ import { index as settingsIndex } from '@/routes/settings';
 import { type BreadcrumbItem } from '@/types';
 import { type GeneralSettings } from '@/types/settings';
 
-type Props = {
-    settings: GeneralSettings;
+type DropdownItem = {
+    id: string;
+    name: string;
+    code?: string;
+    symbol?: string;
+    rate?: number;
 };
 
-defineProps<Props>();
+type Props = {
+    settings: GeneralSettings;
+    languages: DropdownItem[];
+    currencies: DropdownItem[];
+    countries: DropdownItem[];
+    taxes: DropdownItem[];
+};
+
+const props = defineProps<Props>();
 
 const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Ayarlar', href: '#' },
@@ -28,6 +47,11 @@ const breadcrumbItems: BreadcrumbItem[] = [
 const logoLightPreview = ref<string | null>(null);
 const logoDarkPreview = ref<string | null>(null);
 const faviconPreview = ref<string | null>(null);
+
+const defaultLanguage = ref(props.settings.default_language ?? '');
+const defaultCurrency = ref(props.settings.default_currency ?? '');
+const defaultCountry = ref(props.settings.default_country ?? '');
+const defaultTax = ref(props.settings.default_tax ?? '');
 
 const handleFilePreview = (event: Event, preview: Ref<string | null>) => {
     const file = (event.target as HTMLInputElement).files?.[0];
@@ -162,6 +186,74 @@ const handleFilePreview = (event: Event, preview: Ref<string | null>) => {
                                 :default-value="settings.sender_name"
                             />
                             <InputError :message="errors.sender_name" />
+                        </div>
+                    </div>
+
+                    <Separator />
+
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div class="grid gap-2">
+                            <Label>Varsayılan Dil</Label>
+                            <input type="hidden" name="default_language" :value="defaultLanguage" />
+                            <Select v-model="defaultLanguage">
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Dil seçin" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem v-for="lang in languages" :key="lang.id" :value="lang.id">
+                                        {{ lang.name }} ({{ lang.code }})
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <InputError :message="errors.default_language" />
+                        </div>
+
+                        <div class="grid gap-2">
+                            <Label>Varsayılan Para Birimi</Label>
+                            <input type="hidden" name="default_currency" :value="defaultCurrency" />
+                            <Select v-model="defaultCurrency">
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Para birimi seçin" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem v-for="currency in currencies" :key="currency.id" :value="currency.id">
+                                        {{ currency.name }} ({{ currency.symbol }})
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <InputError :message="errors.default_currency" />
+                        </div>
+
+                        <div class="grid gap-2">
+                            <Label>Varsayılan Ülke</Label>
+                            <input type="hidden" name="default_country" :value="defaultCountry" />
+                            <Select v-model="defaultCountry">
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Ülke seçin" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem v-for="country in countries" :key="country.id" :value="country.id">
+                                        {{ country.name }} ({{ country.code }})
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <InputError :message="errors.default_country" />
+                        </div>
+
+                        <div class="grid gap-2">
+                            <Label>Varsayılan Vergi</Label>
+                            <input type="hidden" name="default_tax" :value="defaultTax" />
+                            <Select v-model="defaultTax">
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Vergi seçin" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem v-for="tax in taxes" :key="tax.id" :value="tax.id">
+                                        {{ tax.name }} (%{{ tax.rate }})
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <InputError :message="errors.default_tax" />
                         </div>
                     </div>
 

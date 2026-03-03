@@ -3,9 +3,13 @@ export type GeneralSettings = {
     site_slogan: string | null;
     email: string;
     sender_name: string;
-    logo_light: string; // Helper'dan gelen Asset URL
-    logo_dark: string;  // Asset URL
-    favicon: string;    // Asset URL
+    logo_light: string;
+    logo_dark: string;
+    favicon: string;
+    default_language: string | null;
+    default_currency: string | null;
+    default_country: string | null;
+    default_tax: string | null;
 };
 
 export type GeneralSettingsForm = {

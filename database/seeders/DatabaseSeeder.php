@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserStatus;
 use App\Models\Language;
 use App\Models\User;
-use App\Enums\UserStatus;
+use App\Services\Settings\SettingService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -21,7 +22,11 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
         ]);
 
-        $defaultLanguage = Language::where('is_default', true)->first();
+        $defaultLanguage = Language::query()->first();
+
+        /** @var SettingService $settingService */
+        $settingService = app(SettingService::class);
+        $settingService->set('default_language', $defaultLanguage?->id, 'string');
 
         $admin = User::firstOrCreate(
             ['email' => 'admin@admin.com'],
