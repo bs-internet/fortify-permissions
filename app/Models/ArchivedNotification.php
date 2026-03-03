@@ -31,11 +31,17 @@ class ArchivedNotification extends Model
         'archived_at',
     ];
 
-    protected $casts = [
-        'data' => 'array',
-        'read_at' => 'datetime',
-        'archived_at' => 'datetime',
-    ];
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'data' => 'array',
+            'read_at' => 'datetime',
+            'archived_at' => 'datetime',
+        ];
+    }
 
     public function notifiable(): MorphTo
     {
@@ -43,11 +49,11 @@ class ArchivedNotification extends Model
     }
 
     /**
-     * 120 günden eski soft deleted arşiv bildirimlerini kalıcı sil.
+     * 180 günden eski soft deleted arşiv bildirimlerini kalıcı sil.
      */
     public function prunable(): Builder
     {
         return static::onlyTrashed()
-            ->where('deleted_at', '<', now()->subDays(120));
+            ->where('deleted_at', '<', now()->subDays(180));
     }
 }

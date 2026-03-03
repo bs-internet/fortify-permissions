@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Users;
 
 use App\Enums\CorePermission;
+use App\Enums\UserStatus;
 use App\Events\UserCreated;
 use App\Events\UserDeleted;
 use App\Events\UserUpdated;
@@ -218,10 +219,10 @@ class UserService
                     $this->delete($user, $authUser, $ipAddress, $userAgent);
                     break;
                 case 'activate':
-                    $this->update($user, $authUser, ['status' => 1], $ipAddress, $userAgent);
+                    $this->update($user, $authUser, ['status' => UserStatus::ACTIVE->value], $ipAddress, $userAgent);
                     break;
                 case 'deactivate':
-                    $this->update($user, $authUser, ['status' => 2], $ipAddress, $userAgent);
+                    $this->update($user, $authUser, ['status' => UserStatus::PASSIVE->value], $ipAddress, $userAgent);
                     break;
             }
         }

@@ -54,13 +54,16 @@ class User extends Authenticatable implements MustVerifyEmail
      *
      * @return array<string, string>
      */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-        'two_factor_confirmed_at' => 'datetime',
-        'status' => UserStatus::class,
-        'last_login_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'two_factor_confirmed_at' => 'datetime',
+            'status' => UserStatus::class,
+            'last_login_at' => 'datetime',
+        ];
+    }
 
     /**
      * @return BelongsTo<Language, $this>

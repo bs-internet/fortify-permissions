@@ -25,9 +25,15 @@ class Activity extends Model
         'user_agent',
     ];
 
-    protected $casts = [
-        'log' => 'array',
-    ];
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'log' => 'array',
+        ];
+    }
 
     public function scopeRecent(Builder $query, int $limit = 10): Builder
     {

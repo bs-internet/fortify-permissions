@@ -16,7 +16,7 @@ class UserCreated
     /**
      * Create a new event instance.
      *
-     * @param User $user The user who changed their password
+     * @param User $user The user who created the account
      * @param array<string, mixed> $changes The changes made to the user
      * @param string $ipAddress IP address of the request
      * @param string $userAgent User agent of the request

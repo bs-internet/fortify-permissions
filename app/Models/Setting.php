@@ -19,9 +19,15 @@ class Setting extends Model
         'is_public',
     ];
 
-    protected $casts = [
-        'is_public' => 'boolean',
-    ];
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_public' => 'boolean',
+        ];
+    }
 
     public function scopePublic(Builder $query): Builder
     {
