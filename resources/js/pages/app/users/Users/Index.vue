@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Plus, Pencil, ChevronLeft, ChevronRight, Users, CheckCircle2, AlertCircle } from 'lucide-vue-next';
-import { ref, watch, computed } from 'vue';
+import { ref, watch } from 'vue';
 import Heading from '@/components/app/common/Heading.vue';
 import TableSkeleton from '@/components/app/common/TableSkeleton.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import EmptyState from '@/components/ui/empty-state/EmptyState.vue';
 import { Input } from '@/components/ui/input';
 import {
@@ -35,7 +34,7 @@ import { usePermission } from '@/composables/usePermission';
 import AppLayout from '@/layouts/AppLayout.vue';
 import UsersLayout from '@/pages/app/users/partials/Layout.vue';
 import { edit as profileEdit } from '@/routes/profile';
-import { bulk as bulkRoute, index as userRoute } from '@/routes/users';
+import { index as userRoute } from '@/routes/users';
 import { type BreadcrumbItem, type Role } from '@/types';
 import {type User as UserItem} from '@/types';
 
@@ -97,39 +96,6 @@ function onRoleChange(value: string | null) {
     router.get(userRoute().url, getFilterParams(), { preserveState: true, replace: true });
 }
 
-// Bulk Actions
-const selectedUsers = ref<string[]>([]);
-
-const isAllSelected = computed(() => {
-    return props.users.data.length > 0 && selectedUsers.value.length === props.users.data.length;
-});
-
-function toggleSelectAll(checked: boolean) {
-    if (checked) {
-        selectedUsers.value = props.users.data.map((u) => u.id);
-    } else {
-        selectedUsers.value = [];
-    }
-}
-
-function handleBulkAction(action: 'delete' | 'activate' | 'deactivate') {
-    if (selectedUsers.value.length === 0) return;
-
-    if (action === 'delete') {
-        if (!confirm('Seçili kullanıcıları silmek istediğinize emin misiniz?')) return;
-    }
-
-    router.post(bulkRoute().url, {
-        action: action,
-        ids: selectedUsers.value,
-    }, {
-        preserveScroll: true,
-        onSuccess: () => {
-            selectedUsers.value = [];
-        },
-    });
-}
-
 function handlePageChange(page: number) {
     router.visit(userRoute().url, {
         data: { page, ...getFilterParams() },
@@ -178,13 +144,7 @@ router.on('finish', () => { tableLoading.value = false; });
                         description="Sistem üzerinde kayıtlı kullanıcılar."
                     />
 
-                    <div v-if="selectedUsers.length > 0" class="flex flex-wrap items-center gap-2">
-                        <span class="text-sm text-muted-foreground mr-2">{{ selectedUsers.length }} seçili</span>
-                        <Button variant="outline" size="sm" @click="handleBulkAction('activate')">Aktif Yap</Button>
-                        <Button variant="outline" size="sm" @click="handleBulkAction('deactivate')">Pasif Yap</Button>
-                        <Button variant="destructive" size="sm" @click="handleBulkAction('delete')">Sil</Button>
-                    </div>
-                    <div v-else-if="can('user.create')">
+                    <div v-if="can('user.create')">
                         <Link :href="`${userRoute().url}/create`">
                             <Button size="sm" class="h-9">
                                 <Plus class="mr-2 h-4 w-4" />
@@ -230,9 +190,6 @@ router.on('finish', () => { tableLoading.value = false; });
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead class="w-12 text-center">
-                                        <Checkbox :checked="isAllSelected" @update:checked="toggleSelectAll" />
-                                    </TableHead>
                                     <TableHead class="w-24 text-center">Durum</TableHead>
                                     <TableHead>Ad</TableHead>
                                     <TableHead>E-posta</TableHead>
@@ -244,15 +201,6 @@ router.on('finish', () => { tableLoading.value = false; });
                             </TableHeader>
                             <TableBody>
                                 <TableRow v-for="user in users.data" :key="user.id" class="hover:bg-muted/50 transition-colors">
-                                    <TableCell class="w-12 text-center">
-                                        <Checkbox
-                                            :checked="selectedUsers.includes(user.id)"
-                                            @update:checked="(val: boolean) => {
-                                                if (val) selectedUsers.push(user.id);
-                                                else selectedUsers.splice(selectedUsers.indexOf(user.id), 1);
-                                            }"
-                                        />
-                                    </TableCell>
                                     <TableCell class="text-center">
                                         <Badge :variant="getStatusBadgeVariant(user.status)">
                                             {{ getStatusLabel(user.status) }}

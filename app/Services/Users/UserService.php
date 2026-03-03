@@ -201,30 +201,4 @@ class UserService
         UserDeleted::dispatch($authUser, $changes, $ipAddress, $userAgent);
     }
 
-    /**
-     * Perform bulk action on multiple users.
-     */
-    public function bulkAction(string $action, array $ids, User $authUser, string $ipAddress, string $userAgent): void
-    {
-        $users = User::whereIn('id', $ids)->get();
-
-        if ($users->isEmpty()) {
-            return;
-        }
-
-        foreach ($users as $user) {
-            /** @var User $user */
-            switch ($action) {
-                case 'delete':
-                    $this->delete($user, $authUser, $ipAddress, $userAgent);
-                    break;
-                case 'activate':
-                    $this->update($user, $authUser, ['status' => UserStatus::ACTIVE->value], $ipAddress, $userAgent);
-                    break;
-                case 'deactivate':
-                    $this->update($user, $authUser, ['status' => UserStatus::PASSIVE->value], $ipAddress, $userAgent);
-                    break;
-            }
-        }
-    }
 }

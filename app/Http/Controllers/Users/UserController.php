@@ -131,36 +131,5 @@ class UserController extends Controller
         return back()->with('success', 'Kullanıcı başarıyla silindi.');
     }
 
-    /**
-     * Perform bulk action on selected users.
-     */
-    public function bulkAction(Request $request): RedirectResponse
-    {
-        $validated = $request->validate([
-            'action' => 'required|string|in:delete,activate,deactivate',
-            'ids' => 'required|array',
-            'ids.*' => 'string|exists:users,id',
-        ]);
-
-        $action = $validated['action'];
-        $ids = $validated['ids'];
-
-        $this->userService->bulkAction(
-            $action,
-            $ids,
-            $request->user(),
-            $request->ip() ?? config('otomasyon.defaults.ip_address', '127.0.0.1'),
-            $request->userAgent() ?? config('otomasyon.defaults.user_agent', 'unknown')
-        );
-
-        $messages = [
-            'delete' => 'Seçilen kullanıcılar başarıyla silindi.',
-            'activate' => 'Seçilen kullanıcılar başarıyla aktifleştirildi.',
-            'deactivate' => 'Seçilen kullanıcılar başarıyla pasifleştirildi.',
-        ];
-
-        return back()->with('success', $messages[$action]);
-    }
-
 }
 

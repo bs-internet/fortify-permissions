@@ -79,7 +79,6 @@ Route::middleware([
                 Route::get('/users', 'index')->name('index');
                 Route::get('/users/create', 'create')->name('create');
                 Route::post('/users', 'store')->middleware('throttle:sensitiveActions')->name('store');
-                Route::post('/users/bulk', 'bulkAction')->middleware('throttle:sensitiveActions')->name('bulk');
                 Route::get('/users/{user}/edit', 'edit')->name('edit');
                 Route::put('/users/{user}', 'update')->middleware('throttle:sensitiveActions')->name('update');
                 Route::post('/users/{user}/verify-email', 'verifyEmail')->middleware('throttle:sensitiveActions')->name('verify-email');
