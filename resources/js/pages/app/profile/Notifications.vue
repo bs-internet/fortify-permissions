@@ -12,6 +12,7 @@ import {
     markAllAsRead as markAllAsReadRoute,
     archive as archiveRoute,
     archiveAllRead as archiveAllReadRoute,
+    index as notificationsIndex,
 } from '@/routes/profile/notifications';
 import { type BreadcrumbItem } from '@/types';
 
@@ -62,7 +63,7 @@ const props = defineProps<Props>();
 const breadcrumbItems: BreadcrumbItem[] = [
     {
         title: 'Bildirimler',
-        href: '/profile/notifications',
+        href: notificationsIndex().url,
     },
 ];
 
@@ -93,34 +94,23 @@ function archiveAllRead() {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
+
         <Head title="Bildirimler" />
 
         <ProfileLayout>
             <div class="space-y-6">
                 <div class="flex items-start justify-between">
-                    <Heading
-                        variant="small"
-                        title="Bildirimler"
-                        :description="unreadCount > 0 ? `${unreadCount} okunmamış bildiriminiz var.` : 'Tüm bildirimler okundu.'"
-                    />
+                    <Heading variant="small" title="Bildirimler"
+                        :description="unreadCount > 0 ? `${unreadCount} okunmamış bildiriminiz var.` : 'Tüm bildirimler okundu.'" />
 
                     <div class="flex gap-2">
-                        <Button
-                            v-if="unreadCount > 0"
-                            variant="outline"
-                            size="sm"
-                            @click="markAllAsRead"
-                        >
+                        <Button v-if="unreadCount > 0" variant="outline" size="sm" @click="markAllAsRead">
                             <CheckCheck class="mr-2 h-4 w-4" />
                             Hepsini Oku
                         </Button>
 
-                        <Button
-                            v-if="notifications.data.some(n => n.read_at)"
-                            variant="outline"
-                            size="sm"
-                            @click="archiveAllRead"
-                        >
+                        <Button v-if="notifications.data.some(n => n.read_at)" variant="outline" size="sm"
+                            @click="archiveAllRead">
                             <ArchiveRestore class="mr-2 h-4 w-4" />
                             Okunanları Arşivle
                         </Button>
@@ -135,32 +125,21 @@ function archiveAllRead() {
                 </div>
 
                 <div class="space-y-3">
-                    <div
-                        v-if="notifications.data.length === 0"
-                        class="flex flex-col items-center justify-center rounded-lg border border-dashed py-12 text-center"
-                    >
+                    <div v-if="notifications.data.length === 0"
+                        class="flex flex-col items-center justify-center rounded-lg border border-dashed py-12 text-center">
                         <BellOff class="mb-4 h-10 w-10 text-muted-foreground" />
                         <p class="text-sm text-muted-foreground">Henüz bir bildiriminiz bulunmuyor.</p>
                     </div>
 
-                    <div
-                        v-for="notification in notifications.data"
-                        :key="notification.id"
-                        :class="[
-                            'flex items-start justify-between gap-4 rounded-lg border p-4 transition-all',
-                            !notification.read_at ? 'border-primary/20 bg-muted/40 shadow-sm' : 'bg-background opacity-80',
-                        ]"
-                    >
+                    <div v-for="notification in notifications.data" :key="notification.id" :class="[
+                        'flex items-start justify-between gap-4 rounded-lg border p-4 transition-all',
+                        !notification.read_at ? 'border-primary/20 bg-muted/40 shadow-sm' : 'bg-background opacity-80',
+                    ]">
                         <div class="flex gap-3">
-                            <div
-                                class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
-                                :class="!notification.read_at ? getStyle(notification).bg : 'bg-muted'"
-                            >
-                                <component
-                                    :is="getStyle(notification).icon"
-                                    class="h-4 w-4"
-                                    :class="!notification.read_at ? getStyle(notification).color : 'text-muted-foreground'"
-                                />
+                            <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+                                :class="!notification.read_at ? getStyle(notification).bg : 'bg-muted'">
+                                <component :is="getStyle(notification).icon" class="h-4 w-4"
+                                    :class="!notification.read_at ? getStyle(notification).color : 'text-muted-foreground'" />
                             </div>
                             <div class="space-y-1">
                                 <h4 class="text-sm font-medium leading-none">
@@ -176,24 +155,14 @@ function archiveAllRead() {
                         </div>
 
                         <div class="flex shrink-0 gap-1">
-                            <Button
-                                v-if="!notification.read_at"
-                                variant="ghost"
-                                size="icon"
-                                class="h-8 w-8 hover:bg-primary/10 hover:text-primary"
-                                title="Okundu olarak işaretle"
-                                @click="markAsRead(notification.id)"
-                            >
+                            <Button v-if="!notification.read_at" variant="ghost" size="icon"
+                                class="h-8 w-8 hover:bg-primary/10 hover:text-primary" title="Okundu olarak işaretle"
+                                @click="markAsRead(notification.id)">
                                 <CheckCheck class="h-4 w-4" />
                             </Button>
 
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                class="h-8 w-8 hover:bg-muted"
-                                title="Arşivle"
-                                @click="archiveNotification(notification.id)"
-                            >
+                            <Button variant="ghost" size="icon" class="h-8 w-8 hover:bg-muted" title="Arşivle"
+                                @click="archiveNotification(notification.id)">
                                 <Archive class="h-4 w-4" />
                             </Button>
                         </div>
@@ -201,18 +170,13 @@ function archiveAllRead() {
                 </div>
 
                 <nav v-if="notifications.links.length > 3" class="flex justify-center gap-1">
-                    <button
-                        v-for="(link, k) in notifications.links"
-                        :key="k"
-                        v-html="link.label"
-                        :disabled="!link.url || link.active"
-                        @click="router.visit(link.url!)"
+                    <button v-for="(link, k) in notifications.links" :key="k" v-html="link.label"
+                        :disabled="!link.url || link.active" @click="router.visit(link.url!)"
                         class="flex h-8 min-w-[32px] items-center justify-center rounded-md border px-2 text-xs transition-colors"
                         :class="[
                             link.active ? 'border-primary bg-primary text-primary-foreground' : 'hover:bg-accent',
                             !link.url ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
-                        ]"
-                    />
+                        ]" />
                 </nav>
             </div>
         </ProfileLayout>

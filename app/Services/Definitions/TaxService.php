@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Gate;
 class TaxService
 {
     private const CACHE_KEY_ALL = 'taxes_all';
+    private const CACHE_KEY_ACTIVE = 'taxes_active';
 
     /**
      * @return Collection<int, Tax>
@@ -30,6 +31,20 @@ class TaxService
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get();
+        });
+    }
+
+    /**
+     * @return Collection<int, Tax>
+     */
+    public function allActive(): Collection
+    {
+        return Cache::rememberForever(self::CACHE_KEY_ACTIVE, function () {
+            return Tax::query()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(['id', 'name', 'rate']);
         });
     }
 
@@ -125,5 +140,6 @@ class TaxService
     private function clearCache(): void
     {
         Cache::forget(self::CACHE_KEY_ALL);
+        Cache::forget(self::CACHE_KEY_ACTIVE);
     }
 }

@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Gate;
 class CurrencyService
 {
     private const CACHE_KEY_ALL = 'currencies_all';
+    private const CACHE_KEY_ACTIVE = 'currencies_active';
 
     /**
      * @return Collection<int, Currency>
@@ -29,6 +30,20 @@ class CurrencyService
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get();
+        });
+    }
+
+    /**
+     * @return Collection<int, Currency>
+     */
+    public function allActive(): Collection
+    {
+        return Cache::rememberForever(self::CACHE_KEY_ACTIVE, function () {
+            return Currency::query()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(['id', 'name', 'code', 'symbol']);
         });
     }
 
@@ -104,6 +119,7 @@ class CurrencyService
     private function clearCache(): void
     {
         Cache::forget(self::CACHE_KEY_ALL);
+        Cache::forget(self::CACHE_KEY_ACTIVE);
     }
 }
 

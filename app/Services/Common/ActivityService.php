@@ -91,8 +91,14 @@ class ActivityService
             $query->whereDate('created_at', '<=', $filters['date_to']);
         }
 
-        $sortField = $filters['sort_field'] ?? 'created_at';
-        $sortDirection = $filters['sort_direction'] ?? 'desc';
+        $allowedSortFields = ['created_at', 'type', 'ip_address'];
+        $sortField = in_array($filters['sort_field'] ?? null, $allowedSortFields, true)
+            ? $filters['sort_field']
+            : 'created_at';
+
+        $sortDirection = in_array($filters['sort_direction'] ?? null, ['asc', 'desc'], true)
+            ? $filters['sort_direction']
+            : 'desc';
 
         return $query
             ->orderBy($sortField, $sortDirection)

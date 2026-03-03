@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Shield } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { ref, onUnmounted } from 'vue';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -65,8 +65,9 @@ function openDeleteDialog(role: Role) {
 }
 
 const tableLoading = ref(false);
-router.on('start', () => { tableLoading.value = true; });
-router.on('finish', () => { tableLoading.value = false; });
+const offStart = router.on('start', () => { tableLoading.value = true; });
+const offFinish = router.on('finish', () => { tableLoading.value = false; });
+onUnmounted(() => { offStart(); offFinish(); });
 
 function confirmDelete() {
     if (!roleToDelete.value) return;
@@ -82,15 +83,13 @@ function confirmDelete() {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
+
         <Head title="Roller" />
         <UsersLayout>
             <div class="space-y-6">
                 <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center px-2">
-                    <Heading
-                        variant="small"
-                        title="Rol Yönetimi"
-                        description="Sistem rollerini listeleyin ve yönetin."
-                    />
+                    <Heading variant="small" title="Rol Yönetimi"
+                        description="Sistem rollerini listeleyin ve yönetin." />
                     <Link v-if="roles.data.length > 0 && can('role.create')" :href="createRoute().url">
                         <Button size="sm" class="h-9">
                             <Plus class="mr-2 h-4 w-4" />
@@ -109,11 +108,13 @@ function confirmDelete() {
                                 <TableRow>
                                     <TableHead class="w-[250px]">Rol Adı</TableHead>
                                     <TableHead>Açıklama</TableHead>
-                                    <TableHead v-if="can('role.update') || can('role.delete')" class="text-right w-[180px]">İşlemler</TableHead>
+                                    <TableHead v-if="can('role.update') || can('role.delete')"
+                                        class="text-right w-[180px]">İşlemler</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow v-for="role in roles.data" :key="role.id" class="hover:bg-muted/50 transition-colors">
+                                <TableRow v-for="role in roles.data" :key="role.id"
+                                    class="hover:bg-muted/50 transition-colors">
                                     <TableCell class="font-medium">
                                         <div class="flex items-center gap-2">
                                             <Shield class="h-4 w-4 text-muted-foreground" />
@@ -131,13 +132,9 @@ function confirmDelete() {
                                                     Düzenle
                                                 </Button>
                                             </Link>
-                                            <Button
-                                                v-if="can('role.delete')"
-                                                variant="outline"
-                                                size="sm"
+                                            <Button v-if="can('role.delete')" variant="outline" size="sm"
                                                 class="h-8 text-destructive hover:text-destructive"
-                                                @click="openDeleteDialog(role)"
-                                            >
+                                                @click="openDeleteDialog(role)">
                                                 <Trash2 class="mr-2 h-3.5 w-3.5" />
                                                 Sil
                                             </Button>
@@ -150,27 +147,20 @@ function confirmDelete() {
 
                     <div v-if="roles.total > roles.per_page" class="flex items-center justify-between px-4 py-2">
                         <div class="text-sm text-muted-foreground">
-                            Toplam <strong>{{ roles.total }}</strong> kayıttan <strong>{{ roles.from }}-{{ roles.to }}</strong> arası gösteriliyor.
+                            Toplam <strong>{{ roles.total }}</strong> kayıttan <strong>{{ roles.from }}-{{ roles.to
+                                }}</strong> arası gösteriliyor.
                         </div>
-                        <Pagination
-                            :total="roles.total"
-                            :items-per-page="roles.per_page"
-                            :default-page="roles.current_page"
-                            @update:page="handlePageChange"
-                        >
+                        <Pagination :total="roles.total" :items-per-page="roles.per_page"
+                            :default-page="roles.current_page" @update:page="handlePageChange">
                             <PaginationContent>
                                 <PaginationPrevious class="cursor-pointer">
                                     <ChevronLeft class="h-4 w-4" />
                                 </PaginationPrevious>
                                 <template v-for="(item, index) in roles.links" :key="index">
                                     <PaginationItem v-if="item.url && !isNaN(Number(item.label))">
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            class="h-9 w-9"
+                                        <Button size="icon" variant="ghost" class="h-9 w-9"
                                             :class="{ 'border': item.active }"
-                                            @click="handlePageChange(Number(item.label))"
-                                        >
+                                            @click="handlePageChange(Number(item.label))">
                                             {{ item.label }}
                                         </Button>
                                     </PaginationItem>
@@ -184,13 +174,10 @@ function confirmDelete() {
                 </template>
 
                 <div v-else class="mx-2">
-                    <EmptyState
-                        title="Rol Bulunamadı"
+                    <EmptyState title="Rol Bulunamadı"
                         description="Henüz bir rol tanımlanmamış veya arama kriterlerine uygun sonuç yok."
-                        :icon="Shield"
-                        :action-label="can('role.create') ? 'Yeni Rol Ekle' : undefined"
-                        @action="can('role.create') && router.visit(createRoute().url)"
-                    />
+                        :icon="Shield" :action-label="can('role.create') ? 'Yeni Rol Ekle' : undefined"
+                        @action="can('role.create') && router.visit(createRoute().url)" />
                 </div>
             </div>
 
@@ -206,10 +193,8 @@ function confirmDelete() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>İptal</AlertDialogCancel>
-                        <AlertDialogAction
-                            class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            @click="confirmDelete"
-                        >
+                        <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            @click="confirmDelete">
                             Evet, Sil
                         </AlertDialogAction>
                     </AlertDialogFooter>

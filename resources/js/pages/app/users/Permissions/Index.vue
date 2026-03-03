@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, useForm, router } from '@inertiajs/vue3';
 import { Pencil, X, Check, Loader2, ChevronLeft, ChevronRight } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { ref, onUnmounted } from 'vue';
 import { update } from '@/actions/App/Http/Controllers/Users/PermissionController';
 import Heading from '@/components/app/common/Heading.vue';
 import TableSkeleton from '@/components/app/common/TableSkeleton.vue';
@@ -92,22 +92,21 @@ function handlePageChange(page: number) {
 
 const tableLoading = ref(false);
 
-router.on('start', () => { tableLoading.value = true; });
-router.on('finish', () => { tableLoading.value = false; });
+const offStart = router.on('start', () => { tableLoading.value = true; });
+const offFinish = router.on('finish', () => { tableLoading.value = false; });
+onUnmounted(() => { offStart(); offFinish(); });
 </script>
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
+
         <Head title="Yetkiler" />
 
         <UsersLayout>
             <div class="space-y-6">
                 <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                    <Heading
-                        variant="small"
-                        title="Yetkiler"
-                        description="Sistem yetkilerinin görünüm bilgilerini buradan düzenleyebilirsiniz."
-                    />
+                    <Heading variant="small" title="Yetkiler"
+                        description="Sistem yetkilerinin görünüm bilgilerini buradan düzenleyebilirsiniz." />
                 </div>
 
                 <div v-if="tableLoading">
@@ -119,13 +118,15 @@ router.on('finish', () => { tableLoading.value = false; });
                             <TableRow>
                                 <TableHead class="w-[350px]">Görünen Ad</TableHead>
                                 <TableHead>Açıklama</TableHead>
-                                <TableHead v-if="can('permission.update')" class="text-right w-[140px]">İşlemler</TableHead>
+                                <TableHead v-if="can('permission.update')" class="text-right w-[140px]">İşlemler
+                                </TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             <TableRow v-if="permissions.data.length === 0">
                                 <TableCell :colspan="3" class="p-0">
-                                    <EmptyState title="Yetki Bulunamadı" description="Sistemde henüz hiç yetki tanımlanmamış." />
+                                    <EmptyState title="Yetki Bulunamadı"
+                                        description="Sistemde henüz hiç yetki tanımlanmamış." />
                                 </TableCell>
                             </TableRow>
                             <TableRow v-for="permission in permissions.data" :key="permission.id" class="group/row">
@@ -146,22 +147,17 @@ router.on('finish', () => { tableLoading.value = false; });
                     </Table>
                 </div>
 
-                <div v-if="permissions.total > 0" class="flex flex-col sm:flex-row items-center justify-between gap-4 px-2 py-4">
+                <div v-if="permissions.total > 0"
+                    class="flex flex-col sm:flex-row items-center justify-between gap-4 px-2 py-4">
                     <div class="text-sm text-muted-foreground order-2 sm:order-1">
                         Toplam <strong>{{ permissions.total }}</strong> kayıttan
                         <strong>{{ permissions.from }}-{{ permissions.to }}</strong> arası gösteriliyor.
                     </div>
 
-                    <Pagination
-                        v-if="permissions.last_page > 1"
-                        :total="permissions.total"
-                        :sibling-count="1"
-                        :show-edges="false"
-                        :default-page="permissions.current_page"
-                        :items-per-page="permissions.per_page"
-                        @update:page="handlePageChange"
-                        class="ml-auto mr-0 w-auto justify-end order-1 sm:order-2"
-                    >
+                    <Pagination v-if="permissions.last_page > 1" :total="permissions.total" :sibling-count="1"
+                        :show-edges="false" :default-page="permissions.current_page"
+                        :items-per-page="permissions.per_page" @update:page="handlePageChange"
+                        class="ml-auto mr-0 w-auto justify-end order-1 sm:order-2">
                         <PaginationContent class="justify-end">
                             <PaginationPrevious class="cursor-pointer">
                                 <ChevronLeft class="h-4 w-4 mr-1" />
@@ -170,12 +166,8 @@ router.on('finish', () => { tableLoading.value = false; });
 
                             <template v-for="(item, index) in permissions.links" :key="index">
                                 <PaginationItem v-if="item.url && !isNaN(Number(item.label))">
-                                    <Button
-                                        size="icon"
-                                        class="size-9"
-                                        :variant="item.active ? 'outline' : 'ghost'"
-                                        @click="handlePageChange(Number(item.label))"
-                                    >
+                                    <Button size="icon" class="size-9" :variant="item.active ? 'outline' : 'ghost'"
+                                        @click="handlePageChange(Number(item.label))">
                                         {{ item.label }}
                                     </Button>
                                 </PaginationItem>
@@ -211,13 +203,9 @@ router.on('finish', () => { tableLoading.value = false; });
 
                         <div class="space-y-2">
                             <Label for="description" class="text-sm font-bold">Açıklama</Label>
-                            <Textarea
-                                id="description"
-                                v-model="form.description"
-                                rows="10"
+                            <Textarea id="description" v-model="form.description" rows="10"
                                 placeholder="Bu yetkinin ne işe yaradığını detaylandırın..."
-                                class="resize-none focus-visible:ring-1"
-                            />
+                                class="resize-none focus-visible:ring-1" />
                             <InputError :message="form.errors.description" />
                         </div>
                     </form>

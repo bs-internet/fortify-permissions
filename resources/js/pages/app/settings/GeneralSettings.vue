@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
-import { ref, type Ref } from 'vue';
+import { ref } from 'vue';
 import SettingsController from '@/actions/App/Http/Controllers/Settings/SettingsController';
 import Heading from '@/components/app/common/Heading.vue';
 import InputError from '@/components/app/common/InputError.vue';
@@ -53,12 +53,12 @@ const defaultCurrency = ref(props.settings.default_currency ?? '');
 const defaultCountry = ref(props.settings.default_country ?? '');
 const defaultTax = ref(props.settings.default_tax ?? '');
 
-const handleFilePreview = (event: Event, preview: Ref<string | null>) => {
+const handleFilePreview = (event: Event, setter: (value: string | null) => void) => {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (file) {
         const reader = new FileReader();
         reader.onload = (e) => {
-            preview.value = e.target?.result as string;
+            setter(e.target?.result as string);
         };
         reader.readAsDataURL(file);
     }
@@ -97,7 +97,7 @@ const handleFilePreview = (event: Event, preview: Ref<string | null>) => {
                                     name="logo_light"
                                     accept="image/*"
                                     class="text-xs"
-                                    @change="handleFilePreview($event, logoLightPreview)"
+                                    @change="handleFilePreview($event, (v) => (logoLightPreview = v))"
                                 />
                             </div>
                             <InputError :message="errors.logo_light" />
@@ -117,7 +117,7 @@ const handleFilePreview = (event: Event, preview: Ref<string | null>) => {
                                     name="logo_dark"
                                     accept="image/*"
                                     class="text-xs text-white"
-                                    @change="handleFilePreview($event, logoDarkPreview)"
+                                    @change="handleFilePreview($event, (v) => (logoDarkPreview = v))"
                                 />
                             </div>
                             <InputError :message="errors.logo_dark" />
@@ -137,7 +137,7 @@ const handleFilePreview = (event: Event, preview: Ref<string | null>) => {
                                     name="favicon"
                                     accept="image/*"
                                     class="text-xs"
-                                    @change="handleFilePreview($event, faviconPreview)"
+                                    @change="handleFilePreview($event, (v) => (faviconPreview = v))"
                                 />
                             </div>
                             <InputError :message="errors.favicon" />

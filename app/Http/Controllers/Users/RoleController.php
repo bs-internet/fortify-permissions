@@ -54,7 +54,7 @@ class RoleController extends Controller
             $request->ip() ?? config('otomasyon.defaults.ip_address', '127.0.0.1'),
             $request->userAgent() ?? config('otomasyon.defaults.user_agent', 'unknown')
         );
-        
+
         return redirect()->route('users.roles.index')->with('success', 'Rol başarıyla oluşturuldu.');
     }
 
@@ -96,8 +96,8 @@ class RoleController extends Controller
             $this->roleService->delete(
                 $role,
                 request()->user(),
-                request()->ip() ?? '127.0.0.1',
-                request()->userAgent() ?? 'unknown'
+                request()->ip() ?? config('otomasyon.defaults.ip_address', '127.0.0.1'),
+                request()->userAgent() ?? config('otomasyon.defaults.user_agent', 'unknown')
             );
 
             return redirect()->route('users.roles.index')->with('success', 'Rol başarıyla silindi.');

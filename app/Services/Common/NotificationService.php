@@ -28,7 +28,7 @@ class NotificationService
         return $user->notifications()
             ->orderBy('created_at', 'desc')
             ->paginate($perPage)
-            ->through(fn ($n) => [
+            ->through(fn($n) => [
                 'id' => $n->id,
                 'type' => $n->type,
                 'data' => $n->data,
@@ -52,7 +52,7 @@ class NotificationService
             ->where('notifiable_id', $user->id)
             ->orderBy('archived_at', 'desc')
             ->paginate($perPage)
-            ->through(fn ($n) => [
+            ->through(fn($n) => [
                 'id' => $n->id,
                 'type' => $n->type,
                 'data' => $n->data,
@@ -119,7 +119,7 @@ class NotificationService
     {
         $notification = $user->notifications()->find($notificationId);
 
-        if (! $notification) {
+        if (!$notification) {
             return false;
         }
 
@@ -148,21 +148,30 @@ class NotificationService
     {
         $notifications = $user->readNotifications()->get();
 
-        foreach ($notifications as $notification) {
-            ArchivedNotification::create([
-                'id' => $notification->id,
-                'type' => $notification->type,
-                'notifiable_id' => $notification->notifiable_id,
-                'notifiable_type' => $notification->notifiable_type,
-                'data' => $notification->data,
-                'read_at' => $notification->read_at,
-                'archived_at' => now(),
-            ]);
-
-            $notification->delete();
+        if ($notifications->isEmpty()) {
+            return 0;
         }
 
-        return $notifications->count();
+        $now = now();
+
+        $records = $notifications->map(fn($n) => [
+            'id' => $n->id,
+            'type' => $n->type,
+            'notifiable_id' => $n->notifiable_id,
+            'notifiable_type' => $n->notifiable_type,
+            'data' => json_encode($n->data),
+            'read_at' => $n->read_at,
+            'archived_at' => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ])->toArray();
+
+        \DB::transaction(function () use ($records, $notifications): void {
+            ArchivedNotification::insert($records);
+            $notifications->each->delete();
+        });
+
+        return count($records);
     }
 
     /**

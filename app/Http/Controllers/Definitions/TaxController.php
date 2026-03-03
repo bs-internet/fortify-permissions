@@ -22,7 +22,8 @@ class TaxController extends Controller
     public function __construct(
         protected TaxService $taxService,
         protected CountryService $countryService
-    ) {}
+    ) {
+    }
 
     /**
      * Display a listing of taxes.
@@ -74,8 +75,8 @@ class TaxController extends Controller
         $this->taxService->delete(
             $tax,
             request()->user(),
-            request()->ip() ?? '127.0.0.1',
-            request()->userAgent() ?? 'unknown'
+            request()->ip() ?? config('otomasyon.defaults.ip_address', '127.0.0.1'),
+            request()->userAgent() ?? config('otomasyon.defaults.user_agent', 'unknown')
         );
 
         return back()->with('success', 'Vergi oranı başarıyla silindi.');

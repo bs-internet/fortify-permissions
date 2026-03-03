@@ -20,7 +20,8 @@ class LanguageController extends Controller
      */
     public function __construct(
         protected LanguageService $languageService
-    ) {}
+    ) {
+    }
 
     /**
      * Display a listing of languages.
@@ -76,8 +77,8 @@ class LanguageController extends Controller
         $this->languageService->delete(
             $language,
             request()->user(),
-            request()->ip() ?? '127.0.0.1',
-            request()->userAgent() ?? 'unknown'
+            request()->ip() ?? config('otomasyon.defaults.ip_address', '127.0.0.1'),
+            request()->userAgent() ?? config('otomasyon.defaults.user_agent', 'unknown')
         );
 
         return back()->with('success', 'Dil başarıyla silindi.');

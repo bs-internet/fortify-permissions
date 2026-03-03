@@ -20,7 +20,8 @@ class CurrencyController extends Controller
      */
     public function __construct(
         protected CurrencyService $currencyService
-    ) {}
+    ) {
+    }
 
     /**
      * Display a listing of currencies.
@@ -76,8 +77,8 @@ class CurrencyController extends Controller
         $this->currencyService->delete(
             $currency,
             request()->user(),
-            request()->ip() ?? '127.0.0.1',
-            request()->userAgent() ?? 'unknown'
+            request()->ip() ?? config('otomasyon.defaults.ip_address', '127.0.0.1'),
+            request()->userAgent() ?? config('otomasyon.defaults.user_agent', 'unknown')
         );
 
         return back()->with('success', 'Para birimi başarıyla silindi.');

@@ -6,10 +6,10 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\UpdateGeneralSettingsRequest;
-use App\Models\Country;
-use App\Models\Currency;
-use App\Models\Language;
-use App\Models\Tax;
+use App\Services\Definitions\CountryService;
+use App\Services\Definitions\CurrencyService;
+use App\Services\Definitions\LanguageService;
+use App\Services\Definitions\TaxService;
 use App\Services\Settings\SettingService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -27,8 +27,13 @@ class SettingsController extends Controller
      * Create a new controller instance.
      */
     public function __construct(
-        private readonly SettingService $settingService
-    ) {}
+        private readonly SettingService $settingService,
+        private readonly LanguageService $languageService,
+        private readonly CurrencyService $currencyService,
+        private readonly CountryService $countryService,
+        private readonly TaxService $taxService,
+    ) {
+    }
 
     /**
      * Display the general settings page.
@@ -50,10 +55,10 @@ class SettingsController extends Controller
                 'default_country' => settings('default_country'),
                 'default_tax' => settings('default_tax'),
             ],
-            'languages' => Language::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'code']),
-            'currencies' => Currency::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'code', 'symbol']),
-            'countries' => Country::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'code']),
-            'taxes' => Tax::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'rate']),
+            'languages' => $this->languageService->allActive()->map(fn($l) => ['id' => $l->id, 'name' => $l->name, 'code' => $l->code]),
+            'currencies' => $this->currencyService->allActive()->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'code' => $c->code, 'symbol' => $c->symbol]),
+            'countries' => $this->countryService->allActive()->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'code' => $c->code]),
+            'taxes' => $this->taxService->allActive()->map(fn($t) => ['id' => $t->id, 'name' => $t->name, 'rate' => $t->rate]),
         ]);
     }
 

@@ -22,7 +22,7 @@ class ArchiveOldNotifications extends Command
      *
      * @var string
      */
-    protected $description = '30 günden eski okunmuş bildirimleri arşive taşır.';
+    protected $description = '60 günden eski okunmuş bildirimleri arşive taşır.';
 
     /**
      * Execute the console command.

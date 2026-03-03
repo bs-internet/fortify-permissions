@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Models\Activity;
 use App\Services\Common\ActivityService;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -26,11 +25,9 @@ class ActivityController extends Controller
     /**
      * Display a listing of the user activities.
      */
-    public function index(Request $request): Response|RedirectResponse
+    public function index(Request $request): Response
     {
-        if (Gate::denies('viewAny', Activity::class)) {
-            return back()->with('error', 'Aktivite loglarını görüntüleme yetkiniz bulunmuyor.');
-        }
+        Gate::authorize('viewAny', Activity::class);
 
         $filterKeys = ['type', 'user_id', 'date_from', 'date_to'];
 

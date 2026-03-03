@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
+import { ref, watch, onUnmounted } from 'vue';
 import Heading from '@/components/app/common/Heading.vue';
 import TableSkeleton from '@/components/app/common/TableSkeleton.vue';
 import { Input } from '@/components/ui/input';
@@ -29,10 +29,26 @@ interface ActivityUser {
     name: string;
 }
 
+interface ActivityItem {
+    id: string;
+    type: string;
+    description: string;
+    ip_address: string;
+    user_name: string | null;
+    date_human: string;
+    log: Record<string, unknown>;
+}
+
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
 interface Props {
     activities: {
-        data: any[];
-        links: any[];
+        data: ActivityItem[];
+        links: PaginationLink[];
     };
     filters: {
         type?: string;
@@ -90,22 +106,21 @@ const breadcrumbItems: BreadcrumbItem[] = [
 ];
 
 const tableLoading = ref(false);
-router.on('start', () => { tableLoading.value = true; });
-router.on('finish', () => { tableLoading.value = false; });
+const offStart = router.on('start', () => { tableLoading.value = true; });
+const offFinish = router.on('finish', () => { tableLoading.value = false; });
+onUnmounted(() => { offStart(); offFinish(); });
 </script>
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
+
         <Head title="Etkinlik Kayıtları" />
 
         <SettingsLayout>
             <div class="space-y-6">
                 <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                    <Heading
-                        variant="small"
-                        title="Etkinlik Kayıtları"
-                        description="Sistem üzerinde gerçekleştirdiğiniz tüm işlemlerin dökümü."
-                    />
+                    <Heading variant="small" title="Etkinlik Kayıtları"
+                        description="Sistem üzerinde gerçekleştirdiğiniz tüm işlemlerin dökümü." />
                 </div>
 
                 <!-- Filtreler -->
@@ -116,11 +131,7 @@ router.on('finish', () => { tableLoading.value = false; });
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">Tüm İşlemler</SelectItem>
-                            <SelectItem
-                                v-for="type in availableTypes"
-                                :key="type"
-                                :value="type"
-                            >
+                            <SelectItem v-for="type in availableTypes" :key="type" :value="type">
                                 {{ formatType(type) }}
                             </SelectItem>
                         </SelectContent>
@@ -132,26 +143,14 @@ router.on('finish', () => { tableLoading.value = false; });
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">Tüm Kullanıcılar</SelectItem>
-                            <SelectItem
-                                v-for="user in availableUsers"
-                                :key="user.id"
-                                :value="user.id"
-                            >
+                            <SelectItem v-for="user in availableUsers" :key="user.id" :value="user.id">
                                 {{ user.name }}
                             </SelectItem>
                         </SelectContent>
                     </Select>
 
-                    <Input
-                        v-model="dateFrom"
-                        type="date"
-                        class="sm:w-[170px]"
-                    />
-                    <Input
-                        v-model="dateTo"
-                        type="date"
-                        class="sm:w-[170px]"
-                    />
+                    <Input v-model="dateFrom" type="date" class="sm:w-[170px]" />
+                    <Input v-model="dateTo" type="date" class="sm:w-[170px]" />
                 </div>
 
                 <TableSkeleton v-if="tableLoading" :rows="5" :columns="5" />
@@ -167,11 +166,7 @@ router.on('finish', () => { tableLoading.value = false; });
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow
-                                v-for="item in activities.data"
-                                :key="item.id"
-                                class="group"
-                            >
+                            <TableRow v-for="item in activities.data" :key="item.id" class="group">
                                 <TableCell class="text-sm font-medium">
                                     {{ item.description }}
                                 </TableCell>
@@ -180,30 +175,22 @@ router.on('finish', () => { tableLoading.value = false; });
                                 </TableCell>
                                 <TableCell>
                                     <span
-                                        class="inline-flex items-center rounded-md border bg-muted/50 px-2 py-0.5 text-[10px] font-bold tracking-tight text-muted-foreground uppercase transition-colors group-hover:bg-background"
-                                    >
+                                        class="inline-flex items-center rounded-md border bg-muted/50 px-2 py-0.5 text-[10px] font-bold tracking-tight text-muted-foreground uppercase transition-colors group-hover:bg-background">
                                         {{ item.type }}
                                     </span>
                                 </TableCell>
                                 <TableCell>
-                                    <code
-                                        class="rounded bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground"
-                                    >
+                                    <code class="rounded bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground">
                                         {{ item.ip_address }}
                                     </code>
                                 </TableCell>
-                                <TableCell
-                                    class="text-right text-xs whitespace-nowrap text-muted-foreground italic"
-                                >
+                                <TableCell class="text-right text-xs whitespace-nowrap text-muted-foreground italic">
                                     {{ item.date_human }}
                                 </TableCell>
                             </TableRow>
 
                             <TableRow v-if="activities.data.length === 0">
-                                <TableCell
-                                    colspan="5"
-                                    class="h-32 text-center text-muted-foreground"
-                                >
+                                <TableCell colspan="5" class="h-32 text-center text-muted-foreground">
                                     Henüz bir etkinlik kaydı bulunmuyor.
                                 </TableCell>
                             </TableRow>
@@ -211,16 +198,9 @@ router.on('finish', () => { tableLoading.value = false; });
                     </Table>
                 </div>
 
-                <nav
-                    v-if="activities.links.length > 3"
-                    class="flex justify-center gap-1.5 pt-4"
-                >
-                    <button
-                        v-for="(link, k) in activities.links"
-                        :key="k"
-                        v-html="link.label"
-                        :disabled="!link.url || link.active"
-                        @click="router.visit(link.url!)"
+                <nav v-if="activities.links.length > 3" class="flex justify-center gap-1.5 pt-4">
+                    <button v-for="(link, k) in activities.links" :key="k" v-html="link.label"
+                        :disabled="!link.url || link.active" @click="router.visit(link.url!)"
                         class="flex h-9 min-w-[36px] items-center justify-center rounded-md border px-3 text-xs font-medium shadow-sm transition-all"
                         :class="[
                             link.active
@@ -229,8 +209,7 @@ router.on('finish', () => { tableLoading.value = false; });
                             !link.url
                                 ? 'cursor-not-allowed border-dashed opacity-40'
                                 : 'cursor-pointer',
-                        ]"
-                    />
+                        ]" />
                 </nav>
             </div>
         </SettingsLayout>

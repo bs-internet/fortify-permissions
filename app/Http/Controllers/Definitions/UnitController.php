@@ -78,8 +78,8 @@ class UnitController extends Controller
         $this->unitService->delete(
             $unit,
             request()->user(),
-            request()->ip() ?? '127.0.0.1',
-            request()->userAgent() ?? 'unknown'
+            request()->ip() ?? config('otomasyon.defaults.ip_address', '127.0.0.1'),
+            request()->userAgent() ?? config('otomasyon.defaults.user_agent', 'unknown')
         );
 
         return back()->with('success', 'Birim başarıyla silindi.');
