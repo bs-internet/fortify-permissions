@@ -9,29 +9,27 @@ use App\Events\TaxDeleted;
 use App\Events\TaxUpdated;
 use App\Models\Tax;
 use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 
 class TaxService
 {
-    private const CACHE_KEY_ALL = 'taxes_all';
     private const CACHE_KEY_ACTIVE = 'taxes_active';
 
     /**
-     * @return Collection<int, Tax>
+     * @return LengthAwarePaginator
      */
-    public function all(): Collection
+    public function all(): LengthAwarePaginator
     {
         Gate::authorize('viewAny', Tax::class);
 
-        return Cache::rememberForever(self::CACHE_KEY_ALL, function () {
-            return Tax::query()
-                ->with('countries')
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get();
-        });
+        return Tax::query()
+            ->with('countries')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->paginate(config('otomasyon.pagination.per_page', 15));
     }
 
     /**
@@ -139,7 +137,6 @@ class TaxService
      */
     private function clearCache(): void
     {
-        Cache::forget(self::CACHE_KEY_ALL);
         Cache::forget(self::CACHE_KEY_ACTIVE);
     }
 }

@@ -7,6 +7,7 @@ namespace App\Listeners;
 use App\Services\Common\ActivityService;
 use App\Events\TwoFactorDisabled;
 use App\Events\TwoFactorEnabled;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
  * Listener for logging two-factor authentication activities.
@@ -14,7 +15,7 @@ use App\Events\TwoFactorEnabled;
  * Records two-factor enable/disable events with comprehensive audit information
  * for security tracking and compliance purposes.
  */
-class LogTwoFactorActivity
+class LogTwoFactorActivity implements ShouldQueue
 {
     /**
      * Create the event listener.
@@ -23,7 +24,8 @@ class LogTwoFactorActivity
      */
     public function __construct(
         private readonly ActivityService $activityService
-    ) {}
+    ) {
+    }
 
     /**
      * Handle the two-factor enabled event.

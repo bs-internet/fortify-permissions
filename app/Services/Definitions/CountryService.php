@@ -9,28 +9,26 @@ use App\Events\CountryDeleted;
 use App\Events\CountryUpdated;
 use App\Models\Country;
 use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 
 class CountryService
 {
-    private const CACHE_KEY_ALL = 'countries_all';
     private const CACHE_KEY_ACTIVE = 'countries_active';
 
     /**
-     * @return Collection<int, Country>
+     * @return LengthAwarePaginator
      */
-    public function all(): Collection
+    public function all(): LengthAwarePaginator
     {
         Gate::authorize('viewAny', Country::class);
 
-        return Cache::rememberForever(self::CACHE_KEY_ALL, function () {
-            return Country::query()
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get();
-        });
+        return Country::query()
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->paginate(config('otomasyon.pagination.per_page', 15));
     }
 
     /**
@@ -118,7 +116,6 @@ class CountryService
      */
     private function clearCache(): void
     {
-        Cache::forget(self::CACHE_KEY_ALL);
         Cache::forget(self::CACHE_KEY_ACTIVE);
     }
 }

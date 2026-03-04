@@ -8,18 +8,20 @@ use App\Events\RoleCreated;
 use App\Events\RoleDeleted;
 use App\Events\RoleUpdated;
 use App\Services\Common\ActivityService;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
  * Listener for logging role update activities.
  */
-class LogRoleActivity
+class LogRoleActivity implements ShouldQueue
 {
     /**
      * Create the event listener.
      */
     public function __construct(
         private readonly ActivityService $activityService
-    ) {}
+    ) {
+    }
 
     /**
      * Handle the role created event.

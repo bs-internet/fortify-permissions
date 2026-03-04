@@ -17,7 +17,7 @@ use Spatie\Permission\PermissionRegistrar;
 
 class PermissionService
 {
-    private const CACHE_KEY_ALL = 'permissions_all';
+    private const CACHE_KEY_GROUPED = 'permissions_grouped';
 
     /**
      * @return LengthAwarePaginator
@@ -66,29 +66,31 @@ class PermissionService
     /**
      * Get all permissions grouped by their module prefix.
      *
-     * @return array<string, Collection<int, Permission>>
+     * @return array<string, array>
      */
     public function groupedAll(): array
     {
         Gate::authorize('viewAny', Permission::class);
 
-        $moduleLabels = array_merge(
-            CorePermission::moduleLabels(),
-            DefinitionPermission::moduleLabels(),
-        );
+        return Cache::rememberForever(self::CACHE_KEY_GROUPED, function () {
+            $moduleLabels = array_merge(
+                CorePermission::moduleLabels(),
+                DefinitionPermission::moduleLabels(),
+            );
 
-        return Permission::query()
-            ->where('guard_name', 'web')
-            ->orderBy('name')
-            ->get()
-            ->groupBy(function (Permission $permission) use ($moduleLabels) {
-                $name = $permission->name;
-                $moduleKey = str_contains($name, '.')
-                    ? explode('.', $name)[0]
-                    : 'other';
+            return Permission::query()
+                ->where('guard_name', 'web')
+                ->orderBy('name')
+                ->get()
+                ->groupBy(function (Permission $permission) use ($moduleLabels) {
+                    $name = $permission->name;
+                    $moduleKey = str_contains($name, '.')
+                        ? explode('.', $name)[0]
+                        : 'other';
 
-                return $moduleLabels[$moduleKey] ?? ucfirst($moduleKey);
-            })->toArray();
+                    return $moduleLabels[$moduleKey] ?? ucfirst($moduleKey);
+                })->toArray();
+        });
     }
 
     /**
@@ -96,7 +98,7 @@ class PermissionService
      */
     private function clearCache(): void
     {
-        Cache::forget(self::CACHE_KEY_ALL);
+        Cache::forget(self::CACHE_KEY_GROUPED);
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 }

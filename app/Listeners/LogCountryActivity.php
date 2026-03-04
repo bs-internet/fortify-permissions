@@ -8,18 +8,21 @@ use App\Events\CountryCreated;
 use App\Events\CountryDeleted;
 use App\Events\CountryUpdated;
 use App\Services\Common\ActivityService;
+use App\Models\Activity;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
  * Listener for logging country activities.
  */
-class LogCountryActivity
+class LogCountryActivity implements ShouldQueue
 {
     /**
      * Create the event listener.
      */
     public function __construct(
         private readonly ActivityService $activityService
-    ) {}
+    ) {
+    }
 
     /**
      * Handle the country created event.

@@ -8,18 +8,20 @@ use App\Events\LanguageCreated;
 use App\Events\LanguageDeleted;
 use App\Events\LanguageUpdated;
 use App\Services\Common\ActivityService;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
  * Listener for logging language update activities.
  */
-class LogLanguageActivity
+class LogLanguageActivity implements ShouldQueue
 {
     /**
      * Create the event listener.
      */
     public function __construct(
         private readonly ActivityService $activityService
-    ) {}
+    ) {
+    }
 
     /**
      * Handle the language created event.

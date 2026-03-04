@@ -8,18 +8,20 @@ use App\Events\UnitCreated;
 use App\Events\UnitDeleted;
 use App\Events\UnitUpdated;
 use App\Services\Common\ActivityService;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
  * Listener for logging unit update activities.
  */
-class LogUnitActivity
+class LogUnitActivity implements ShouldQueue
 {
     /**
      * Create the event listener.
      */
     public function __construct(
         private readonly ActivityService $activityService
-    ) {}
+    ) {
+    }
 
     /**
      * Handle the unit created event.

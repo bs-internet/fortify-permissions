@@ -4,23 +4,30 @@ import Heading from '@/components/app/common/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
+import { usePermission } from '@/composables/usePermission';
 import { index as userRoute } from '@/routes/users';
 import { index as permissionRoute } from '@/routes/users/permissions';
 import { index as roleRoute } from '@/routes/users/roles';
 import { type NavItem } from '@/types';
 
+const { can } = usePermission();
+
+
 const sidebarNavItems: NavItem[] = [
     {
         title: 'Kullanıcılar',
         href: userRoute().url,
+        show: can('user.management'),
     },
     {
         title: 'Roller',
         href: roleRoute().url,
+        show: can('role.management'),
     },
     {
         title: 'Yetkiler',
         href: permissionRoute().url,
+        show: can('permission.management'),
     },
 ];
 
@@ -34,10 +41,11 @@ const { isCurrentUrl } = useCurrentUrl();
         <div class="flex flex-col lg:flex-row lg:space-x-12">
             <aside class="w-full max-w-xl lg:w-48">
                 <nav class="flex flex-col space-y-1">
-                    <Button v-for="item in sidebarNavItems" :key="item.title" variant="ghost" :class="[
-                        'w-full justify-start',
-                        { 'bg-muted': isCurrentUrl(item.href) },
-                    ]" as-child>
+                    <Button v-for="item in sidebarNavItems.filter(i => i.show)" :key="item.title" variant="ghost"
+                        :class="[
+                            'w-full justify-start',
+                            { 'bg-muted': isCurrentUrl(item.href) },
+                        ]" as-child>
                         <Link :href="item.href">
                             {{ item.title }}
                         </Link>

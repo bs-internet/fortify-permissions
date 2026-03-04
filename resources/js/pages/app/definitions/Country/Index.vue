@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
-import { Plus, Pencil, Trash2, Loader2, X, Check } from 'lucide-vue-next';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Plus, Pencil, Trash2, Loader2, X, Check, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import { ref } from 'vue';
 import { store, update, destroy } from '@/actions/App/Http/Controllers/Definitions/CountryController';
 import Heading from '@/components/app/common/Heading.vue';
@@ -20,6 +20,13 @@ import { Button } from '@/components/ui/button';
 import EmptyState from '@/components/ui/empty-state/EmptyState.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/components/ui/pagination';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -28,10 +35,10 @@ import { usePermission } from '@/composables/usePermission';
 import AppLayout from '@/layouts/AppLayout.vue';
 import DefinitionsLayout from '@/pages/app/definitions/partials/Layout.vue';
 import { index as countryRoute } from '@/routes/settings/definitions/countries';
-import { type BreadcrumbItem, type Country } from '@/types';
+import { type BreadcrumbItem, type Country, type PaginationResponse } from '@/types';
 
 const props = defineProps<{
-    countries: Country[];
+    countries: PaginationResponse<Country>;
     defaultCountryId: string | null;
 }>();
 
@@ -98,16 +105,26 @@ function confirmDelete() {
         },
     });
 }
+
+function handlePageChange(page: number) {
+    router.visit(countryRoute().url, {
+        data: { page },
+        preserveScroll: true,
+        preserveState: true,
+    });
+}
 </script>
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
+
         <Head title="Ülkeler" />
 
         <DefinitionsLayout>
             <div class="space-y-6">
                 <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center px-2">
-                    <Heading variant="small" title="Ülkeler" description="Sistem üzerinde kullanılan ülke tanımlamaları." />
+                    <Heading variant="small" title="Ülkeler"
+                        description="Sistem üzerinde kullanılan ülke tanımlamaları." />
                     <div v-if="can('country.create')">
                         <Button size="sm" class="h-9" @click="openCreateSheet">
                             <Plus class="mr-2 h-4 w-4" />
@@ -116,7 +133,7 @@ function confirmDelete() {
                     </div>
                 </div>
 
-                <template v-if="countries.length > 0">
+                <template v-if="countries.data.length > 0">
                     <div class="rounded-md border border-border bg-card shadow-none mx-2">
                         <Table>
                             <TableHeader>
@@ -125,15 +142,18 @@ function confirmDelete() {
                                     <TableHead>Ad</TableHead>
                                     <TableHead class="text-center">Varsayılan</TableHead>
                                     <TableHead class="text-center">Durum</TableHead>
-                                    <TableHead v-if="can('country.update')" class="text-right w-[100px]">İşlemler</TableHead>
+                                    <TableHead v-if="can('country.update')" class="text-right w-[100px]">İşlemler
+                                    </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow v-for="country in countries" :key="country.id" class="hover:bg-muted/50 transition-colors">
+                                <TableRow v-for="country in countries.data" :key="country.id"
+                                    class="hover:bg-muted/50 transition-colors">
                                     <TableCell class="font-medium">{{ country.code }}</TableCell>
                                     <TableCell>{{ country.name }}</TableCell>
                                     <TableCell class="text-center">
-                                        <Badge v-if="country.id === props.defaultCountryId" variant="default">Varsayılan</Badge>
+                                        <Badge v-if="country.id === props.defaultCountryId" variant="default">Varsayılan
+                                        </Badge>
                                     </TableCell>
                                     <TableCell class="text-center">
                                         <Badge :variant="country.is_active ? 'default' : 'secondary'">
@@ -150,15 +170,40 @@ function confirmDelete() {
                             </TableBody>
                         </Table>
                     </div>
+
+                    <div v-if="countries.last_page > 1"
+                        class="mt-4 flex flex-col items-center justify-between gap-4 sm:flex-row px-2">
+                        <div class="text-sm text-muted-foreground font-medium">
+                            Toplam {{ countries.total }} kayıttan {{ countries.from }}-{{ countries.to }} arası
+                            gösteriliyor
+                        </div>
+                        <Pagination :total="countries.total" :items-per-page="countries.per_page"
+                            :default-page="countries.current_page" @update:page="handlePageChange">
+                            <PaginationContent>
+                                <PaginationPrevious class="cursor-pointer">
+                                    <ChevronLeft class="h-4 w-4" />
+                                </PaginationPrevious>
+                                <template v-for="(item, index) in countries.links" :key="index">
+                                    <PaginationItem v-if="item.url && !isNaN(Number(item.label))" :value="index">
+                                        <Button size="icon" variant="ghost" class="h-9 w-9"
+                                            :class="{ 'border': item.active }"
+                                            @click="handlePageChange(Number(item.label))">
+                                            {{ item.label }}
+                                        </Button>
+                                    </PaginationItem>
+                                </template>
+                                <PaginationNext class="cursor-pointer">
+                                    <ChevronRight class="h-4 w-4" />
+                                </PaginationNext>
+                            </PaginationContent>
+                        </Pagination>
+                    </div>
                 </template>
 
                 <div v-else class="mx-2">
-                    <EmptyState
-                        title="Ülke Bulunamadı"
-                        description="Sistemde henüz hiç ülke oluşturulmamış."
+                    <EmptyState title="Ülke Bulunamadı" description="Sistemde henüz hiç ülke oluşturulmamış."
                         :action-label="can('country.create') ? 'Yeni Ülke Ekle' : undefined"
-                        @action="can('country.create') && openCreateSheet()"
-                    />
+                        @action="can('country.create') && openCreateSheet()" />
                 </div>
             </div>
 
@@ -188,11 +233,13 @@ function confirmDelete() {
                         </div>
                         <div class="space-y-2">
                             <Label for="sort_order" class="text-sm font-bold">Sıralama</Label>
-                            <Input id="sort_order" v-model.number="form.sort_order" type="number" min="0" class="h-11" />
+                            <Input id="sort_order" v-model.number="form.sort_order" type="number" min="0"
+                                class="h-11" />
                             <InputError :message="form.errors.sort_order" />
                         </div>
                         <div class="flex items-center gap-2">
-                            <Switch id="is_active" :checked="form.is_active" @update:checked="form.is_active = $event" />
+                            <Switch id="is_active" :checked="form.is_active"
+                                @update:checked="form.is_active = $event" />
                             <Label for="is_active">Aktif</Label>
                         </div>
                     </form>
@@ -202,18 +249,15 @@ function confirmDelete() {
                             <Button type="submit" form="countryForm" class="w-full h-11" :disabled="form.processing">
                                 <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
                                 <Check v-else class="mr-2 h-4 w-4" />
-                                {{ form.processing ? 'Kaydediliyor...' : (editingCountry ? 'Değişiklikleri Kaydet' : 'Ülke Ekle') }}
+                                {{ form.processing ? 'Kaydediliyor...' : (editingCountry ? 'Değişiklikleri Kaydet' :
+                                'Ülke Ekle') }}
                             </Button>
                             <Button type="button" variant="ghost" class="w-full h-11" @click="isSheetOpen = false">
                                 <X class="mr-2 h-4 w-4" /> İptal
                             </Button>
-                            <Button
-                                v-if="editingCountry && can('country.delete')"
-                                type="button"
-                                variant="outline"
+                            <Button v-if="editingCountry && can('country.delete')" type="button" variant="outline"
                                 class="w-full h-11 text-destructive border-destructive/30 hover:bg-destructive/5"
-                                @click="openDeleteDialog"
-                            >
+                                @click="openDeleteDialog">
                                 <Trash2 class="mr-2 h-4 w-4" />
                                 Ülkeyi Sil
                             </Button>
@@ -227,12 +271,15 @@ function confirmDelete() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Ülkeyi silmek istediğinize emin misiniz?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            <strong>{{ editingCountry?.name }} ({{ editingCountry?.code }})</strong> kalıcı olarak silinecektir. Bu işlem geri alınamaz.
+                            <strong>{{ editingCountry?.name }} ({{ editingCountry?.code }})</strong> kalıcı olarak
+                            silinecektir. Bu
+                            işlem geri alınamaz.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>İptal</AlertDialogCancel>
-                        <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90" @click="confirmDelete">
+                        <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            @click="confirmDelete">
                             Evet, Sil
                         </AlertDialogAction>
                     </AlertDialogFooter>

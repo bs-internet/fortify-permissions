@@ -6,18 +6,20 @@ namespace App\Listeners;
 
 use App\Events\PermissionUpdated;
 use App\Services\Common\ActivityService;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
  * Listener for logging permission update activities.
  */
-class LogPermissionActivity
+class LogPermissionActivity implements ShouldQueue
 {
     /**
      * Create the event listener.
      */
     public function __construct(
         private readonly ActivityService $activityService
-    ) {}
+    ) {
+    }
 
     /**
      * Handle the permission updated event.

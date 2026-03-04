@@ -18,7 +18,7 @@ use Illuminate\Support\Str;
 
 class RoleService
 {
-    private const CACHE_KEY_ALL = 'roles_all';
+    private const CACHE_KEY_SELECT = 'roles_select';
 
     /**
      * @return LengthAwarePaginator
@@ -42,11 +42,13 @@ class RoleService
      */
     public function allForSelect(): \Illuminate\Database\Eloquent\Collection
     {
-        return Role::query()
-            ->where('guard_name', 'web')
-            ->where('name', '!=', 'Super Admin')
-            ->orderBy('name')
-            ->get(['id', 'name', 'label', 'description']);
+        return Cache::rememberForever(self::CACHE_KEY_SELECT, function () {
+            return Role::query()
+                ->where('guard_name', 'web')
+                ->where('name', '!=', 'Super Admin')
+                ->orderBy('name')
+                ->get(['id', 'name', 'label', 'description']);
+        });
     }
 
     /**
@@ -150,7 +152,7 @@ class RoleService
      */
     private function clearCache(): void
     {
-        Cache::forget(self::CACHE_KEY_ALL);
+        Cache::forget(self::CACHE_KEY_SELECT);
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
     }
 }

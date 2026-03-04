@@ -6,18 +6,21 @@ namespace App\Listeners;
 
 use App\Events\SettingsUpdated;
 use App\Services\Common\ActivityService;
+use App\Models\Activity;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
  * Listener for logging system settings update activities.
  */
-class LogSettingsActivity
+class LogSettingsActivity implements ShouldQueue
 {
     /**
      * Create the event listener.
      */
     public function __construct(
         private readonly ActivityService $activityService
-    ) {}
+    ) {
+    }
 
     /**
      * Handle the settings updated event.

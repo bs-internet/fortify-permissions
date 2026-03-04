@@ -6,6 +6,7 @@ namespace App\Listeners;
 
 use App\Services\Common\ActivityService;
 use App\Events\ProfileUpdated;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
  * Listener for logging panel profile update activities.
@@ -13,7 +14,7 @@ use App\Events\ProfileUpdated;
  * Records profile update events with comprehensive audit information
  * for tracking and compliance purposes.
  */
-class LogProfileActivity
+class LogProfileActivity implements ShouldQueue
 {
     /**
      * Create the event listener.
@@ -22,7 +23,8 @@ class LogProfileActivity
      */
     public function __construct(
         private readonly ActivityService $activityService
-    ) {}
+    ) {
+    }
 
     /**
      * Handle the panel profile updated event.

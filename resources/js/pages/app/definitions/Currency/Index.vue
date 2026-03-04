@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
-import { Plus, Pencil, Trash2, Loader2, X, Check } from 'lucide-vue-next';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Plus, Pencil, Trash2, Loader2, X, Check, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import { ref } from 'vue';
 import { store, update, destroy } from '@/actions/App/Http/Controllers/Definitions/CurrencyController';
 import Heading from '@/components/app/common/Heading.vue';
@@ -20,6 +20,13 @@ import { Button } from '@/components/ui/button';
 import EmptyState from '@/components/ui/empty-state/EmptyState.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/components/ui/pagination';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -28,10 +35,10 @@ import { usePermission } from '@/composables/usePermission';
 import AppLayout from '@/layouts/AppLayout.vue';
 import DefinitionsLayout from '@/pages/app/definitions/partials/Layout.vue';
 import { index as currencyRoute } from '@/routes/settings/definitions/currencies';
-import { type BreadcrumbItem, type Currency } from '@/types';
+import { type BreadcrumbItem, type Currency, type PaginationResponse } from '@/types';
 
 const props = defineProps<{
-    currencies: Currency[];
+    currencies: PaginationResponse<Currency>;
     defaultCurrencyId: string | null;
 }>();
 
@@ -106,16 +113,26 @@ function confirmDelete() {
         },
     });
 }
+
+function handlePageChange(page: number) {
+    router.visit(currencyRoute().url, {
+        data: { page },
+        preserveScroll: true,
+        preserveState: true,
+    });
+}
 </script>
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
+
         <Head title="Para Birimleri" />
 
         <DefinitionsLayout>
             <div class="space-y-6">
                 <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center px-2">
-                    <Heading variant="small" title="Para Birimleri" description="Sistem üzerinde kullanılan para birimleri." />
+                    <Heading variant="small" title="Para Birimleri"
+                        description="Sistem üzerinde kullanılan para birimleri." />
                     <div v-if="can('currency.create')">
                         <Button size="sm" class="h-9" @click="openCreateSheet">
                             <Plus class="mr-2 h-4 w-4" />
@@ -124,7 +141,7 @@ function confirmDelete() {
                     </div>
                 </div>
 
-                <template v-if="currencies.length > 0">
+                <template v-if="currencies.data.length > 0">
                     <div class="rounded-md border border-border bg-card shadow-none mx-2">
                         <Table>
                             <TableHeader>
@@ -135,17 +152,20 @@ function confirmDelete() {
                                     <TableHead class="text-center">Ondalık</TableHead>
                                     <TableHead class="text-center">Varsayılan</TableHead>
                                     <TableHead class="text-center">Durum</TableHead>
-                                    <TableHead v-if="can('currency.update')" class="text-right w-[100px]">İşlemler</TableHead>
+                                    <TableHead v-if="can('currency.update')" class="text-right w-[100px]">İşlemler
+                                    </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow v-for="currency in currencies" :key="currency.id" class="hover:bg-muted/50 transition-colors">
+                                <TableRow v-for="currency in currencies.data" :key="currency.id"
+                                    class="hover:bg-muted/50 transition-colors">
                                     <TableCell class="font-medium">{{ currency.code }}</TableCell>
                                     <TableCell>{{ currency.name }}</TableCell>
                                     <TableCell>{{ currency.symbol }}</TableCell>
                                     <TableCell class="text-center">{{ currency.decimal_places }}</TableCell>
                                     <TableCell class="text-center">
-                                        <Badge v-if="currency.id === props.defaultCurrencyId" variant="default">Varsayılan</Badge>
+                                        <Badge v-if="currency.id === props.defaultCurrencyId" variant="default">
+                                            Varsayılan</Badge>
                                     </TableCell>
                                     <TableCell class="text-center">
                                         <Badge :variant="currency.is_active ? 'default' : 'secondary'">
@@ -153,7 +173,8 @@ function confirmDelete() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell v-if="can('currency.update')" class="text-right">
-                                        <Button variant="outline" size="sm" class="h-8" @click="openEditSheet(currency)">
+                                        <Button variant="outline" size="sm" class="h-8"
+                                            @click="openEditSheet(currency)">
                                             <Pencil class="mr-2 h-3.5 w-3.5" />
                                             Düzenle
                                         </Button>
@@ -162,15 +183,41 @@ function confirmDelete() {
                             </TableBody>
                         </Table>
                     </div>
+
+                    <div v-if="currencies.last_page > 1"
+                        class="mt-4 flex flex-col items-center justify-between gap-4 sm:flex-row px-2">
+                        <div class="text-sm text-muted-foreground font-medium">
+                            Toplam {{ currencies.total }} kayıttan {{ currencies.from }}-{{ currencies.to }} arası
+                            gösteriliyor
+                        </div>
+                        <Pagination :total="currencies.total" :items-per-page="currencies.per_page"
+                            :default-page="currencies.current_page" @update:page="handlePageChange">
+                            <PaginationContent>
+                                <PaginationPrevious class="cursor-pointer">
+                                    <ChevronLeft class="h-4 w-4" />
+                                </PaginationPrevious>
+                                <template v-for="(item, index) in currencies.links" :key="index">
+                                    <PaginationItem v-if="item.url && !isNaN(Number(item.label))" :value="index">
+                                        <Button size="icon" variant="ghost" class="h-9 w-9"
+                                            :class="{ 'border': item.active }"
+                                            @click="handlePageChange(Number(item.label))">
+                                            {{ item.label }}
+                                        </Button>
+                                    </PaginationItem>
+                                </template>
+                                <PaginationNext class="cursor-pointer">
+                                    <ChevronRight class="h-4 w-4" />
+                                </PaginationNext>
+                            </PaginationContent>
+                        </Pagination>
+                    </div>
                 </template>
 
                 <div v-else class="mx-2">
-                    <EmptyState
-                        title="Para Birimi Bulunamadı"
+                    <EmptyState title="Para Birimi Bulunamadı"
                         description="Sistemde henüz hiç para birimi oluşturulmamış."
                         :action-label="can('currency.create') ? 'Yeni Para Birimi Ekle' : undefined"
-                        @action="can('currency.create') && openCreateSheet()"
-                    />
+                        @action="can('currency.create') && openCreateSheet()" />
                 </div>
             </div>
 
@@ -183,7 +230,8 @@ function confirmDelete() {
                             {{ editingCurrency ? 'Para Birimi Düzenle' : 'Yeni Para Birimi Ekle' }}
                         </SheetTitle>
                         <SheetDescription>
-                            {{ editingCurrency ? 'Para birimi bilgilerini güncelleyin.' : 'Sisteme yeni bir para birimi ekleyin.' }}
+                            {{ editingCurrency ? 'Para birimi bilgilerini güncelleyin.' : 'Sisteme yeni bir para birimi
+                            ekleyin.' }}
                         </SheetDescription>
                     </SheetHeader>
 
@@ -208,29 +256,34 @@ function confirmDelete() {
                         <div class="grid gap-6 sm:grid-cols-2">
                             <div class="space-y-2">
                                 <Label for="decimal_places" class="text-sm font-bold">Ondalık Basamak</Label>
-                                <Input id="decimal_places" v-model.number="form.decimal_places" type="number" min="0" max="10" class="h-11" />
+                                <Input id="decimal_places" v-model.number="form.decimal_places" type="number" min="0"
+                                    max="10" class="h-11" />
                                 <InputError :message="form.errors.decimal_places" />
                             </div>
                             <div class="space-y-2">
                                 <Label for="sort_order" class="text-sm font-bold">Sıralama</Label>
-                                <Input id="sort_order" v-model.number="form.sort_order" type="number" min="0" class="h-11" />
+                                <Input id="sort_order" v-model.number="form.sort_order" type="number" min="0"
+                                    class="h-11" />
                                 <InputError :message="form.errors.sort_order" />
                             </div>
                         </div>
                         <div class="grid gap-6 sm:grid-cols-2">
                             <div class="space-y-2">
                                 <Label for="thousand_separator" class="text-sm font-bold">Binlik Ayırıcı</Label>
-                                <Input id="thousand_separator" v-model="form.thousand_separator" placeholder="." class="h-11" />
+                                <Input id="thousand_separator" v-model="form.thousand_separator" placeholder="."
+                                    class="h-11" />
                                 <InputError :message="form.errors.thousand_separator" />
                             </div>
                             <div class="space-y-2">
                                 <Label for="decimal_separator" class="text-sm font-bold">Ondalık Ayırıcı</Label>
-                                <Input id="decimal_separator" v-model="form.decimal_separator" placeholder="," class="h-11" />
+                                <Input id="decimal_separator" v-model="form.decimal_separator" placeholder=","
+                                    class="h-11" />
                                 <InputError :message="form.errors.decimal_separator" />
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <Switch id="is_active" :checked="form.is_active" @update:checked="form.is_active = $event" />
+                            <Switch id="is_active" :checked="form.is_active"
+                                @update:checked="form.is_active = $event" />
                             <Label for="is_active">Aktif</Label>
                         </div>
                     </form>
@@ -240,18 +293,16 @@ function confirmDelete() {
                             <Button type="submit" form="currencyForm" class="w-full h-11" :disabled="form.processing">
                                 <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
                                 <Check v-else class="mr-2 h-4 w-4" />
-                                {{ form.processing ? 'Kaydediliyor...' : (editingCurrency ? 'Değişiklikleri Kaydet' : 'Para Birimi Ekle') }}
+                                {{ form.processing ? 'Kaydediliyor...' : (editingCurrency ? 'Değişiklikleri Kaydet' :
+                                'Para Birimi
+                                Ekle') }}
                             </Button>
                             <Button type="button" variant="ghost" class="w-full h-11" @click="isSheetOpen = false">
                                 <X class="mr-2 h-4 w-4" /> İptal
                             </Button>
-                            <Button
-                                v-if="editingCurrency && can('currency.delete')"
-                                type="button"
-                                variant="outline"
+                            <Button v-if="editingCurrency && can('currency.delete')" type="button" variant="outline"
                                 class="w-full h-11 text-destructive border-destructive/30 hover:bg-destructive/5"
-                                @click="openDeleteDialog"
-                            >
+                                @click="openDeleteDialog">
                                 <Trash2 class="mr-2 h-4 w-4" />
                                 Para Birimini Sil
                             </Button>
@@ -265,12 +316,15 @@ function confirmDelete() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Para birimini silmek istediğinize emin misiniz?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            <strong>{{ editingCurrency?.name }} ({{ editingCurrency?.code }})</strong> kalıcı olarak silinecektir. Bu işlem geri alınamaz.
+                            <strong>{{ editingCurrency?.name }} ({{ editingCurrency?.code }})</strong> kalıcı olarak
+                            silinecektir.
+                            Bu işlem geri alınamaz.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>İptal</AlertDialogCancel>
-                        <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90" @click="confirmDelete">
+                        <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            @click="confirmDelete">
                             Evet, Sil
                         </AlertDialogAction>
                     </AlertDialogFooter>

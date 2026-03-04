@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
-import { Plus, Pencil, Trash2, Loader2, ChevronsUpDown, Check, X } from 'lucide-vue-next';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Plus, Pencil, Trash2, Loader2, ChevronsUpDown, Check, X, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import { store, update, destroy } from '@/actions/App/Http/Controllers/Definitions/TaxController';
 import Heading from '@/components/app/common/Heading.vue';
@@ -29,6 +29,13 @@ import EmptyState from '@/components/ui/empty-state/EmptyState.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/components/ui/pagination';
+import {
     Popover,
     PopoverContent,
     PopoverTrigger,
@@ -41,10 +48,10 @@ import { usePermission } from '@/composables/usePermission';
 import AppLayout from '@/layouts/AppLayout.vue';
 import DefinitionsLayout from '@/pages/app/definitions/partials/Layout.vue';
 import { index as taxRoute } from '@/routes/settings/definitions/taxes';
-import { type BreadcrumbItem, type Country, type Tax } from '@/types';
+import { type BreadcrumbItem, type Country, type Tax, type PaginationResponse } from '@/types';
 
 const props = defineProps<{
-    taxes: Tax[];
+    taxes: PaginationResponse<Tax>;
     countries: Country[];
 }>();
 
@@ -131,16 +138,26 @@ function confirmDelete() {
         },
     });
 }
+
+function handlePageChange(page: number) {
+    router.visit(taxRoute().url, {
+        data: { page },
+        preserveScroll: true,
+        preserveState: true,
+    });
+}
 </script>
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
+
         <Head title="Vergiler" />
 
         <DefinitionsLayout>
             <div class="space-y-6">
                 <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center px-2">
-                    <Heading variant="small" title="Vergiler" description="Sistem üzerinde kullanılan vergi oranları." />
+                    <Heading variant="small" title="Vergiler"
+                        description="Sistem üzerinde kullanılan vergi oranları." />
                     <div v-if="can('tax.create')">
                         <Button size="sm" class="h-9" @click="openCreateSheet">
                             <Plus class="mr-2 h-4 w-4" />
@@ -149,7 +166,7 @@ function confirmDelete() {
                     </div>
                 </div>
 
-                <template v-if="taxes.length > 0">
+                <template v-if="taxes.data.length > 0">
                     <div class="rounded-md border border-border bg-card shadow-none mx-2">
                         <Table>
                             <TableHeader>
@@ -158,19 +175,23 @@ function confirmDelete() {
                                     <TableHead class="text-center">Oran (%)</TableHead>
                                     <TableHead>Ülkeler</TableHead>
                                     <TableHead class="text-center">Durum</TableHead>
-                                    <TableHead v-if="can('tax.update')" class="text-right w-[100px]">İşlemler</TableHead>
+                                    <TableHead v-if="can('tax.update')" class="text-right w-[100px]">İşlemler
+                                    </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow v-for="tax in taxes" :key="tax.id" class="hover:bg-muted/50 transition-colors">
+                                <TableRow v-for="tax in taxes.data" :key="tax.id"
+                                    class="hover:bg-muted/50 transition-colors">
                                     <TableCell class="font-medium">{{ tax.name }}</TableCell>
                                     <TableCell class="text-center">{{ tax.rate }}</TableCell>
                                     <TableCell>
                                         <div class="flex flex-wrap gap-1">
-                                            <Badge v-for="country in tax.countries" :key="country.id" variant="outline" class="text-xs">
+                                            <Badge v-for="country in tax.countries" :key="country.id" variant="outline"
+                                                class="text-xs">
                                                 {{ country.name }}
                                             </Badge>
-                                            <span v-if="tax.countries.length === 0" class="text-muted-foreground text-sm">-</span>
+                                            <span v-if="tax.countries.length === 0"
+                                                class="text-muted-foreground text-sm">-</span>
                                         </div>
                                     </TableCell>
                                     <TableCell class="text-center">
@@ -188,15 +209,39 @@ function confirmDelete() {
                             </TableBody>
                         </Table>
                     </div>
+
+                    <div v-if="taxes.last_page > 1"
+                        class="mt-4 flex flex-col items-center justify-between gap-4 sm:flex-row px-2">
+                        <div class="text-sm text-muted-foreground font-medium">
+                            Toplam {{ taxes.total }} kayıttan {{ taxes.from }}-{{ taxes.to }} arası gösteriliyor
+                        </div>
+                        <Pagination :total="taxes.total" :items-per-page="taxes.per_page"
+                            :default-page="taxes.current_page" @update:page="handlePageChange">
+                            <PaginationContent>
+                                <PaginationPrevious class="cursor-pointer">
+                                    <ChevronLeft class="h-4 w-4" />
+                                </PaginationPrevious>
+                                <template v-for="(item, index) in taxes.links" :key="index">
+                                    <PaginationItem v-if="item.url && !isNaN(Number(item.label))" :value="index">
+                                        <Button size="icon" variant="ghost" class="h-9 w-9"
+                                            :class="{ 'border': item.active }"
+                                            @click="handlePageChange(Number(item.label))">
+                                            {{ item.label }}
+                                        </Button>
+                                    </PaginationItem>
+                                </template>
+                                <PaginationNext class="cursor-pointer">
+                                    <ChevronRight class="h-4 w-4" />
+                                </PaginationNext>
+                            </PaginationContent>
+                        </Pagination>
+                    </div>
                 </template>
 
                 <div v-else class="mx-2">
-                    <EmptyState
-                        title="Vergi Bulunamadı"
-                        description="Sistemde henüz hiç vergi oranı oluşturulmamış."
+                    <EmptyState title="Vergi Bulunamadı" description="Sistemde henüz hiç vergi oranı oluşturulmamış."
                         :action-label="can('tax.create') ? 'Yeni Vergi Ekle' : undefined"
-                        @action="can('tax.create') && openCreateSheet()"
-                    />
+                        @action="can('tax.create') && openCreateSheet()" />
                 </div>
             </div>
 
@@ -209,7 +254,8 @@ function confirmDelete() {
                             {{ editingTax ? 'Vergi Düzenle' : 'Yeni Vergi Ekle' }}
                         </SheetTitle>
                         <SheetDescription>
-                            {{ editingTax ? 'Vergi bilgilerini güncelleyin.' : 'Sisteme yeni bir vergi oranı ekleyin.' }}
+                            {{ editingTax ? 'Vergi bilgilerini güncelleyin.' : 'Sisteme yeni bir vergi oranı ekleyin.'
+                            }}
                         </SheetDescription>
                     </SheetHeader>
 
@@ -221,19 +267,17 @@ function confirmDelete() {
                         </div>
                         <div class="space-y-2">
                             <Label for="rate" class="text-sm font-bold">Oran (%)</Label>
-                            <Input id="rate" v-model.number="form.rate" type="number" min="0" max="100" step="0.01" placeholder="20" class="h-11" />
+                            <Input id="rate" v-model.number="form.rate" type="number" min="0" max="100" step="0.01"
+                                placeholder="20" class="h-11" />
                             <InputError :message="form.errors.rate" />
                         </div>
                         <div class="space-y-2">
                             <Label class="text-sm font-bold">Ülkeler</Label>
                             <Popover v-model:open="countryPopoverOpen">
                                 <PopoverTrigger as-child>
-                                    <Button
-                                        variant="outline"
-                                        role="combobox"
+                                    <Button variant="outline" role="combobox"
                                         class="w-full justify-between h-11 font-normal"
-                                        :class="{ 'text-muted-foreground': form.countries.length === 0 }"
-                                    >
+                                        :class="{ 'text-muted-foreground': form.countries.length === 0 }">
                                         <span class="truncate">
                                             {{ form.countries.length > 0 ? selectedCountryNames : 'Ülke seçin...' }}
                                         </span>
@@ -246,16 +290,10 @@ function confirmDelete() {
                                         <CommandList>
                                             <CommandEmpty>Ülke bulunamadı.</CommandEmpty>
                                             <CommandGroup>
-                                                <CommandItem
-                                                    v-for="country in countries"
-                                                    :key="country.id"
-                                                    :value="country.name"
-                                                    @select="toggleCountry(country.id)"
-                                                >
-                                                    <Check
-                                                        class="mr-2 h-4 w-4"
-                                                        :class="form.countries.includes(country.id) ? 'opacity-100' : 'opacity-0'"
-                                                    />
+                                                <CommandItem v-for="country in countries" :key="country.id"
+                                                    :value="country.name" @select="toggleCountry(country.id)">
+                                                    <Check class="mr-2 h-4 w-4"
+                                                        :class="form.countries.includes(country.id) ? 'opacity-100' : 'opacity-0'" />
                                                     {{ country.name }} ({{ country.code }})
                                                 </CommandItem>
                                             </CommandGroup>
@@ -264,14 +302,9 @@ function confirmDelete() {
                                 </PopoverContent>
                             </Popover>
                             <div v-if="form.countries.length > 0" class="flex flex-wrap gap-1 mt-2">
-                                <Badge
-                                    v-for="countryId in form.countries"
-                                    :key="countryId"
-                                    variant="secondary"
-                                    class="cursor-pointer"
-                                    @click="toggleCountry(countryId)"
-                                >
-                                    {{ countries.find((c) => c.id === countryId)?.name }}
+                                <Badge v-for="countryId in form.countries" :key="countryId" variant="secondary"
+                                    class="cursor-pointer" @click="toggleCountry(countryId)">
+                                    {{countries.find((c) => c.id === countryId)?.name}}
                                     <span class="ml-1">&times;</span>
                                 </Badge>
                             </div>
@@ -279,11 +312,13 @@ function confirmDelete() {
                         </div>
                         <div class="space-y-2">
                             <Label for="sort_order" class="text-sm font-bold">Sıralama</Label>
-                            <Input id="sort_order" v-model.number="form.sort_order" type="number" min="0" class="h-11" />
+                            <Input id="sort_order" v-model.number="form.sort_order" type="number" min="0"
+                                class="h-11" />
                             <InputError :message="form.errors.sort_order" />
                         </div>
                         <div class="flex items-center gap-2">
-                            <Switch id="is_active" :checked="form.is_active" @update:checked="form.is_active = $event" />
+                            <Switch id="is_active" :checked="form.is_active"
+                                @update:checked="form.is_active = $event" />
                             <Label for="is_active">Aktif</Label>
                         </div>
                     </form>
@@ -293,18 +328,15 @@ function confirmDelete() {
                             <Button type="submit" form="taxForm" class="w-full h-11" :disabled="form.processing">
                                 <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
                                 <Check v-else class="mr-2 h-4 w-4" />
-                                {{ form.processing ? 'Kaydediliyor...' : (editingTax ? 'Değişiklikleri Kaydet' : 'Vergi Ekle') }}
+                                {{ form.processing ? 'Kaydediliyor...' : (editingTax ? 'Değişiklikleri Kaydet' : 'Vergi
+                                Ekle') }}
                             </Button>
                             <Button type="button" variant="ghost" class="w-full h-11" @click="isSheetOpen = false">
                                 <X class="mr-2 h-4 w-4" /> İptal
                             </Button>
-                            <Button
-                                v-if="editingTax && can('tax.delete')"
-                                type="button"
-                                variant="outline"
+                            <Button v-if="editingTax && can('tax.delete')" type="button" variant="outline"
                                 class="w-full h-11 text-destructive border-destructive/30 hover:bg-destructive/5"
-                                @click="openDeleteDialog"
-                            >
+                                @click="openDeleteDialog">
                                 <Trash2 class="mr-2 h-4 w-4" />
                                 Vergiyi Sil
                             </Button>
@@ -323,7 +355,8 @@ function confirmDelete() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>İptal</AlertDialogCancel>
-                        <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90" @click="confirmDelete">
+                        <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            @click="confirmDelete">
                             Evet, Sil
                         </AlertDialogAction>
                     </AlertDialogFooter>

@@ -45,16 +45,14 @@ const breadcrumbItems: BreadcrumbItem[] = [
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
+
         <Head title="Arşivlenmiş Bildirimler" />
 
         <ProfileLayout>
             <div class="space-y-6">
                 <div class="flex items-start justify-between">
-                    <Heading
-                        variant="small"
-                        title="Arşivlenmiş Bildirimler"
-                        description="Daha önce arşivlenen bildirimleriniz burada listelenir."
-                    />
+                    <Heading variant="small" title="Arşivlenmiş Bildirimler"
+                        description="Daha önce arşivlenen bildirimleriniz burada listelenir." />
 
                     <Button variant="ghost" size="sm" as-child>
                         <Link :href="notificationsIndex.url()">
@@ -65,19 +63,14 @@ const breadcrumbItems: BreadcrumbItem[] = [
                 </div>
 
                 <div class="space-y-3">
-                    <div
-                        v-if="archivedNotifications.data.length === 0"
-                        class="flex flex-col items-center justify-center rounded-lg border border-dashed py-12 text-center"
-                    >
+                    <div v-if="archivedNotifications.data.length === 0"
+                        class="flex flex-col items-center justify-center rounded-lg border border-dashed py-12 text-center">
                         <ArchiveX class="mb-4 h-10 w-10 text-muted-foreground" />
                         <p class="text-sm text-muted-foreground">Arşivlenmiş bildirim bulunmuyor.</p>
                     </div>
 
-                    <div
-                        v-for="notification in archivedNotifications.data"
-                        :key="notification.id"
-                        class="flex items-start gap-4 rounded-lg border bg-background p-4 opacity-80 transition-all"
-                    >
+                    <div v-for="notification in archivedNotifications.data" :key="notification.id"
+                        class="flex items-start gap-4 rounded-lg border bg-background p-4 opacity-80 transition-all">
                         <div class="flex gap-3">
                             <div class="mt-1">
                                 <Archive class="h-4 w-4 text-muted-foreground" />
@@ -98,18 +91,15 @@ const breadcrumbItems: BreadcrumbItem[] = [
                 </div>
 
                 <nav v-if="archivedNotifications.links.length > 3" class="flex justify-center gap-1">
-                    <button
-                        v-for="(link, k) in archivedNotifications.links"
-                        :key="k"
-                        v-html="link.label"
+                    <button v-for="(link, k) in archivedNotifications.links" :key="k" v-html="link.label"
                         :disabled="!link.url || link.active"
-                        @click="router.visit(link.url!)"
+                        :aria-label="link.active ? 'Mevcut sayfa' : 'Sayfa ' + link.label"
+                        :title="'Sayfa ' + link.label" @click="router.visit(link.url!)"
                         class="flex h-8 min-w-[32px] items-center justify-center rounded-md border px-2 text-xs transition-colors"
                         :class="[
                             link.active ? 'border-primary bg-primary text-primary-foreground' : 'hover:bg-accent',
                             !link.url ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
-                        ]"
-                    />
+                        ]" />
                 </nav>
             </div>
         </ProfileLayout>

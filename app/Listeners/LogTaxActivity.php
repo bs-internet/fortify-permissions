@@ -7,19 +7,22 @@ namespace App\Listeners;
 use App\Events\TaxCreated;
 use App\Events\TaxDeleted;
 use App\Events\TaxUpdated;
+use App\Models\Activity;
 use App\Services\Common\ActivityService;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
  * Listener for logging tax activities.
  */
-class LogTaxActivity
+class LogTaxActivity implements ShouldQueue
 {
     /**
      * Create the event listener.
      */
     public function __construct(
         private readonly ActivityService $activityService
-    ) {}
+    ) {
+    }
 
     /**
      * Handle the tax created event.

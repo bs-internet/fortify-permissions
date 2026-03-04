@@ -8,18 +8,20 @@ use App\Events\CurrencyCreated;
 use App\Events\CurrencyDeleted;
 use App\Events\CurrencyUpdated;
 use App\Services\Common\ActivityService;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
  * Listener for logging currency update activities.
  */
-class LogCurrencyActivity
+class LogCurrencyActivity implements ShouldQueue
 {
     /**
      * Create the event listener.
      */
     public function __construct(
         private readonly ActivityService $activityService
-    ) {}
+    ) {
+    }
 
     /**
      * Handle the currency created event.

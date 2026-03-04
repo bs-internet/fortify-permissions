@@ -19,7 +19,12 @@ if (!function_exists('settings')) {
      */
     function settings(string $key, mixed $default = null): mixed
     {
-        return app(SettingService::class)->get($key, $default);
+        static $service = null;
+        if ($service === null) {
+            $service = app(SettingService::class);
+        }
+
+        return $service->get($key, $default);
     }
 }
 
@@ -99,16 +104,18 @@ if (!function_exists('logo')) {
         $key = $type === 'dark' ? 'logo_dark' : 'logo_light';
         $path = settings($key);
 
-        if ($path && \Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
-            return asset('storage/' . $path);
-        }
+        return \Illuminate\Support\Facades\Cache::remember("site_logo_{$type}_{$path}", now()->addHours(24), function () use ($type, $path) {
+            if ($path && \Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+                return asset('storage/' . $path);
+            }
 
-        // Fallback to default logo
-        $defaultLogo = $type === 'dark'
-            ? 'herkobi-dark.png'
-            : 'herkobi.png';
+            // Fallback to default logo
+            $defaultLogo = $type === 'dark'
+                ? 'herkobi-dark.png'
+                : 'herkobi.png';
 
-        return asset($defaultLogo);
+            return asset($defaultLogo);
+        });
     }
 }
 
@@ -125,11 +132,13 @@ if (!function_exists('favicon')) {
     {
         $path = settings('favicon');
 
-        if ($path && \Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
-            return asset('storage/' . $path);
-        }
+        return \Illuminate\Support\Facades\Cache::remember("site_favicon_{$path}", now()->addHours(24), function () use ($path) {
+            if ($path && \Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+                return asset('storage/' . $path);
+            }
 
-        // Fallback to default favicon
-        return asset('herkobi-favicon.png');
+            // Fallback to default favicon
+            return asset('herkobi-favicon.png');
+        });
     }
 }

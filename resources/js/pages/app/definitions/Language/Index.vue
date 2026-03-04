@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
-import { Plus, Pencil, Trash2, Loader2, X, Check } from 'lucide-vue-next';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Plus, Pencil, Trash2, Loader2, X, Check, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import { ref } from 'vue';
 import { store, update, destroy } from '@/actions/App/Http/Controllers/Definitions/LanguageController';
 import Heading from '@/components/app/common/Heading.vue';
@@ -20,6 +20,13 @@ import { Button } from '@/components/ui/button';
 import EmptyState from '@/components/ui/empty-state/EmptyState.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/components/ui/pagination';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -28,10 +35,10 @@ import { usePermission } from '@/composables/usePermission';
 import AppLayout from '@/layouts/AppLayout.vue';
 import DefinitionsLayout from '@/pages/app/definitions/partials/Layout.vue';
 import { index as languageRoute } from '@/routes/settings/definitions/languages';
-import { type BreadcrumbItem, type Language } from '@/types';
+import { type BreadcrumbItem, type Language, type PaginationResponse } from '@/types';
 
 const props = defineProps<{
-    languages: Language[];
+    languages: PaginationResponse<Language>;
     defaultLanguageId: string | null;
 }>();
 
@@ -100,10 +107,19 @@ function confirmDelete() {
         },
     });
 }
+
+function handlePageChange(page: number) {
+    router.visit(languageRoute().url, {
+        data: { page },
+        preserveScroll: true,
+        preserveState: true,
+    });
+}
 </script>
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
+
         <Head title="Diller" />
 
         <DefinitionsLayout>
@@ -118,7 +134,7 @@ function confirmDelete() {
                     </div>
                 </div>
 
-                <template v-if="languages.length > 0">
+                <template v-if="languages.data.length > 0">
                     <div class="rounded-md border border-border bg-card shadow-none mx-2">
                         <Table>
                             <TableHeader>
@@ -129,16 +145,19 @@ function confirmDelete() {
                                     <TableHead class="text-center">Varsayılan</TableHead>
                                     <TableHead class="text-center">Durum</TableHead>
                                     <TableHead class="text-center">Sıra</TableHead>
-                                    <TableHead v-if="can('language.update')" class="text-right w-[100px]">İşlemler</TableHead>
+                                    <TableHead v-if="can('language.update')" class="text-right w-[100px]">İşlemler
+                                    </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow v-for="language in languages" :key="language.id" class="hover:bg-muted/50 transition-colors">
+                                <TableRow v-for="language in languages.data" :key="language.id"
+                                    class="hover:bg-muted/50 transition-colors">
                                     <TableCell class="font-medium">{{ language.code }}</TableCell>
                                     <TableCell>{{ language.name }}</TableCell>
                                     <TableCell>{{ language.native_name }}</TableCell>
                                     <TableCell class="text-center">
-                                        <Badge v-if="language.id === defaultLanguageId" variant="default">Varsayılan</Badge>
+                                        <Badge v-if="language.id === defaultLanguageId" variant="default">Varsayılan
+                                        </Badge>
                                     </TableCell>
                                     <TableCell class="text-center">
                                         <Badge :variant="language.is_active ? 'default' : 'secondary'">
@@ -147,7 +166,8 @@ function confirmDelete() {
                                     </TableCell>
                                     <TableCell class="text-center">{{ language.sort_order }}</TableCell>
                                     <TableCell v-if="can('language.update')" class="text-right">
-                                        <Button variant="outline" size="sm" class="h-8" @click="openEditSheet(language)">
+                                        <Button variant="outline" size="sm" class="h-8"
+                                            @click="openEditSheet(language)">
                                             <Pencil class="mr-2 h-3.5 w-3.5" />
                                             Düzenle
                                         </Button>
@@ -156,15 +176,40 @@ function confirmDelete() {
                             </TableBody>
                         </Table>
                     </div>
+
+                    <div v-if="languages.last_page > 1"
+                        class="mt-4 flex flex-col items-center justify-between gap-4 sm:flex-row px-2">
+                        <div class="text-sm text-muted-foreground font-medium">
+                            Toplam {{ languages.total }} kayıttan {{ languages.from }}-{{ languages.to }} arası
+                            gösteriliyor
+                        </div>
+                        <Pagination :total="languages.total" :items-per-page="languages.per_page"
+                            :default-page="languages.current_page" @update:page="handlePageChange">
+                            <PaginationContent>
+                                <PaginationPrevious class="cursor-pointer">
+                                    <ChevronLeft class="h-4 w-4" />
+                                </PaginationPrevious>
+                                <template v-for="(item, index) in languages.links" :key="index">
+                                    <PaginationItem v-if="item.url && !isNaN(Number(item.label))" :value="index">
+                                        <Button size="icon" variant="ghost" class="h-9 w-9"
+                                            :class="{ 'border': item.active }"
+                                            @click="handlePageChange(Number(item.label))">
+                                            {{ item.label }}
+                                        </Button>
+                                    </PaginationItem>
+                                </template>
+                                <PaginationNext class="cursor-pointer">
+                                    <ChevronRight class="h-4 w-4" />
+                                </PaginationNext>
+                            </PaginationContent>
+                        </Pagination>
+                    </div>
                 </template>
 
                 <div v-else class="mx-2">
-                    <EmptyState
-                        title="Dil Bulunamadı"
-                        description="Sistemde henüz hiç dil oluşturulmamış."
+                    <EmptyState title="Dil Bulunamadı" description="Sistemde henüz hiç dil oluşturulmamış."
                         :action-label="can('language.create') ? 'Yeni Dil Ekle' : undefined"
-                        @action="can('language.create') && openCreateSheet()"
-                    />
+                        @action="can('language.create') && openCreateSheet()" />
                 </div>
             </div>
 
@@ -199,11 +244,13 @@ function confirmDelete() {
                         </div>
                         <div class="space-y-2">
                             <Label for="sort_order" class="text-sm font-bold">Sıralama</Label>
-                            <Input id="sort_order" v-model.number="form.sort_order" type="number" min="0" class="h-11" />
+                            <Input id="sort_order" v-model.number="form.sort_order" type="number" min="0"
+                                class="h-11" />
                             <InputError :message="form.errors.sort_order" />
                         </div>
                         <div class="flex items-center gap-2">
-                            <Switch id="is_active" :checked="form.is_active" @update:checked="form.is_active = $event" />
+                            <Switch id="is_active" :checked="form.is_active"
+                                @update:checked="form.is_active = $event" />
                             <Label for="is_active">Aktif</Label>
                         </div>
                     </form>
@@ -213,18 +260,16 @@ function confirmDelete() {
                             <Button type="submit" form="languageForm" class="w-full h-11" :disabled="form.processing">
                                 <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
                                 <Check v-else class="mr-2 h-4 w-4" />
-                                {{ form.processing ? 'Kaydediliyor...' : (editingLanguage ? 'Değişiklikleri Kaydet' : 'Dil Ekle') }}
+                                {{ form.processing ? 'Kaydediliyor...' : (editingLanguage ? 'Değişiklikleri Kaydet' :
+                                    'Dil Ekle') }}
                             </Button>
                             <Button type="button" variant="ghost" class="w-full h-11" @click="isSheetOpen = false">
                                 <X class="mr-2 h-4 w-4" /> İptal
                             </Button>
-                            <Button
-                                v-if="editingLanguage && can('language.delete') && props.languages.length > 1"
-                                type="button"
-                                variant="outline"
+                            <Button v-if="editingLanguage && can('language.delete') && languages.data.length > 1"
+                                type="button" variant="outline"
                                 class="w-full h-11 text-destructive border-destructive/30 hover:bg-destructive/5"
-                                @click="openDeleteDialog"
-                            >
+                                @click="openDeleteDialog">
                                 <Trash2 class="mr-2 h-4 w-4" />
                                 Dili Sil
                             </Button>
@@ -238,12 +283,14 @@ function confirmDelete() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Dili silmek istediğinize emin misiniz?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            <strong>{{ editingLanguage?.name }}</strong> dili kalıcı olarak silinecektir. Bu işlem geri alınamaz.
+                            <strong>{{ editingLanguage?.name }}</strong> dili kalıcı olarak silinecektir. Bu işlem geri
+                            alınamaz.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>İptal</AlertDialogCancel>
-                        <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90" @click="confirmDelete">
+                        <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            @click="confirmDelete">
                             Evet, Sil
                         </AlertDialogAction>
                     </AlertDialogFooter>

@@ -9,28 +9,26 @@ use App\Events\LanguageDeleted;
 use App\Events\LanguageUpdated;
 use App\Models\Language;
 use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 
 class LanguageService
 {
-    private const CACHE_KEY_ALL = 'languages_all';
     private const CACHE_KEY_ACTIVE = 'languages_active';
 
     /**
-     * @return Collection<int, Language>
+     * @return LengthAwarePaginator
      */
-    public function all(): Collection
+    public function all(): LengthAwarePaginator
     {
         Gate::authorize('viewAny', Language::class);
 
-        return Cache::rememberForever(self::CACHE_KEY_ALL, function () {
-            return Language::query()
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get();
-        });
+        return Language::query()
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->paginate(config('otomasyon.pagination.per_page', 15));
     }
 
     /**
@@ -107,6 +105,10 @@ class LanguageService
             abort(403, 'Sistemde en az bir dil bulunmalıdır.');
         }
 
+        if (User::where('language_id', $language->id)->exists()) {
+            abort(403, 'Bu dil aktif olarak kullanıldığı için silinemez.');
+        }
+
         $changes = [
             'deleted' => $language->only(['code', 'name']),
         ];
@@ -122,7 +124,6 @@ class LanguageService
      */
     private function clearCache(): void
     {
-        Cache::forget(self::CACHE_KEY_ALL);
         Cache::forget(self::CACHE_KEY_ACTIVE);
     }
 }

@@ -9,12 +9,12 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 /* Activity Kayıtlarını Temizleme */
-Schedule::command('activities:soft-delete-old')->daily();
-Schedule::command('model:prune')->daily();
+Schedule::command('activities:soft-delete-old')->dailyAt('01:00');
+Schedule::command('model:prune')->dailyAt('02:00');
 
 /* Bildirimleri Arşivleme ve Temizleme */
-Schedule::command('notifications:archive-old')->daily();
-Schedule::command('archived-notifications:cleanup')->daily();
+Schedule::command('notifications:archive-old')->dailyAt('03:00');
+Schedule::command('archived-notifications:cleanup')->dailyAt('04:00');
 
 /* Oturum Açma Kayıtlarını Temizleme */
-Schedule::command('authentication-log:clear')->daily();
+Schedule::command('authentication-log:clear')->dailyAt('05:00');

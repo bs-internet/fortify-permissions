@@ -9,27 +9,25 @@ use App\Events\UnitDeleted;
 use App\Events\UnitUpdated;
 use App\Models\Unit;
 use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 
 class UnitService
 {
-    private const CACHE_KEY_ALL = 'units_all';
 
     /**
-     * @return Collection<int, Unit>
+     * @return LengthAwarePaginator
      */
-    public function all(): Collection
+    public function all(): LengthAwarePaginator
     {
         Gate::authorize('viewAny', Unit::class);
 
-        return Cache::rememberForever(self::CACHE_KEY_ALL, function () {
-            return Unit::query()
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get();
-        });
+        return Unit::query()
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->paginate(config('otomasyon.pagination.per_page', 15));
     }
 
     /**
@@ -103,7 +101,7 @@ class UnitService
      */
     private function clearCache(): void
     {
-        Cache::forget(self::CACHE_KEY_ALL);
+        // ...
     }
 }
 

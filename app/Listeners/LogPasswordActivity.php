@@ -6,6 +6,7 @@ namespace App\Listeners;
 
 use App\Services\Common\ActivityService;
 use App\Events\PasswordChanged;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
  * Listener for logging password change activities.
@@ -13,7 +14,7 @@ use App\Events\PasswordChanged;
  * Records password change events with comprehensive audit information
  * for security tracking and compliance purposes.
  */
-class LogPasswordActivity
+class LogPasswordActivity implements ShouldQueue
 {
     /**
      * Create the event listener.
@@ -22,7 +23,8 @@ class LogPasswordActivity
      */
     public function __construct(
         private readonly ActivityService $activityService
-    ) {}
+    ) {
+    }
 
     /**
      * Handle the password changed event.

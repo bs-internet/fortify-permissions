@@ -48,12 +48,8 @@ class ArchivedNotification extends Model
         return $this->morphTo();
     }
 
-    /**
-     * 180 günden eski soft deleted arşiv bildirimlerini kalıcı sil.
-     */
     public function prunable(): Builder
     {
-        return static::onlyTrashed()
-            ->where('deleted_at', '<', now()->subDays(180));
+        return static::query()->where('archived_at', '<', now()->subDays(180));
     }
 }

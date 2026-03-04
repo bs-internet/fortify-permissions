@@ -157,12 +157,12 @@ function archiveAllRead() {
                         <div class="flex shrink-0 gap-1">
                             <Button v-if="!notification.read_at" variant="ghost" size="icon"
                                 class="h-8 w-8 hover:bg-primary/10 hover:text-primary" title="Okundu olarak işaretle"
-                                @click="markAsRead(notification.id)">
+                                aria-label="Okundu olarak işaretle" @click="markAsRead(notification.id)">
                                 <CheckCheck class="h-4 w-4" />
                             </Button>
 
                             <Button variant="ghost" size="icon" class="h-8 w-8 hover:bg-muted" title="Arşivle"
-                                @click="archiveNotification(notification.id)">
+                                aria-label="Arşivle" @click="archiveNotification(notification.id)">
                                 <Archive class="h-4 w-4" />
                             </Button>
                         </div>
