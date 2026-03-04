@@ -230,8 +230,9 @@ function handlePageChange(page: number) {
                             {{ editingCurrency ? 'Para Birimi Düzenle' : 'Yeni Para Birimi Ekle' }}
                         </SheetTitle>
                         <SheetDescription>
-                            {{ editingCurrency ? 'Para birimi bilgilerini güncelleyin.' : 'Sisteme yeni bir para birimi
-                            ekleyin.' }}
+{{ editingCurrency
+    ? 'Para birimi bilgilerini güncelleyin.'
+    : 'Sisteme yeni bir para birimi ekleyin.' }}
                         </SheetDescription>
                     </SheetHeader>
 
@@ -293,9 +294,11 @@ function handlePageChange(page: number) {
                             <Button type="submit" form="currencyForm" class="w-full h-11" :disabled="form.processing">
                                 <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
                                 <Check v-else class="mr-2 h-4 w-4" />
-                                {{ form.processing ? 'Kaydediliyor...' : (editingCurrency ? 'Değişiklikleri Kaydet' :
-                                'Para Birimi
-                                Ekle') }}
+{{ form.processing
+    ? 'Kaydediliyor...'
+    : (editingCurrency
+        ? 'Değişiklikleri Kaydet'
+        : 'Para Birimi Ekle') }}
                             </Button>
                             <Button type="button" variant="ghost" class="w-full h-11" @click="isSheetOpen = false">
                                 <X class="mr-2 h-4 w-4" /> İptal

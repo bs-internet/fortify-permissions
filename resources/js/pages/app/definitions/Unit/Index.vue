@@ -273,8 +273,11 @@ function handlePageChange(page: number) {
                             <Button type="submit" form="unitForm" class="w-full h-11" :disabled="form.processing">
                                 <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
                                 <Check v-else class="mr-2 h-4 w-4" />
-                                {{ form.processing ? 'Kaydediliyor...' : (editingUnit ? 'Değişiklikleri Kaydet' : 'Birim
-                                Ekle') }}
+{{ form.processing
+    ? 'Kaydediliyor...'
+    : (editingUnit
+        ? 'Değişiklikleri Kaydet'
+        : 'Birim Ekle') }}
                             </Button>
                             <Button type="button" variant="ghost" class="w-full h-11" @click="isSheetOpen = false">
                                 <X class="mr-2 h-4 w-4" /> İptal

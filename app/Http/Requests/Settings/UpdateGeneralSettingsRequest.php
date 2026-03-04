@@ -24,9 +24,11 @@ class UpdateGeneralSettingsRequest extends FormRequest
     {
         return [
             'site_name' => ['required', 'string', 'max:255'],
-            'site_slogan' => ['nullable', 'string', 'max:255'],
+            'site_slogan' => ['nullable', 'string', 'max:1000'],
             'email' => ['required', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:255'],
             'sender_name' => ['required', 'string', 'max:255'],
+            'mail_from_address' => ['required', 'email', 'max:255'],
 
             // Varsayılan tanımlamalar
             'default_language' => ['nullable', 'uuid', 'exists:languages,id'],
@@ -53,6 +55,8 @@ class UpdateGeneralSettingsRequest extends FormRequest
             'email.required' => 'Sistem e-posta adresi zorunludur.',
             'email.email' => 'Lütfen geçerli bir e-posta adresi giriniz.',
             'sender_name.required' => 'E-posta gönderen adı zorunludur.',
+            'mail_from_address.required' => 'E-posta gönderen adresi zorunludur.',
+            'mail_from_address.email' => 'Gönderen adresi geçerli bir e-posta olmalıdır.',
 
             'logo_light.image' => 'Logo (açık tema) bir resim dosyası olmalıdır.',
             'logo_light.mimes' => 'Logo (açık tema) PNG, JPG veya JPEG formatında olmalıdır.',

@@ -328,8 +328,11 @@ function handlePageChange(page: number) {
                             <Button type="submit" form="taxForm" class="w-full h-11" :disabled="form.processing">
                                 <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
                                 <Check v-else class="mr-2 h-4 w-4" />
-                                {{ form.processing ? 'Kaydediliyor...' : (editingTax ? 'Değişiklikleri Kaydet' : 'Vergi
-                                Ekle') }}
+{{ form.processing
+    ? 'Kaydediliyor...'
+    : (editingTax
+        ? 'Değişiklikleri Kaydet'
+        : 'Vergi Ekle') }}
                             </Button>
                             <Button type="button" variant="ghost" class="w-full h-11" @click="isSheetOpen = false">
                                 <X class="mr-2 h-4 w-4" /> İptal
