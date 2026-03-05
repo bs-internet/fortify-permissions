@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Definitions;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Definitions\UnitConversionRequest;
 use App\Http\Requests\Definitions\UnitCreateRequest;
 use App\Http\Requests\Definitions\UnitUpdateRequest;
 use App\Models\Unit;
@@ -24,8 +25,16 @@ class UnitController extends Controller
      */
     public function index(): Response
     {
+        $units = $this->unitService->all();
+
+        $units->getCollection()->load('conversions');
+
         return Inertia::render('app/definitions/Unit/Index', [
-            'units' => $this->unitService->all(),
+            'units' => $units,
+            'allUnits' => fn () => Unit::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name', 'abbreviation']),
         ]);
     }
 
@@ -73,5 +82,25 @@ class UnitController extends Controller
         );
 
         return back()->with('success', 'Birim başarıyla silindi.');
+    }
+
+    /**
+     * Birime dönüşüm ilişkisi ekle.
+     */
+    public function storeConversion(UnitConversionRequest $request, Unit $unit): RedirectResponse
+    {
+        $this->unitService->addConversion($unit, $request->validated());
+
+        return back()->with('success', 'Dönüşüm ilişkisi eklendi.');
+    }
+
+    /**
+     * Birimden dönüşüm ilişkisini kaldır.
+     */
+    public function destroyConversion(Unit $unit, Unit $toUnit): RedirectResponse
+    {
+        $this->unitService->removeConversion($unit, $toUnit->id);
+
+        return back()->with('success', 'Dönüşüm ilişkisi kaldırıldı.');
     }
 }

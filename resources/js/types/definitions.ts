@@ -23,14 +23,31 @@ export type Currency = {
     updated_at: string;
 };
 
+export type UnitConversion = {
+    id: string;
+    name: string;
+    abbreviation: string;
+    pivot: {
+        id: string;
+        factor: number;
+    };
+};
+
 export type Unit = {
     id: string;
     name: string;
     abbreviation: string;
     is_active: boolean;
     sort_order: number;
+    conversions?: UnitConversion[];
     created_at: string;
     updated_at: string;
+};
+
+export type UnitOption = {
+    id: string;
+    name: string;
+    abbreviation: string;
 };
 
 export type Country = {

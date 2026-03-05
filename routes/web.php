@@ -120,6 +120,8 @@ Route::middleware([
                     Route::post('/units', 'store')->middleware('throttle:sensitiveActions')->name('units.store');
                     Route::put('/units/{unit}', 'update')->middleware('throttle:sensitiveActions')->name('units.update');
                     Route::delete('/units/{unit}', 'destroy')->middleware('throttle:sensitiveActions')->name('units.destroy');
+                    Route::post('/units/{unit}/conversions', 'storeConversion')->middleware('throttle:sensitiveActions')->name('units.conversions.store');
+                    Route::delete('/units/{unit}/conversions/{toUnit}', 'destroyConversion')->middleware('throttle:sensitiveActions')->name('units.conversions.destroy');
                 });
 
                 // Languages

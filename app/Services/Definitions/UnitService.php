@@ -112,6 +112,30 @@ class UnitService
     }
 
     /**
+     * Birime dönüşüm ekle.
+     *
+     * @param array{to_unit_id: string, factor: float} $data
+     */
+    public function addConversion(Unit $unit, array $data): void
+    {
+        Gate::authorize('update', $unit);
+
+        $unit->conversions()->attach($data['to_unit_id'], [
+            'factor' => $data['factor'],
+        ]);
+    }
+
+    /**
+     * Birim dönüşümünü sil.
+     */
+    public function removeConversion(Unit $unit, string $toUnitId): void
+    {
+        Gate::authorize('update', $unit);
+
+        $unit->conversions()->detach($toUnitId);
+    }
+
+    /**
      * Clear the unit caches.
      */
     private function clearCache(): void
