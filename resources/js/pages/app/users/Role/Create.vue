@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, useForm, Link } from '@inertiajs/vue3';
+import { Deferred, Head, useForm, Link } from '@inertiajs/vue3';
 import { ChevronLeft, Save, ShieldPlus, CheckCircle2, Loader2 } from 'lucide-vue-next';
 import { computed, reactive, ref } from 'vue';
 import Heading from '@/components/app/common/Heading.vue';
@@ -7,12 +7,14 @@ import InputError from '@/components/app/common/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useClearFormErrors } from '@/composables/useClearFormErrors';
 import AppLayout from '@/layouts/AppLayout.vue';
 import UsersLayout from '@/pages/app/users/partials/Layout.vue';
-import { index as roleIndex, store as roleStore } from '@/routes/users/roles';
+import { index as roleIndex } from '@/routes/users/roles';
+import { store as roleStore } from '@/actions/App/Http/Controllers/Users/RoleController';
 import { type BreadcrumbItem, type Permission } from '@/types';
 
 const props = defineProps<{
@@ -35,36 +37,36 @@ useClearFormErrors(form);
 
 const selected = reactive<Record<string, boolean>>({});
 
-const selectedCount = computed(() =>
-    Object.values(selected).filter(Boolean).length,
-);
+// Sayaç artık doğrudan form.permissions uzunluğunu takip ediyor
+const selectedCount = computed(() => form.permissions.length);
 
 const syncFormPermissions = () => {
     form.permissions = Object.keys(selected).filter(
-        (id) => selected[id],
+        (id) => selected[id] === true,
     );
 };
 
 const submit = () => {
-    form.post(roleStore().url);
+    form.post(roleStore.url());
 };
 
-const togglePermission = (id: string) => {
-    selected[id] = !selected[id];
+const togglePermission = (id: string | number) => {
+    const key = String(id);
+    selected[key] = !selected[key];
     syncFormPermissions();
 };
 
 const toggleModule = (modulePermissions: Permission[]) => {
     const allSelected = isModuleFullySelected(modulePermissions);
     modulePermissions.forEach((p) => {
-        selected[p.id] = !allSelected;
+        selected[String(p.id)] = !allSelected;
     });
     syncFormPermissions();
 };
 
 const isModuleFullySelected = (modulePermissions: Permission[]): boolean => {
     if (modulePermissions.length === 0) return false;
-    return modulePermissions.every((p) => !!selected[p.id]);
+    return modulePermissions.every((p) => !!selected[String(p.id)]);
 };
 
 const permissionSearch = ref('');
@@ -160,46 +162,63 @@ const filteredPermissions = computed(() => {
                             class="shadow-none focus-visible:ring-1"
                         />
 
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            <div
-                                v-for="(modulePermissions, moduleName) in filteredPermissions"
-                                :key="moduleName"
-                                class="rounded-md border border-border bg-card overflow-hidden shadow-none"
-                            >
-                                <div class="bg-muted/40 px-4 py-2.5 border-b border-border flex justify-between items-center">
-                                    <h3 class="font-bold text-[12px] uppercase tracking-tight text-foreground/70">
-                                        {{ moduleName }}
-                                    </h3>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        class="h-7 text-[11px] hover:bg-primary/5 font-semibold transition-all"
-                                        @click="toggleModule(modulePermissions)"
-                                    >
-                                        {{ isModuleFullySelected(modulePermissions) ? 'Tümünü Kaldır' : 'Tümünü Seç' }}
-                                    </Button>
+                        <Deferred data="permissions">
+                            <template #fallback>
+                                <div class="grid gap-4 sm:grid-cols-2">
+                                    <div v-for="i in 4" :key="i" class="rounded-md border border-border bg-card overflow-hidden shadow-none">
+                                        <div class="bg-muted/40 px-4 py-2.5 border-b border-border">
+                                            <Skeleton class="h-4 w-24" />
+                                        </div>
+                                        <div class="p-4 grid gap-3">
+                                            <div v-for="j in 4" :key="j" class="flex items-center space-x-3">
+                                                <Skeleton class="h-4 w-4 rounded" />
+                                                <Skeleton class="h-4 w-32" />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="p-4 grid gap-3">
-                                    <div
-                                        v-for="permission in modulePermissions"
-                                        :key="permission.id"
-                                        class="flex items-center space-x-3 group"
-                                    >
-                                        <Checkbox
-                                            :checked="!!selected[permission.id]"
-                                            @update:checked="() => togglePermission(permission.id)"
-                                        />
-                                        <span
-                                            class="text-sm font-medium leading-none cursor-pointer group-hover:text-primary transition-colors select-none"
-                                            @click="togglePermission(permission.id)"
+                            </template>
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <div
+                                    v-for="(modulePermissions, moduleName) in filteredPermissions"
+                                    :key="moduleName"
+                                    class="rounded-md border border-border bg-card overflow-hidden shadow-none"
+                                >
+                                    <div class="bg-muted/40 px-4 py-2.5 border-b border-border flex justify-between items-center">
+                                        <h3 class="font-bold text-[12px] uppercase tracking-tight text-foreground/70">
+                                            {{ moduleName }}
+                                        </h3>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            class="h-7 text-[11px] hover:bg-primary/5 font-semibold transition-all"
+                                            @click="toggleModule(modulePermissions)"
                                         >
-                                            {{ permission.label }}
-                                        </span>
+                                            {{ isModuleFullySelected(modulePermissions) ? 'Tümünü Kaldır' : 'Tümünü Seç' }}
+                                        </Button>
+                                    </div>
+                                    <div class="p-4 grid gap-3">
+                                        <div
+                                            v-for="permission in modulePermissions"
+                                            :key="permission.id"
+                                            class="flex items-center space-x-3 group"
+                                        >
+                                            <Checkbox
+                                                :checked="!!selected[String(permission.id)]"
+                                                @update:checked="togglePermission(permission.id)"
+                                            />
+                                            <span
+                                                class="text-sm font-medium leading-none cursor-pointer group-hover:text-primary transition-colors select-none"
+                                                @click="togglePermission(permission.id)"
+                                            >
+                                                {{ permission.label }}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </Deferred>
                     </div>
                 </form>
             </div>

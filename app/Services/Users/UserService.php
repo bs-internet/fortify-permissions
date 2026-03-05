@@ -87,17 +87,21 @@ class UserService
 
         $data['password'] = Str::password(16);
 
-        $user = User::create($data);
+        $user = DB::transaction(function () use ($data, $roleIds, $permissionIds) {
+            $user = User::create($data);
 
-        if (! empty($roleIds)) {
-            $roles = Role::whereIn('id', $roleIds)->get();
-            $user->syncRoles($roles);
-        }
+            if (! empty($roleIds)) {
+                $roles = Role::whereIn('id', $roleIds)->get();
+                $user->syncRoles($roles);
+            }
 
-        if (! empty($permissionIds)) {
-            $permissions = Permission::whereIn('id', $permissionIds)->get();
-            $user->syncPermissions($permissions);
-        }
+            if (! empty($permissionIds)) {
+                $permissions = Permission::whereIn('id', $permissionIds)->get();
+                $user->syncPermissions($permissions);
+            }
+
+            return $user;
+        });
 
         UserCreated::dispatch($authUser, ['created_user' => $user->email], $ipAddress, $userAgent);
 
@@ -137,14 +141,16 @@ class UserService
 
         $originalData = $user->only(array_keys($data));
 
-        $user->fill($data);
-        $user->save();
+        DB::transaction(function () use ($user, $data, $roleIds, $permissionIds) {
+            $user->fill($data);
+            $user->save();
 
-        $roles = Role::whereIn('id', $roleIds)->get();
-        $user->syncRoles($roles);
+            $roles = Role::whereIn('id', $roleIds)->get();
+            $user->syncRoles($roles);
 
-        $permissions = Permission::whereIn('id', $permissionIds)->get();
-        $user->syncPermissions($permissions);
+            $permissions = Permission::whereIn('id', $permissionIds)->get();
+            $user->syncPermissions($permissions);
+        });
 
         $changes = [];
         foreach ($data as $key => $value) {

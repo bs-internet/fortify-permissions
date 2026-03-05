@@ -15,32 +15,21 @@ use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Controller for managing system-wide settings.
- *
- * This controller handles displaying and updating general system
- * configurations like branding assets and communication details.
- */
 class SettingsController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     */
     public function __construct(
-        private readonly SettingService $settingService,
-        private readonly LanguageService $languageService,
-        private readonly CurrencyService $currencyService,
-        private readonly CountryService $countryService,
-        private readonly TaxService $taxService,
-    ) {
-    }
+        protected SettingService $settingService,
+        protected LanguageService $languageService,
+        protected CurrencyService $currencyService,
+        protected CountryService $countryService,
+        protected TaxService $taxService,
+    ) {}
 
     /**
-     * Display the general settings page.
+     * Genel ayarlar sayfası.
      */
-    public function index(): Response|RedirectResponse
+    public function index(): Response
     {
-
         return Inertia::render('app/settings/GeneralSettings', [
             'settings' => [
                 'site_name' => site_name(),
@@ -57,19 +46,18 @@ class SettingsController extends Controller
                 'default_country' => settings('default_country'),
                 'default_tax' => settings('default_tax'),
             ],
-            'languages' => $this->languageService->allActive()->map(fn($l) => ['id' => $l->id, 'name' => $l->name, 'code' => $l->code]),
-            'currencies' => $this->currencyService->allActive()->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'code' => $c->code, 'symbol' => $c->symbol]),
-            'countries' => $this->countryService->allActive()->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'code' => $c->code]),
-            'taxes' => $this->taxService->allActive()->map(fn($t) => ['id' => $t->id, 'name' => $t->name, 'rate' => $t->rate]),
+            'languages' => Inertia::defer(fn () => $this->languageService->allActive()->map(fn($l) => ['id' => $l->id, 'name' => $l->name, 'code' => $l->code])),
+            'currencies' => Inertia::defer(fn () => $this->currencyService->allActive()->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'code' => $c->code, 'symbol' => $c->symbol])),
+            'countries' => Inertia::defer(fn () => $this->countryService->allActive()->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'code' => $c->code])),
+            'taxes' => Inertia::defer(fn () => $this->taxService->allActive()->map(fn($t) => ['id' => $t->id, 'name' => $t->name, 'rate' => $t->rate])),
         ]);
     }
 
     /**
-     * Update the general system settings.
+     * Sistem ayarlarını güncelleme işlemi.
      */
     public function update(UpdateGeneralSettingsRequest $request): RedirectResponse
     {
-
         $this->settingService->update(
             $request->user(),
             $request->validated(),

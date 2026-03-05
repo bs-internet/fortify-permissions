@@ -13,15 +13,12 @@ use App\Services\Users\RoleService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Support\Facades\Request;
-
 class RoleController extends Controller
 {
     public function __construct(
         protected RoleService $roleService,
         protected PermissionService $permissionService
-    ) {
-    }
+    ) {}
 
     /**
      * Rol Listeleme Sayfası
@@ -39,7 +36,7 @@ class RoleController extends Controller
     public function create(): Response
     {
         return Inertia::render('app/users/Role/Create', [
-            'permissions' => $this->permissionService->groupedAll(),
+            'permissions' => Inertia::defer(fn () => $this->permissionService->groupedAll()),
         ]);
     }
 
@@ -67,7 +64,7 @@ class RoleController extends Controller
 
         return Inertia::render('app/users/Role/Edit', [
             'role' => $role,
-            'permissions' => $this->permissionService->groupedAll(),
+            'permissions' => Inertia::defer(fn () => $this->permissionService->groupedAll()),
         ]);
     }
 

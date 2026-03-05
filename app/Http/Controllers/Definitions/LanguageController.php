@@ -15,20 +15,15 @@ use Inertia\Response;
 
 class LanguageController extends Controller
 {
-    /**
-     * LanguageController constructor.
-     */
     public function __construct(
         protected LanguageService $languageService
-    ) {
-    }
+    ) {}
 
     /**
-     * Display a listing of languages.
+     * Dil listeleme sayfası.
      */
-    public function index(): Response|RedirectResponse
+    public function index(): Response
     {
-
         return Inertia::render('app/definitions/Language/Index', [
             'languages' => $this->languageService->all(),
             'defaultLanguageId' => settings('default_language'),
@@ -36,11 +31,10 @@ class LanguageController extends Controller
     }
 
     /**
-     * Store a newly created language.
+     * Yeni dil kaydetme işlemi.
      */
     public function store(LanguageCreateRequest $request): RedirectResponse
     {
-
         $this->languageService->store(
             $request->user(),
             $request->validated(),
@@ -52,11 +46,10 @@ class LanguageController extends Controller
     }
 
     /**
-     * Update the specified language.
+     * Dil güncelleme işlemi.
      */
     public function update(LanguageUpdateRequest $request, Language $language): RedirectResponse
     {
-
         $this->languageService->update(
             $language,
             $request->user(),
@@ -69,11 +62,10 @@ class LanguageController extends Controller
     }
 
     /**
-     * Remove the specified language.
+     * Dil silme işlemi.
      */
     public function destroy(Language $language): RedirectResponse
     {
-
         $this->languageService->delete(
             $language,
             request()->user(),

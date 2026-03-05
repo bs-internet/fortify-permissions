@@ -16,19 +16,15 @@ use Inertia\Response;
 
 class TaxController extends Controller
 {
-    /**
-     * TaxController constructor.
-     */
     public function __construct(
         protected TaxService $taxService,
         protected CountryService $countryService
-    ) {
-    }
+    ) {}
 
     /**
-     * Display a listing of taxes.
+     * Vergi listeleme sayfası.
      */
-    public function index(): Response|RedirectResponse
+    public function index(): Response
     {
         return Inertia::render('app/definitions/Tax/Index', [
             'taxes' => $this->taxService->all(),
@@ -37,7 +33,7 @@ class TaxController extends Controller
     }
 
     /**
-     * Store a newly created tax.
+     * Yeni vergi kaydetme işlemi.
      */
     public function store(TaxCreateRequest $request): RedirectResponse
     {
@@ -52,7 +48,7 @@ class TaxController extends Controller
     }
 
     /**
-     * Update the specified tax.
+     * Vergi güncelleme işlemi.
      */
     public function update(TaxUpdateRequest $request, Tax $tax): RedirectResponse
     {
@@ -68,7 +64,7 @@ class TaxController extends Controller
     }
 
     /**
-     * Remove the specified tax.
+     * Vergi silme işlemi.
      */
     public function destroy(Tax $tax): RedirectResponse
     {

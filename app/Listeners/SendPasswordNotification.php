@@ -7,6 +7,8 @@ namespace App\Listeners;
 use App\Events\PasswordChanged;
 use App\Notifications\Profile\PasswordUpdatedNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Listener for sending password change notifications.
@@ -16,6 +18,18 @@ use Illuminate\Contracts\Queue\ShouldQueue;
  */
 class SendPasswordNotification implements ShouldQueue
 {
+    public int $tries = 3;
+
+    public array $backoff = [10, 60, 300];
+
+    public function failed(mixed $event, Throwable $exception): void
+    {
+        Log::error('SendPasswordNotification failed', [
+            'event' => get_class($event),
+            'error' => $exception->getMessage(),
+        ]);
+    }
+
     /**
      * Handle the password changed event.
      *

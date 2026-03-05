@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3'
-import { Monitor, Smartphone, Globe, ShieldCheck, AlertTriangle } from 'lucide-vue-next'
+import { Monitor, Smartphone, Globe, ShieldCheck, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { ref } from 'vue'
 import Heading from '@/components/app/common/Heading.vue'
 import { Button } from '@/components/ui/button'
@@ -12,6 +12,13 @@ import {
     DialogDescription,
     DialogFooter,
 } from '@/components/ui/dialog'
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/components/ui/pagination'
 import AppLayout from '@/layouts/AppLayout.vue'
 import ProfileLayout from '@/pages/app/profile/partials/Layout.vue'
 import { destroy, destroyOther, index as sessionIndex } from '@/routes/profile/sessions'
@@ -30,6 +37,10 @@ type Session = {
 interface Props {
     sessions: {
         data: Session[]
+        current_page: number
+        last_page: number
+        per_page: number
+        total: number
         links: Array<{
             url: string | null
             label: string
@@ -77,6 +88,13 @@ function terminateOtherSessions() {
         onSuccess: () => {
             showBulkDialog.value = false
         },
+    })
+}
+
+function handlePageChange(page: number) {
+    router.visit(sessionIndex().url, {
+        data: { page },
+        preserveScroll: true,
     })
 }
 </script>
@@ -157,15 +175,28 @@ function terminateOtherSessions() {
                     </div>
                 </div>
 
-                <nav v-if="sessions.links.length > 3" class="flex justify-center gap-1">
-                    <button v-for="(link, k) in sessions.links" :key="k" v-html="link.label"
-                        :disabled="!link.url || link.active" @click="router.visit(link.url!)"
-                        class="flex h-8 min-w-[32px] items-center justify-center rounded-md border px-2 text-xs transition-colors"
-                        :class="[
-                            link.active ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-accent',
-                            !link.url ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                        ]" />
-                </nav>
+                <div v-if="sessions.last_page > 1" class="flex justify-center">
+                    <Pagination :total="sessions.total" :items-per-page="sessions.per_page"
+                        :default-page="sessions.current_page" @update:page="handlePageChange">
+                        <PaginationContent>
+                            <PaginationPrevious class="cursor-pointer">
+                                <ChevronLeft class="h-4 w-4" />
+                            </PaginationPrevious>
+                            <template v-for="(item, index) in sessions.links" :key="index">
+                                <PaginationItem v-if="item.url && !isNaN(Number(item.label))">
+                                    <Button size="icon" variant="ghost" class="h-9 w-9"
+                                        :class="{ 'border': item.active }"
+                                        @click="handlePageChange(Number(item.label))">
+                                        {{ item.label }}
+                                    </Button>
+                                </PaginationItem>
+                            </template>
+                            <PaginationNext class="cursor-pointer">
+                                <ChevronRight class="h-4 w-4" />
+                            </PaginationNext>
+                        </PaginationContent>
+                    </Pagination>
+                </div>
             </div>
         </ProfileLayout>
 

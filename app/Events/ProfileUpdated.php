@@ -9,23 +9,18 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-/**
- * Event dispatched when a user's profile is updated.
- *
- * Contains information about the user, changes made, and request context
- * for auditing and notification purposes.
- */
+/** Kullanıcı profili güncellendiğinde tetiklenen event. */
 class ProfileUpdated
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
-     * Create a new event instance.
+     * Yeni event örneği oluşturur.
      *
-     * @param User $user The user who updated their profile
-     * @param array<string, mixed> $changes The changes made to the profile
-     * @param string $ipAddress IP address of the request
-     * @param string $userAgent User agent of the request
+     * @param User $user Profilini güncelleyen kullanıcı
+     * @param array<string, mixed> $changes Yapılan değişiklikler
+     * @param string $ipAddress İstek IP adresi
+     * @param string $userAgent İstek tarayıcı bilgisi
      */
     public function __construct(
         public readonly User $user,

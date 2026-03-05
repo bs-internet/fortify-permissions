@@ -13,20 +13,12 @@ use Inertia\Response;
 
 class PasswordController extends Controller
 {
-
-    /**
-     * Create a new controller instance.
-     *
-     * @param PasswordService $passwordService Service for password operations
-     */
     public function __construct(
-        private readonly PasswordService $passwordService
+        protected PasswordService $passwordService
     ) {}
 
     /**
-     * Show the user's password edit page.
-     *
-     * @return Response
+     * Şifre düzenleme sayfası.
      */
     public function edit(): Response
     {
@@ -34,18 +26,15 @@ class PasswordController extends Controller
     }
 
     /**
-     * Update the user's password.
-     *
-     * @param PasswordUpdateRequest $request The validated password update request
-     * @return RedirectResponse
+     * Şifre güncelleme işlemi.
      */
     public function update(PasswordUpdateRequest $request): RedirectResponse
     {
         $this->passwordService->update(
             $request->user(),
             $request->validated('password'),
-            $request->ip() ?? '127.0.0.1',
-            $request->userAgent() ?? 'unknown'
+            $request->ip() ?? config('otomasyon.defaults.ip_address', '127.0.0.1'),
+            $request->userAgent() ?? config('otomasyon.defaults.user_agent', 'unknown')
         );
 
         return back()->with('success', 'Şifreniz güncellendi.');

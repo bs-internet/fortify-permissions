@@ -9,17 +9,18 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
+/** Ülke güncellendiğinde tetiklenen event. */
 class CountryUpdated
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
-     * Create a new event instance.
+     * Yeni event örneği oluşturur.
      *
-     * @param User $user The user who updated the country
-     * @param array<string, mixed> $changes The changes made to the country
-     * @param string $ipAddress IP address of the request
-     * @param string $userAgent User agent of the request
+     * @param User $user İşlemi yapan kullanıcı
+     * @param array<string, mixed> $changes Yapılan değişiklikler
+     * @param string $ipAddress İstek IP adresi
+     * @param string $userAgent İstek tarayıcı bilgisi
      */
     public function __construct(
         public readonly User $user,

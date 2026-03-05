@@ -1,11 +1,18 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ArrowLeft, Archive, ArchiveX } from 'lucide-vue-next';
+import { ArrowLeft, Archive, ArchiveX, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import Heading from '@/components/app/common/Heading.vue';
 import { Button } from '@/components/ui/button';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/components/ui/pagination';
 import AppLayout from '@/layouts/AppLayout.vue';
 import ProfileLayout from '@/pages/app/profile/partials/Layout.vue';
-import { index as notificationsIndex } from '@/routes/profile/notifications';
+import { archived as archivedRoute, index as notificationsIndex } from '@/routes/profile/notifications';
 import { type BreadcrumbItem } from '@/types';
 
 type ArchivedNotification = {
@@ -22,6 +29,10 @@ type ArchivedNotification = {
 interface Props {
     archivedNotifications: {
         data: ArchivedNotification[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
         links: Array<{
             url: string | null;
             label: string;
@@ -30,7 +41,14 @@ interface Props {
     };
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
+
+function handlePageChange(page: number) {
+    router.visit(archivedRoute.url(), {
+        data: { page },
+        preserveScroll: true,
+    });
+}
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
@@ -90,17 +108,28 @@ const breadcrumbItems: BreadcrumbItem[] = [
                     </div>
                 </div>
 
-                <nav v-if="archivedNotifications.links.length > 3" class="flex justify-center gap-1">
-                    <button v-for="(link, k) in archivedNotifications.links" :key="k" v-html="link.label"
-                        :disabled="!link.url || link.active"
-                        :aria-label="link.active ? 'Mevcut sayfa' : 'Sayfa ' + link.label"
-                        :title="'Sayfa ' + link.label" @click="router.visit(link.url!)"
-                        class="flex h-8 min-w-[32px] items-center justify-center rounded-md border px-2 text-xs transition-colors"
-                        :class="[
-                            link.active ? 'border-primary bg-primary text-primary-foreground' : 'hover:bg-accent',
-                            !link.url ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
-                        ]" />
-                </nav>
+                <div v-if="archivedNotifications.last_page > 1" class="flex justify-center">
+                    <Pagination :total="archivedNotifications.total" :items-per-page="archivedNotifications.per_page"
+                        :default-page="archivedNotifications.current_page" @update:page="handlePageChange">
+                        <PaginationContent>
+                            <PaginationPrevious class="cursor-pointer">
+                                <ChevronLeft class="h-4 w-4" />
+                            </PaginationPrevious>
+                            <template v-for="(item, index) in archivedNotifications.links" :key="index">
+                                <PaginationItem v-if="item.url && !isNaN(Number(item.label))">
+                                    <Button size="icon" variant="ghost" class="h-9 w-9"
+                                        :class="{ 'border': item.active }"
+                                        @click="handlePageChange(Number(item.label))">
+                                        {{ item.label }}
+                                    </Button>
+                                </PaginationItem>
+                            </template>
+                            <PaginationNext class="cursor-pointer">
+                                <ChevronRight class="h-4 w-4" />
+                            </PaginationNext>
+                        </PaginationContent>
+                    </Pagination>
+                </div>
             </div>
         </ProfileLayout>
     </AppLayout>

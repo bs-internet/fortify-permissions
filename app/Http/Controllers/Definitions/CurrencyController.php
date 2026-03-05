@@ -15,20 +15,15 @@ use Inertia\Response;
 
 class CurrencyController extends Controller
 {
-    /**
-     * CurrencyController constructor.
-     */
     public function __construct(
         protected CurrencyService $currencyService
-    ) {
-    }
+    ) {}
 
     /**
-     * Display a listing of currencies.
+     * Para birimi listeleme sayfası.
      */
-    public function index(): Response|RedirectResponse
+    public function index(): Response
     {
-
         return Inertia::render('app/definitions/Currency/Index', [
             'currencies' => $this->currencyService->all(),
             'defaultCurrencyId' => settings('default_currency'),
@@ -36,11 +31,10 @@ class CurrencyController extends Controller
     }
 
     /**
-     * Store a newly created currency.
+     * Yeni para birimi kaydetme işlemi.
      */
     public function store(CurrencyCreateRequest $request): RedirectResponse
     {
-
         $this->currencyService->store(
             $request->user(),
             $request->validated(),
@@ -52,11 +46,10 @@ class CurrencyController extends Controller
     }
 
     /**
-     * Update the specified currency.
+     * Para birimi güncelleme işlemi.
      */
     public function update(CurrencyUpdateRequest $request, Currency $currency): RedirectResponse
     {
-
         $this->currencyService->update(
             $currency,
             $request->user(),
@@ -69,11 +62,10 @@ class CurrencyController extends Controller
     }
 
     /**
-     * Remove the specified currency.
+     * Para birimi silme işlemi.
      */
     public function destroy(Currency $currency): RedirectResponse
     {
-
         $this->currencyService->delete(
             $currency,
             request()->user(),

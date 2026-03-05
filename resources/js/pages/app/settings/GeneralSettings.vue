@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Deferred, Head, useForm } from '@inertiajs/vue3';
 import {
     Globe,
     ImageIcon,
     Save,
-    Trash2,
-    Upload,
 } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { ref, useTemplateRef } from 'vue';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -18,17 +16,12 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import FileUploadField from '@/components/app/common/FileUploadField.vue';
 import InputError from '@/components/app/common/InputError.vue';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
     Select,
     SelectContent,
@@ -39,7 +32,8 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/pages/app/settings/partials/Layout.vue';
-import { index as settingsIndex, update as settingsUpdate } from '@/routes/settings';
+import { index as settingsIndex } from '@/routes/settings';
+import { update as settingsUpdate } from '@/actions/App/Http/Controllers/Settings/SettingsController';
 import type { BreadcrumbItem } from '@/types';
 
 type DropdownItem = {
@@ -60,7 +54,7 @@ type Props = {
 
 const props = defineProps<Props>();
 
-const breadcrumbs: BreadcrumbItem[] = [
+const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Ayarlar', href: '#' },
     { title: 'Genel', href: settingsIndex().url },
 ];
@@ -82,82 +76,51 @@ const form = useForm({
     favicon: null as File | null,
 });
 
-const logoLightPreview = ref<string | null>(null);
-const logoDarkPreview = ref<string | null>(null);
-const faviconPreview = ref<string | null>(null);
+const logoLightRef = useTemplateRef<InstanceType<typeof FileUploadField>>('logoLightRef');
+const logoDarkRef = useTemplateRef<InstanceType<typeof FileUploadField>>('logoDarkRef');
+const faviconRef = useTemplateRef<InstanceType<typeof FileUploadField>>('faviconRef');
 
-function handleFileChange(field: 'logo_light' | 'logo_dark' | 'favicon', event: Event) {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-
+function handleFileSelect(field: 'logo_light' | 'logo_dark' | 'favicon', file: File) {
     form[field] = file;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const result = e.target?.result as string;
-        if (field === 'logo_light') logoLightPreview.value = result;
-        else if (field === 'logo_dark') logoDarkPreview.value = result;
-        else faviconPreview.value = result;
-    };
-    reader.readAsDataURL(file);
 }
 
 const showConfirm = ref(false);
-let currentDeleteKey = '';
+let currentDeleteKey: 'logo_light' | 'logo_dark' | 'favicon' = 'logo_light';
 
-function requestConfirm(key: string) {
+function handleDeleteFile(key: 'logo_light' | 'logo_dark' | 'favicon') {
     currentDeleteKey = key;
     showConfirm.value = true;
 }
 
 function onConfirmed() {
-    // To clear the file settings without deleting the others,
-    // we send a small update payload specifically clearing this file field.
     const deleteForm = useForm({
         _method: 'PUT',
         [currentDeleteKey]: '',
     } as any);
 
-    deleteForm.post(settingsUpdate().url, {
+    deleteForm.post(settingsUpdate.url(), {
         preserveScroll: true,
         onSuccess: () => {
-            if (currentDeleteKey === 'logo_light') {
-                form.logo_light = null;
-                logoLightPreview.value = null;
-            } else if (currentDeleteKey === 'logo_dark') {
-                form.logo_dark = null;
-                logoDarkPreview.value = null;
-            } else if (currentDeleteKey === 'favicon') {
-                form.favicon = null;
-                faviconPreview.value = null;
-            }
+            form[currentDeleteKey] = null;
+            const refs = { logo_light: logoLightRef, logo_dark: logoDarkRef, favicon: faviconRef };
+            refs[currentDeleteKey].value?.clearPreview();
         },
     });
 
     showConfirm.value = false;
 }
 
-function handleDeleteFile(key: string) {
-    requestConfirm(key);
-}
-
-function getStorageUrl(path: string | null): string | null {
-    if (!path) return null;
-    return path; // The value from backend is already a full storage URL
-}
-
 function submitForm() {
-    form.post(settingsUpdate().url, {
+    form.post(settingsUpdate.url(), {
         preserveScroll: true,
         forceFormData: true,
         onSuccess: () => {
-            logoLightPreview.value = null;
-            logoDarkPreview.value = null;
-            faviconPreview.value = null;
             form.logo_light = null;
             form.logo_dark = null;
             form.favicon = null;
+            logoLightRef.value?.clearPreview();
+            logoDarkRef.value?.clearPreview();
+            faviconRef.value?.clearPreview();
         },
     });
 }
@@ -167,227 +130,177 @@ function submitForm() {
 
     <Head title="Genel Ayarlar" />
 
-    <AppLayout :breadcrumbs="breadcrumbs">
+    <AppLayout :breadcrumbs="breadcrumbItems">
         <SettingsLayout>
             <form @submit.prevent="submitForm" class="space-y-6">
                 <!-- Site Info -->
-                <Card>
-                    <CardHeader>
-                        <div class="flex items-center gap-2">
-                            <Globe class="h-4 w-4 text-muted-foreground" />
-                            <CardTitle class="text-sm font-medium">Site Bilgileri</CardTitle>
-                        </div>
-                        <CardDescription>Temel site ayarlarını yapılandırın</CardDescription>
-                    </CardHeader>
-                    <CardContent class="space-y-4">
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            <div class="grid gap-2">
-                                <Label for="site_name">Site Adı</Label>
-                                <Input id="site_name" v-model="form.site_name" />
-                                <InputError :message="form.errors.site_name" />
-                            </div>
-                            <div class="grid gap-2">
-                                <Label for="email">Sistem E-posta (Genel)</Label>
-                                <Input id="email" type="email" v-model="form.email" />
-                                <InputError :message="form.errors.email" />
-                            </div>
-                        </div>
+                <div class="rounded-md border border-border bg-card p-6 shadow-none space-y-4">
+                    <div class="flex items-center gap-2 mb-2 text-primary font-semibold text-sm uppercase tracking-wider">
+                        <Globe class="h-5 w-5" />
+                        <span>Site Bilgileri</span>
+                    </div>
 
-                        <div class="grid gap-2">
-                            <Label for="site_slogan">Slogan / Açıklama</Label>
-                            <Textarea id="site_slogan" v-model="form.site_slogan" rows="2" />
-                            <InputError :message="form.errors.site_slogan" />
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="space-y-2">
+                            <Label for="site_name">Site Adı</Label>
+                            <Input id="site_name" v-model="form.site_name" class="shadow-none focus-visible:ring-1" />
+                            <InputError :message="form.errors.site_name" />
                         </div>
+                        <div class="space-y-2">
+                            <Label for="email">Sistem E-posta (Genel)</Label>
+                            <Input id="email" type="email" v-model="form.email" class="shadow-none focus-visible:ring-1" />
+                            <InputError :message="form.errors.email" />
+                        </div>
+                    </div>
 
-                        <div class="grid gap-4 sm:grid-cols-3">
-                            <div class="grid gap-2">
-                                <Label for="phone">Telefon</Label>
-                                <Input id="phone" v-model="form.phone" />
-                                <InputError :message="form.errors.phone" />
-                            </div>
-                            <div class="grid gap-2">
-                                <Label for="sender_name">Sistem Gönderici Adı</Label>
-                                <Input id="sender_name" v-model="form.sender_name" />
-                                <InputError :message="form.errors.sender_name" />
-                            </div>
-                            <div class="grid gap-2">
-                                <Label for="mail_from_address">Gönderici E-posta</Label>
-                                <Input id="mail_from_address" type="email" v-model="form.mail_from_address" />
-                                <InputError :message="form.errors.mail_from_address" />
-                            </div>
+                    <div class="space-y-2">
+                        <Label for="site_slogan">Slogan / Açıklama</Label>
+                        <Textarea id="site_slogan" v-model="form.site_slogan" rows="2" class="resize-none shadow-none focus-visible:ring-1" />
+                        <InputError :message="form.errors.site_slogan" />
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-3">
+                        <div class="space-y-2">
+                            <Label for="phone">Telefon</Label>
+                            <Input id="phone" v-model="form.phone" class="shadow-none focus-visible:ring-1" />
+                            <InputError :message="form.errors.phone" />
                         </div>
-                    </CardContent>
-                </Card>
+                        <div class="space-y-2">
+                            <Label for="sender_name">Sistem Gönderici Adı</Label>
+                            <Input id="sender_name" v-model="form.sender_name" class="shadow-none focus-visible:ring-1" />
+                            <InputError :message="form.errors.sender_name" />
+                        </div>
+                        <div class="space-y-2">
+                            <Label for="mail_from_address">Gönderici E-posta</Label>
+                            <Input id="mail_from_address" type="email" v-model="form.mail_from_address" class="shadow-none focus-visible:ring-1" />
+                            <InputError :message="form.errors.mail_from_address" />
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Logo & Favicon -->
-                <Card>
-                    <CardHeader>
-                        <div class="flex items-center gap-2">
-                            <ImageIcon class="h-4 w-4 text-muted-foreground" />
-                            <CardTitle class="text-sm font-medium">Logo ve Favicon</CardTitle>
-                        </div>
-                        <CardDescription>Site logo ve favicon dosyalarını yönetin</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="grid gap-6 sm:grid-cols-3">
-                            <!-- Logo Light -->
-                            <div class="space-y-3">
-                                <Label>Açık Tema Logo</Label>
-                                <div
-                                    class="flex h-24 items-center justify-center rounded-md border border-dashed bg-muted/30">
-                                    <img v-if="logoLightPreview" :src="logoLightPreview" alt="Logo Light Preview"
-                                        class="max-h-20 max-w-full object-contain" />
-                                    <img v-else-if="settings.logo_light" :src="getStorageUrl(settings.logo_light)!"
-                                        alt="Logo Light" class="max-h-20 max-w-full object-contain" />
-                                    <ImageIcon v-else class="h-8 w-8 text-muted-foreground/30" />
-                                </div>
-                                <div class="flex gap-2">
-                                    <Label for="logo_light_input"
-                                        class="flex h-8 cursor-pointer items-center gap-1.5 rounded-md border px-3 text-xs font-medium hover:bg-accent">
-                                        <Upload class="h-3.5 w-3.5" />
-                                        Yükle
-                                    </Label>
-                                    <input id="logo_light_input" type="file" accept="image/png,image/jpeg,image/svg+xml"
-                                        class="hidden" @change="handleFileChange('logo_light', $event)" />
-                                    <Button v-if="settings.logo_light" variant="ghost" size="sm" type="button"
-                                        class="h-8 px-2" @click="handleDeleteFile('logo_light')">
-                                        <Trash2 class="h-3.5 w-3.5" />
-                                    </Button>
-                                </div>
-                                <InputError :message="form.errors.logo_light" />
-                            </div>
+                <div class="rounded-md border border-border bg-card p-6 shadow-none space-y-4">
+                    <div class="flex items-center gap-2 mb-2 text-primary font-semibold text-sm uppercase tracking-wider">
+                        <ImageIcon class="h-5 w-5" />
+                        <span>Logo ve Favicon</span>
+                    </div>
 
-                            <!-- Logo Dark -->
-                            <div class="space-y-3">
-                                <Label>Koyu Tema Logo</Label>
-                                <div
-                                    class="flex h-24 items-center justify-center rounded-md border border-dashed bg-zinc-900">
-                                    <img v-if="logoDarkPreview" :src="logoDarkPreview" alt="Logo Dark Preview"
-                                        class="max-h-20 max-w-full object-contain" />
-                                    <img v-else-if="settings.logo_dark" :src="getStorageUrl(settings.logo_dark)!"
-                                        alt="Logo Dark" class="max-h-20 max-w-full object-contain" />
-                                    <ImageIcon v-else class="h-8 w-8 text-zinc-600" />
-                                </div>
-                                <div class="flex gap-2">
-                                    <Label for="logo_dark_input"
-                                        class="flex h-8 cursor-pointer items-center gap-1.5 rounded-md border px-3 text-xs font-medium hover:bg-accent">
-                                        <Upload class="h-3.5 w-3.5" />
-                                        Yükle
-                                    </Label>
-                                    <input id="logo_dark_input" type="file" accept="image/png,image/jpeg,image/svg+xml"
-                                        class="hidden" @change="handleFileChange('logo_dark', $event)" />
-                                    <Button v-if="settings.logo_dark" variant="ghost" size="sm" type="button"
-                                        class="h-8 px-2" @click="handleDeleteFile('logo_dark')">
-                                        <Trash2 class="h-3.5 w-3.5" />
-                                    </Button>
-                                </div>
-                                <InputError :message="form.errors.logo_dark" />
-                            </div>
-
-                            <!-- Favicon -->
-                            <div class="space-y-3">
-                                <Label>Favicon</Label>
-                                <div
-                                    class="flex h-24 items-center justify-center rounded-md border border-dashed bg-muted/30">
-                                    <img v-if="faviconPreview" :src="faviconPreview" alt="Favicon Preview"
-                                        class="max-h-12 max-w-full object-contain" />
-                                    <img v-else-if="settings.favicon" :src="getStorageUrl(settings.favicon)!"
-                                        alt="Favicon" class="max-h-12 max-w-full object-contain" />
-                                    <ImageIcon v-else class="h-8 w-8 text-muted-foreground/30" />
-                                </div>
-                                <div class="flex gap-2">
-                                    <Label for="favicon_input"
-                                        class="flex h-8 cursor-pointer items-center gap-1.5 rounded-md border px-3 text-xs font-medium hover:bg-accent">
-                                        <Upload class="h-3.5 w-3.5" />
-                                        Yükle
-                                    </Label>
-                                    <input id="favicon_input" type="file" accept="image/png,image/x-icon,image/svg+xml"
-                                        class="hidden" @change="handleFileChange('favicon', $event)" />
-                                    <Button v-if="settings.favicon" variant="ghost" size="sm" type="button"
-                                        class="h-8 px-2" @click="handleDeleteFile('favicon')">
-                                        <Trash2 class="h-3.5 w-3.5" />
-                                    </Button>
-                                </div>
-                                <InputError :message="form.errors.favicon" />
-                            </div>
-                        </div>
-                        <p class="mt-3 text-xs text-muted-foreground">
-                            Logo: PNG, JPG, SVG (maks 2MB) &middot; Favicon: PNG, ICO, SVG (maks 512KB)
-                        </p>
-                    </CardContent>
-                </Card>
+                    <div class="grid gap-6 sm:grid-cols-3">
+                        <FileUploadField
+                            ref="logoLightRef"
+                            label="Açık Tema Logo"
+                            input-id="logo_light_input"
+                            :current-url="settings.logo_light"
+                            :error="form.errors.logo_light"
+                            @change="handleFileSelect('logo_light', $event)"
+                            @delete="handleDeleteFile('logo_light')"
+                        />
+                        <FileUploadField
+                            ref="logoDarkRef"
+                            label="Koyu Tema Logo"
+                            input-id="logo_dark_input"
+                            :current-url="settings.logo_dark"
+                            :error="form.errors.logo_dark"
+                            container-class="bg-zinc-900"
+                            @change="handleFileSelect('logo_dark', $event)"
+                            @delete="handleDeleteFile('logo_dark')"
+                        />
+                        <FileUploadField
+                            ref="faviconRef"
+                            label="Favicon"
+                            input-id="favicon_input"
+                            accept="image/png,image/x-icon,image/svg+xml"
+                            :current-url="settings.favicon"
+                            :error="form.errors.favicon"
+                            preview-class="max-h-12 max-w-full object-contain"
+                            @change="handleFileSelect('favicon', $event)"
+                            @delete="handleDeleteFile('favicon')"
+                        />
+                    </div>
+                    <p class="text-xs text-muted-foreground">
+                        Logo: PNG, JPG, SVG (maks 2MB) &middot; Favicon: PNG, ICO, SVG (maks 512KB)
+                    </p>
+                </div>
 
                 <!-- Region Defaults -->
-                <Card>
-                    <CardHeader>
-                        <div class="flex items-center gap-2">
-                            <Globe class="h-4 w-4 text-muted-foreground" />
-                            <CardTitle class="text-sm font-medium">Yerel Seçimler</CardTitle>
-                        </div>
-                        <CardDescription>Sistemin varsayılan dil, para birimi ve bölge ayarları</CardDescription>
-                    </CardHeader>
-                    <CardContent class="grid gap-4 sm:grid-cols-2">
-                        <div class="grid gap-2">
-                            <Label>Varsayılan Dil</Label>
-                            <Select v-model="form.default_language">
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Dil seçin" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem v-for="lang in languages" :key="lang.id" :value="lang.id">
-                                        {{ lang.name }} ({{ lang.code }})
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <InputError :message="form.errors.default_language" />
-                        </div>
+                <div class="rounded-md border border-border bg-card p-6 shadow-none space-y-4">
+                    <div class="flex items-center gap-2 mb-2 text-primary font-semibold text-sm uppercase tracking-wider">
+                        <Globe class="h-5 w-5" />
+                        <span>Yerel Seçimler</span>
+                    </div>
 
-                        <div class="grid gap-2">
-                            <Label>Varsayılan Para Birimi</Label>
-                            <Select v-model="form.default_currency">
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Para birimi seçin" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem v-for="currency in currencies" :key="currency.id" :value="currency.id">
-                                        {{ currency.name }} ({{ currency.symbol }})
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <InputError :message="form.errors.default_currency" />
-                        </div>
+                    <Deferred :data="['languages', 'currencies', 'countries', 'taxes']">
+                        <template #fallback>
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <div v-for="i in 4" :key="i" class="space-y-2">
+                                    <Skeleton class="h-4 w-28" />
+                                    <Skeleton class="h-10 w-full rounded-md" />
+                                </div>
+                            </div>
+                        </template>
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div class="space-y-2">
+                                <Label>Varsayılan Dil</Label>
+                                <Select v-model="form.default_language">
+                                    <SelectTrigger class="shadow-none focus:ring-1">
+                                        <SelectValue placeholder="Dil seçin" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem v-for="lang in languages" :key="lang.id" :value="lang.id">
+                                            {{ lang.name }} ({{ lang.code }})
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <InputError :message="form.errors.default_language" />
+                            </div>
 
-                        <div class="grid gap-2">
-                            <Label>Varsayılan Ülke</Label>
-                            <Select v-model="form.default_country">
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Ülke seçin" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem v-for="country in countries" :key="country.id" :value="country.id">
-                                        {{ country.name }} ({{ country.code }})
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <InputError :message="form.errors.default_country" />
-                        </div>
+                            <div class="space-y-2">
+                                <Label>Varsayılan Para Birimi</Label>
+                                <Select v-model="form.default_currency">
+                                    <SelectTrigger class="shadow-none focus:ring-1">
+                                        <SelectValue placeholder="Para birimi seçin" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem v-for="currency in currencies" :key="currency.id" :value="currency.id">
+                                            {{ currency.name }} ({{ currency.symbol }})
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <InputError :message="form.errors.default_currency" />
+                            </div>
 
-                        <div class="grid gap-2">
-                            <Label>Varsayılan Vergi Dilimi</Label>
-                            <Select v-model="form.default_tax">
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Vergi seçin" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem v-for="tax in taxes" :key="tax.id" :value="tax.id">
-                                        {{ tax.name }} (%{{ tax.rate }})
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <InputError :message="form.errors.default_tax" />
+                            <div class="space-y-2">
+                                <Label>Varsayılan Ülke</Label>
+                                <Select v-model="form.default_country">
+                                    <SelectTrigger class="shadow-none focus:ring-1">
+                                        <SelectValue placeholder="Ülke seçin" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem v-for="country in countries" :key="country.id" :value="country.id">
+                                            {{ country.name }} ({{ country.code }})
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <InputError :message="form.errors.default_country" />
+                            </div>
+
+                            <div class="space-y-2">
+                                <Label>Varsayılan Vergi Dilimi</Label>
+                                <Select v-model="form.default_tax">
+                                    <SelectTrigger class="shadow-none focus:ring-1">
+                                        <SelectValue placeholder="Vergi seçin" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem v-for="tax in taxes" :key="tax.id" :value="tax.id">
+                                            {{ tax.name }} (%{{ tax.rate }})
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <InputError :message="form.errors.default_tax" />
+                            </div>
                         </div>
-                    </CardContent>
-                </Card>
+                    </Deferred>
+                </div>
 
                 <!-- Submit -->
                 <div class="flex justify-end gap-3 items-center">

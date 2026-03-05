@@ -9,22 +9,17 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-/**
- * Event dispatched when a user disables two-factor authentication.
- *
- * Contains information about the user and request context
- * for auditing and security notification purposes.
- */
+/** İki faktörlü doğrulama devre dışı bırakıldığında tetiklenen event. */
 class TwoFactorDisabled
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
-     * Create a new event instance.
+     * Yeni event örneği oluşturur.
      *
-     * @param User $user The user who disabled two-factor authentication
-     * @param string $ipAddress IP address of the request
-     * @param string $userAgent User agent of the request
+     * @param User $user İki faktörlü doğrulamayı devre dışı bırakan kullanıcı
+     * @param string $ipAddress İstek IP adresi
+     * @param string $userAgent İstek tarayıcı bilgisi
      */
     public function __construct(
         public readonly User $user,

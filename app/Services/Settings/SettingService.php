@@ -91,12 +91,12 @@ class SettingService
         }
 
         if (!empty($changes)) {
-            event(new SettingsUpdated(
+            SettingsUpdated::dispatch(
                 user: $user,
                 changes: $changes,
                 ipAddress: $ipAddress,
                 userAgent: $userAgent
-            ));
+            );
         }
     }
 

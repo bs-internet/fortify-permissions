@@ -156,7 +156,7 @@ onUnmounted(() => { offStart(); offFinish(); });
                 <!-- Filters -->
                 <div class="flex flex-col gap-4 sm:flex-row px-2">
                     <Input v-model="search" placeholder="Ad, e-posta veya ünvan ara..." class="sm:max-w-xs" />
-                    <Select :model-value="statusFilter" @update:model-value="(val: any) => onStatusChange(val)">
+                    <Select :model-value="statusFilter" @update:model-value="(val: string) => onStatusChange(val)">
                         <SelectTrigger class="sm:w-48">
                             <SelectValue placeholder="Tüm Durumlar" />
                         </SelectTrigger>
@@ -168,7 +168,7 @@ onUnmounted(() => { offStart(); offFinish(); });
                         </SelectContent>
                     </Select>
                     <Select v-if="roles.length > 0" :model-value="roleFilter"
-                        @update:model-value="(val: any) => onRoleChange(val)">
+                        @update:model-value="(val: string) => onRoleChange(val)">
                         <SelectTrigger class="sm:w-48">
                             <SelectValue placeholder="Tüm Roller" />
                         </SelectTrigger>

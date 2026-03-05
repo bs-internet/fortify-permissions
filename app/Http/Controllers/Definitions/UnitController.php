@@ -16,20 +16,15 @@ use Inertia\Response;
 
 class UnitController extends Controller
 {
-    /**
-     * UnitController constructor.
-     */
     public function __construct(
         protected UnitService $unitService
-    ) {
-    }
+    ) {}
 
     /**
-     * Display a listing of units.
+     * Birim listeleme sayfası.
      */
-    public function index(): Response|RedirectResponse
+    public function index(): Response
     {
-
         return Inertia::render('app/definitions/Unit/Index', [
             'units' => $this->unitService->all(),
             'unitTypes' => UnitType::options(),
@@ -37,11 +32,10 @@ class UnitController extends Controller
     }
 
     /**
-     * Store a newly created unit.
+     * Yeni birim kaydetme işlemi.
      */
     public function store(UnitCreateRequest $request): RedirectResponse
     {
-
         $this->unitService->store(
             $request->user(),
             $request->validated(),
@@ -53,11 +47,10 @@ class UnitController extends Controller
     }
 
     /**
-     * Update the specified unit.
+     * Birim güncelleme işlemi.
      */
     public function update(UnitUpdateRequest $request, Unit $unit): RedirectResponse
     {
-
         $this->unitService->update(
             $unit,
             $request->user(),
@@ -70,11 +63,10 @@ class UnitController extends Controller
     }
 
     /**
-     * Remove the specified unit.
+     * Birim silme işlemi.
      */
     public function destroy(Unit $unit): RedirectResponse
     {
-
         $this->unitService->delete(
             $unit,
             request()->user(),

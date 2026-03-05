@@ -14,7 +14,6 @@ import { Label } from '@/components/ui/label';
 import {
     Pagination,
     PaginationContent,
-    PaginationEllipsis,
     PaginationItem,
     PaginationNext,
     PaginationPrevious,
@@ -104,82 +103,75 @@ onUnmounted(() => { offStart(); offFinish(); });
 
         <UsersLayout>
             <div class="space-y-6">
-                <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center px-2">
                     <Heading variant="small" title="Yetkiler"
                         description="Sistem yetkilerinin görünüm bilgilerini buradan düzenleyebilirsiniz." />
                 </div>
 
-                <div v-if="tableLoading">
+                <div v-if="tableLoading" class="mx-2">
                     <TableSkeleton :rows="10" :columns="3" />
                 </div>
-                <div v-else class="rounded-md border bg-card shadow-sm">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead class="w-[350px]">Görünen Ad</TableHead>
-                                <TableHead>Açıklama</TableHead>
-                                <TableHead v-if="can('permission.update')" class="text-right w-[140px]">İşlemler
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow v-if="permissions.data.length === 0">
-                                <TableCell :colspan="3" class="p-0">
-                                    <EmptyState title="Yetki Bulunamadı"
-                                        description="Sistemde henüz hiç yetki tanımlanmamış." />
-                                </TableCell>
-                            </TableRow>
-                            <TableRow v-for="permission in permissions.data" :key="permission.id" class="group/row">
-                                <TableCell class="font-medium">
-                                    {{ permission.label }}
-                                </TableCell>
-                                <TableCell class="text-muted-foreground text-sm">
-                                    {{ permission.description ?? '-' }}
-                                </TableCell>
-                                <TableCell v-if="can('permission.update')" class="text-right">
-                                    <Button variant="outline" size="sm" @click="openEditSheet(permission)">
-                                        <Pencil class="mr-2 h-4 w-4" />
-                                        Düzenle
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </div>
-
-                <div v-if="permissions.total > 0"
-                    class="flex flex-col sm:flex-row items-center justify-between gap-4 px-2 py-4">
-                    <div class="text-sm text-muted-foreground order-2 sm:order-1">
-                        Toplam <strong>{{ permissions.total }}</strong> kayıttan
-                        <strong>{{ permissions.from }}-{{ permissions.to }}</strong> arası gösteriliyor.
+                <template v-else-if="permissions.data.length > 0">
+                    <div class="rounded-md border border-border bg-card shadow-none mx-2">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead class="w-[350px]">Görünen Ad</TableHead>
+                                    <TableHead>Açıklama</TableHead>
+                                    <TableHead v-if="can('permission.update')" class="text-right w-[140px]">İşlemler
+                                    </TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <TableRow v-for="permission in permissions.data" :key="permission.id" class="group/row">
+                                    <TableCell class="font-medium">
+                                        {{ permission.label }}
+                                    </TableCell>
+                                    <TableCell class="text-muted-foreground text-sm">
+                                        {{ permission.description ?? '-' }}
+                                    </TableCell>
+                                    <TableCell v-if="can('permission.update')" class="text-right">
+                                        <Button variant="outline" size="sm" @click="openEditSheet(permission)">
+                                            <Pencil class="mr-2 h-4 w-4" />
+                                            Düzenle
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
                     </div>
 
-                    <Pagination v-if="permissions.last_page > 1" :total="permissions.total" :sibling-count="1"
-                        :show-edges="false" :default-page="permissions.current_page"
-                        :items-per-page="permissions.per_page" @update:page="handlePageChange"
-                        class="ml-auto mr-0 w-auto justify-end order-1 sm:order-2">
-                        <PaginationContent class="justify-end">
-                            <PaginationPrevious class="cursor-pointer">
-                                <ChevronLeft class="h-4 w-4 mr-1" />
-                                <span>Önceki</span>
-                            </PaginationPrevious>
+                    <div v-if="permissions.total > permissions.per_page" class="flex items-center justify-between px-4 py-2">
+                        <div class="text-sm text-muted-foreground">
+                            Toplam <strong>{{ permissions.total }}</strong> kayıttan
+                            <strong>{{ permissions.from }}-{{ permissions.to }}</strong> arası gösteriliyor.
+                        </div>
+                        <Pagination :total="permissions.total" :items-per-page="permissions.per_page"
+                            :default-page="permissions.current_page" @update:page="handlePageChange">
+                            <PaginationContent>
+                                <PaginationPrevious class="cursor-pointer">
+                                    <ChevronLeft class="h-4 w-4" />
+                                </PaginationPrevious>
+                                <template v-for="(item, index) in permissions.links" :key="index">
+                                    <PaginationItem v-if="item.url && !isNaN(Number(item.label))">
+                                        <Button size="icon" variant="ghost" class="h-9 w-9"
+                                            :class="{ 'border': item.active }"
+                                            @click="handlePageChange(Number(item.label))">
+                                            {{ item.label }}
+                                        </Button>
+                                    </PaginationItem>
+                                </template>
+                                <PaginationNext class="cursor-pointer">
+                                    <ChevronRight class="h-4 w-4" />
+                                </PaginationNext>
+                            </PaginationContent>
+                        </Pagination>
+                    </div>
+                </template>
 
-                            <template v-for="(item, index) in permissions.links" :key="index">
-                                <PaginationItem v-if="item.url && !isNaN(Number(item.label))">
-                                    <Button size="icon" class="size-9" :variant="item.active ? 'outline' : 'ghost'"
-                                        @click="handlePageChange(Number(item.label))">
-                                        {{ item.label }}
-                                    </Button>
-                                </PaginationItem>
-                                <PaginationEllipsis v-else-if="item.label === '...'" :index="index" />
-                            </template>
-
-                            <PaginationNext class="cursor-pointer">
-                                <span>Sonraki</span>
-                                <ChevronRight class="h-4 w-4 ml-1" />
-                            </PaginationNext>
-                        </PaginationContent>
-                    </Pagination>
+                <div v-else class="mx-2">
+                    <EmptyState title="Yetki Bulunamadı"
+                        description="Sistemde henüz hiç yetki tanımlanmamış." />
                 </div>
             </div>
 

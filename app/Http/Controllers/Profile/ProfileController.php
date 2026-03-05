@@ -16,21 +16,12 @@ use Inertia\Response;
 
 class ProfileController extends Controller
 {
-
-    /**
-     * Create a new controller instance.
-     *
-     * @param ProfileService $profileService Service for profile operations
-     */
     public function __construct(
-        private readonly ProfileService $profileService
+        protected ProfileService $profileService
     ) {}
 
     /**
-     * Show the user's profile edit page.
-     *
-     * @param Request $request The incoming request
-     * @return Response
+     * Profil düzenleme sayfası.
      */
     public function edit(Request $request): Response
     {
@@ -42,18 +33,15 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update the user's profile settings.
-     *
-     * @param ProfileUpdateRequest $request The validated profile update request
-     * @return RedirectResponse
+     * Profil güncelleme işlemi.
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $this->profileService->update(
             $request->user(),
             $request->validated(),
-            $request->ip() ?? '127.0.0.1',
-            $request->userAgent() ?? 'unknown'
+            $request->ip() ?? config('otomasyon.defaults.ip_address', '127.0.0.1'),
+            $request->userAgent() ?? config('otomasyon.defaults.user_agent', 'unknown')
         );
 
         return back()->with('success', 'Profil bilgileriniz güncellendi.');

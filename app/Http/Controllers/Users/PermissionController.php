@@ -15,31 +15,25 @@ use Inertia\Response;
 
 class PermissionController extends Controller
 {
-    /**
-     * PermissionController constructor.
-     */
     public function __construct(
         protected PermissionService $permissionService
-    ) {
-    }
+    ) {}
 
     /**
-     * Display a listing of permissions.
+     * İzin listeleme sayfası.
      */
-    public function index(): Response|RedirectResponse
+    public function index(): Response
     {
-
         return Inertia::render('app/users/Permissions/Index', [
             'permissions' => $this->permissionService->all(),
         ]);
     }
 
     /**
-     * Update the specified permission.
+     * İzin güncelleme işlemi.
      */
     public function update(PermissionUpdateRequest $request, Permission $permission): RedirectResponse
     {
-
         $this->permissionService->update(
             $permission,
             $request->user(),

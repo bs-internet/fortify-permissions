@@ -7,6 +7,8 @@ namespace App\Listeners;
 use App\Events\ProfileUpdated;
 use App\Notifications\Profile\ProfileUpdatedNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Listener for sending profile update notifications.
@@ -15,6 +17,18 @@ use Illuminate\Contracts\Queue\ShouldQueue;
  */
 class SendProfileNotification implements ShouldQueue
 {
+    public int $tries = 3;
+
+    public array $backoff = [10, 60, 300];
+
+    public function failed(mixed $event, Throwable $exception): void
+    {
+        Log::error('SendProfileNotification failed', [
+            'event' => get_class($event),
+            'error' => $exception->getMessage(),
+        ]);
+    }
+
     /**
      * Handle the panel profile updated event.
      *

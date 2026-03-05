@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { Head, useForm, Link } from '@inertiajs/vue3';
+import { Deferred, Head, useForm, Link } from '@inertiajs/vue3';
 import { ChevronLeft, Save, UserPlus, Shield, CheckCircle2, Loader2 } from 'lucide-vue-next';
 import { computed, reactive, ref } from 'vue';
 import Heading from '@/components/app/common/Heading.vue';
 import InputError from '@/components/app/common/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -81,14 +82,14 @@ const togglePermission = (id: string) => {
 const togglePermissionModule = (modulePermissions: Permission[]) => {
     const allSelected = isPermissionModuleFullySelected(modulePermissions);
     modulePermissions.forEach((p) => {
-        selectedPermissions[p.id] = !allSelected;
+        selectedPermissions[String(p.id)] = !allSelected;
     });
     syncForm();
 };
 
 const isPermissionModuleFullySelected = (modulePermissions: Permission[]): boolean => {
     if (modulePermissions.length === 0) return false;
-    return modulePermissions.every((p) => !!selectedPermissions[p.id]);
+    return modulePermissions.every((p) => !!selectedPermissions[String(p.id)]);
 };
 
 const showLanguageField = computed(() => props.languages.length > 1);
@@ -239,46 +240,63 @@ const submit = () => {
                             Rol üzerinden gelen yetkilere ek olarak doğrudan yetki atamak için bu alanı aktif edin.
                         </p>
 
-                        <div v-if="showDirectPermissions" class="grid gap-4 sm:grid-cols-2">
-                            <div
-                                v-for="(modulePermissions, moduleName) in permissions"
-                                :key="moduleName"
-                                class="rounded-md border border-border overflow-hidden shadow-none"
-                            >
-                                <div class="bg-muted/40 px-4 py-2.5 border-b border-border flex justify-between items-center">
-                                    <h3 class="font-bold text-[12px] uppercase tracking-tight text-foreground/70">
-                                        {{ moduleName }}
-                                    </h3>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        class="h-7 text-[11px] hover:bg-primary/5 font-semibold transition-all"
-                                        @click="togglePermissionModule(modulePermissions)"
-                                    >
-                                        {{ isPermissionModuleFullySelected(modulePermissions) ? 'Tümünü Kaldır' : 'Tümünü Seç' }}
-                                    </Button>
+                        <Deferred v-if="showDirectPermissions" data="permissions">
+                            <template #fallback>
+                                <div class="grid gap-4 sm:grid-cols-2">
+                                    <div v-for="i in 4" :key="i" class="rounded-md border border-border overflow-hidden shadow-none">
+                                        <div class="bg-muted/40 px-4 py-2.5 border-b border-border">
+                                            <Skeleton class="h-4 w-24" />
+                                        </div>
+                                        <div class="p-4 grid gap-3">
+                                            <div v-for="j in 3" :key="j" class="flex items-center space-x-3">
+                                                <Skeleton class="h-4 w-4 rounded" />
+                                                <Skeleton class="h-4 w-32" />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="p-4 grid gap-3">
-                                    <div
-                                        v-for="permission in modulePermissions"
-                                        :key="permission.id"
-                                        class="flex items-center space-x-3 group"
-                                    >
-                                        <Checkbox
-                                            :checked="!!selectedPermissions[permission.id]"
-                                            @update:checked="() => togglePermission(permission.id)"
-                                        />
-                                        <span
-                                            class="text-sm font-medium leading-none cursor-pointer group-hover:text-primary transition-colors select-none"
-                                            @click="togglePermission(permission.id)"
+                            </template>
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <div
+                                    v-for="(modulePermissions, moduleName) in permissions"
+                                    :key="moduleName"
+                                    class="rounded-md border border-border overflow-hidden shadow-none"
+                                >
+                                    <div class="bg-muted/40 px-4 py-2.5 border-b border-border flex justify-between items-center">
+                                        <h3 class="font-bold text-[12px] uppercase tracking-tight text-foreground/70">
+                                            {{ moduleName }}
+                                        </h3>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            class="h-7 text-[11px] hover:bg-primary/5 font-semibold transition-all"
+                                            @click="togglePermissionModule(modulePermissions)"
                                         >
-                                            {{ permission.label }}
-                                        </span>
+                                            {{ isPermissionModuleFullySelected(modulePermissions) ? 'Tümünü Kaldır' : 'Tümünü Seç' }}
+                                        </Button>
+                                    </div>
+                                    <div class="p-4 grid gap-3">
+                                        <div
+                                            v-for="permission in modulePermissions"
+                                            :key="permission.id"
+                                            class="flex items-center space-x-3 group"
+                                        >
+                                            <Checkbox
+                                                :checked="!!selectedPermissions[String(permission.id)]"
+                                                @update:checked="() => togglePermission(String(permission.id))"
+                                            />
+                                            <span
+                                                class="text-sm font-medium leading-none cursor-pointer group-hover:text-primary transition-colors select-none"
+                                                @click="togglePermission(String(permission.id))"
+                                            >
+                                                {{ permission.label }}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </Deferred>
                     </div>
                 </form>
             </div>

@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { CheckCheck, Bell, Archive, ArchiveRestore, BellOff, ShieldCheck, Info, CheckCircle2, Settings } from 'lucide-vue-next';
+import { CheckCheck, Bell, Archive, ArchiveRestore, BellOff, ShieldCheck, Info, CheckCircle2, Settings, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import { computed, type Component } from 'vue';
 import Heading from '@/components/app/common/Heading.vue';
 import { Button } from '@/components/ui/button';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/components/ui/pagination';
 import AppLayout from '@/layouts/AppLayout.vue';
 import ProfileLayout from '@/pages/app/profile/partials/Layout.vue';
 import {
@@ -49,6 +56,10 @@ function getStyle(notification: Notification) {
 interface Props {
     notifications: {
         data: Notification[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
         links: Array<{
             url: string | null;
             label: string;
@@ -87,6 +98,13 @@ function archiveNotification(id: string) {
 
 function archiveAllRead() {
     router.post(archiveAllReadRoute.url(), {}, {
+        preserveScroll: true,
+    });
+}
+
+function handlePageChange(page: number) {
+    router.visit(notificationsIndex().url, {
+        data: { page },
         preserveScroll: true,
     });
 }
@@ -169,15 +187,28 @@ function archiveAllRead() {
                     </div>
                 </div>
 
-                <nav v-if="notifications.links.length > 3" class="flex justify-center gap-1">
-                    <button v-for="(link, k) in notifications.links" :key="k" v-html="link.label"
-                        :disabled="!link.url || link.active" @click="router.visit(link.url!)"
-                        class="flex h-8 min-w-[32px] items-center justify-center rounded-md border px-2 text-xs transition-colors"
-                        :class="[
-                            link.active ? 'border-primary bg-primary text-primary-foreground' : 'hover:bg-accent',
-                            !link.url ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
-                        ]" />
-                </nav>
+                <div v-if="notifications.last_page > 1" class="flex justify-center">
+                    <Pagination :total="notifications.total" :items-per-page="notifications.per_page"
+                        :default-page="notifications.current_page" @update:page="handlePageChange">
+                        <PaginationContent>
+                            <PaginationPrevious class="cursor-pointer">
+                                <ChevronLeft class="h-4 w-4" />
+                            </PaginationPrevious>
+                            <template v-for="(item, index) in notifications.links" :key="index">
+                                <PaginationItem v-if="item.url && !isNaN(Number(item.label))">
+                                    <Button size="icon" variant="ghost" class="h-9 w-9"
+                                        :class="{ 'border': item.active }"
+                                        @click="handlePageChange(Number(item.label))">
+                                        {{ item.label }}
+                                    </Button>
+                                </PaginationItem>
+                            </template>
+                            <PaginationNext class="cursor-pointer">
+                                <ChevronRight class="h-4 w-4" />
+                            </PaginationNext>
+                        </PaginationContent>
+                    </Pagination>
+                </div>
             </div>
         </ProfileLayout>
     </AppLayout>

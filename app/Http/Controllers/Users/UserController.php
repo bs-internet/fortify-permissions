@@ -20,21 +20,17 @@ use Inertia\Response;
 
 class UserController extends Controller
 {
-    /**
-     * UserController constructor.
-     */
     public function __construct(
         protected UserService $userService,
         protected RoleService $roleService,
         protected PermissionService $permissionService,
         protected LanguageService $languageService
-    ) {
-    }
+    ) {}
 
     /**
      * Kullanıcı listeleme sayfası.
      */
-    public function index(Request $request): Response|RedirectResponse
+    public function index(Request $request): Response
     {
         return Inertia::render('app/users/Users/Index', [
             'users' => $this->userService->paginate(
@@ -53,7 +49,7 @@ class UserController extends Controller
     {
         return Inertia::render('app/users/Users/Create', [
             'roles' => $this->roleService->allForSelect(),
-            'permissions' => $this->permissionService->groupedAll(),
+            'permissions' => Inertia::defer(fn () => $this->permissionService->groupedAll()),
             'languages' => $this->languageService->allActive(),
             'statuses' => UserStatus::options(),
         ]);
@@ -84,7 +80,7 @@ class UserController extends Controller
         return Inertia::render('app/users/Users/Edit', [
             'user' => $user,
             'roles' => $this->roleService->allForSelect(),
-            'permissions' => $this->permissionService->groupedAll(),
+            'permissions' => Inertia::defer(fn () => $this->permissionService->groupedAll()),
             'languages' => $this->languageService->allActive(),
             'statuses' => UserStatus::options(),
         ]);

@@ -9,22 +9,17 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-/**
- * Event dispatched when a user's password is changed.
- *
- * Contains information about the user and request context
- * for auditing and notification purposes.
- */
+/** Kullanıcı şifresi değiştirildiğinde tetiklenen event. */
 class PasswordChanged
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
-     * Create a new event instance.
+     * Yeni event örneği oluşturur.
      *
-     * @param User $user The user who changed their password
-     * @param string $ipAddress IP address of the request
-     * @param string $userAgent User agent of the request
+     * @param User $user Şifresini değiştiren kullanıcı
+     * @param string $ipAddress İstek IP adresi
+     * @param string $userAgent İstek tarayıcı bilgisi
      */
     public function __construct(
         public readonly User $user,

@@ -1,47 +1,68 @@
-# Sistem İnceleme Raporu ve Yapılacaklar (TODO)
+# Sistem İnceleme Bulguları (2026-03-05)
 
-> Tarih: 2026-03-04 | Kapsam: Güvenlik, Performans, Tutarlılık, Kod Kalitesi
-
----
-
-## 🔴 KRİTİK (Hata / Güvenlik)
-
-### 1. `CountryController` ve Diğer Tanımlama Controller'larında Yetkilendirme (Authz) Eksikliği
-`index`, `store`, `update`, `destroy` metodlarında Controller seviyesinde veya Middleware seviyesinde explicit bir yetki kontrolü (`Gate::authorize`) veya Policy kontrolü görünmüyor. Her ne kadar Service katmanda kontroller olsa da, Controller seviyesinin de korunması veya `Authorize` middleware'i ile zırhlanması gerekir.
-- [ ] Tüm Controller'ların giriş metodlarını kontrol et ve `Gate::authorize` veya `middleware('can:...')` ekle.
-
-### 2. Hardcoded IP ve User-Agent Varsayılanları
-`127.0.0.1` ve `unknown` değerleri birçok yerde (Controller ve Service) hardcoded olarak duruyor. `config('otomasyon.defaults.ip_address')` kullanımı artsa da, hala sızıntılar var.
-- [ ] `UserController`, `CountryController`, `TaxController` vb. içerisindeki manuel stringleri temizle ve config'e bağla.
+Tüm maddeler tamamlandı.
 
 ---
 
-## 🟠 YÜKSEK ÖNCELİK (Performans / UX)
+## Güvenlik
 
-### 3. `Activity` Pruning Stratejisi
-`Activity` modeli sadece silinmiş (soft-deleted) kayıtları temizliyor. Ancak çok fazla aktivite biriken bir sistemde "silinmemiş" (active) kayıtların da belli bir süre (örn: 1 yıl) sonra silinmesi veritabanı sağlığı için kritiktir.
-- [ ] `Activity` modeli için aktif kayıtları da kapsayan bir pruning kuralı tanımla.
+### Kritik
+- [x] **Pagination v-html XSS Riski:** `Notifications.vue`, `NotificationsArchived.vue`, `Session.vue` dosyalarında pagination Shadcn-Vue Pagination bileşenine geçirildi.
 
-### 4. `Sonner` (Toast) Görünüm Doğrulaması
-Pozisyon ve z-index iyileştirmesi yapıldı (`top-center`, `z-index: 9999`) ancak özellikle mobil cihazlarda ve dar ekranlarda bildirimlerin içeriği kesilip kesilmediği test edilmeli.
-- [ ] Mobil uyumluluk testlerini gerçekleştir.
+### Orta
+- [x] **PermissionUpdateRequest Hata Mesajı:** Yanlış `'name.unique'` key'i kaldırılıp doğru mesajlar eklendi.
 
----
-
-## 🟡 ORTA ÖNCELİK (Tutarsızlık / Temizlik)
-
-### 5. Activity Sayfası Pagination Tutarsızlığı
-Kayıtlı Kullanıcılar vb. sayfalarda Shadcn UI `Pagination` bileşeni kullanılırken, Etkinlik Kayıtları (`Activity.vue`) sayfasında ham HTML/CSS butonu (`v-html`) ve manuel döngü kullanılıyor.
-- [ ] `resources/js/pages/app/settings/Activity.vue` -> Shadcn Pagination bileşenine dönüştür.
-
-### 6. Controller'larda i18n Eksikliği
-Başarı mesajları (örn: "Ülke başarıyla eklendi") doğrudan Controller'larda hardcoded string olarak duruyor. 
-- [ ] Tüm Controller'lardaki `with('success', ...)` mesajlarını `__()` fonksiyonuna geçir.
+### Düşük
+- [x] **Content-Security-Policy Header:** `SetSecurityHeaders` middleware oluşturuldu (CSP, X-Content-Type-Options, X-Frame-Options, Referrer-Policy).
 
 ---
 
-## 🔵 DÜŞÜK ÖNCELİK (Kod Kalitesi)
+## Performans
 
-### 7. Listener `ShouldQueue` Taraması
-Bazı listener'lar `ShouldQueue` kullanırken bazılarında (örn: Şifre sıfırlama veya Hoşgeldin emaili gibi) bu durum senkron kalmış olabilir.
-- [ ] `app/Listeners` altındaki tüm dosyaları kontrol et.
+### Orta
+- [x] **UnitService Cache Eksik:** `Cache::rememberForever()` ile `allActive()` cache'lendi, `clearCache()` dolduruldu.
+- [x] **Deferred Props:** `Inertia::defer()` ile permissions (User/Role create/edit) ve dropdown verileri (Settings) ertelendi. Frontend'de `<Deferred>` + `<Skeleton>` fallback eklendi.
+- [x] **Notification `type` Index:** Yeni migration ile `type` kolonuna index eklendi.
+
+### Düşük
+- [x] **country_tax Pivot Index:** `tax_id` üzerine index eklendi.
+
+---
+
+## Tutarlılık
+
+### Orta
+- [x] **Event Dispatch Yöntemi:** `event()` helper kullanımları `::dispatch()` static metoduna dönüştürüldü.
+
+### Düşük
+- [x] **Listener Error Handling:** 5 notification listener'a `$tries`, `$backoff` ve `failed()` metodu eklendi.
+- [x] **Wayfinder Rota Tutarlılığı:** Role/Create, Role/Edit ve GeneralSettings'te navigasyon `@/routes/`, mutation `@/actions/` pattern'ine uyumlu hale getirildi.
+- [x] **GeneralSettings.vue Stil Tutarlılığı:** Card bileşenleri kaldırılıp create/edit sayfalarıyla aynı div+border pattern'ine geçirildi. Input/Select/Textarea'lara `shadow-none focus-visible:ring-1` eklendi.
+
+---
+
+## Kod Kalitesi
+
+### Kritik
+- [x] **Rol/İzin Seçici Bug:** `Users/Create.vue`'da `selectedPermissions[String(p.id)]` düzeltmesi yapıldı.
+
+### Orta
+- [x] **GeneralSettings.vue FileUploadField Refactor:** `FileUploadField.vue` bileşeni oluşturuldu, 3 tekrarlı upload alanı bu bileşenle değiştirildi.
+
+### Düşük
+- [x] **TypeScript any Tipi:** `Users/Index.vue`'da `(val: any)` → `(val: string)` düzeltildi.
+- [x] **Service Transaction:** `UserService::store()` ve `update()` metodlarına `DB::transaction()` eklendi.
+
+---
+
+## Güçlü Yönler (Referans)
+- Authorization sistemi mükemmel (Spatie + Policy + Gate::before, Service katmanında tutarlı)
+- Service pattern düzgün uygulanmış, controller'lar temiz
+- N+1 sorgu problemi yok (eager loading yapılmış)
+- Cache stratejisi genel olarak iyi
+- Rate limiting sensitive actions'da uygulanmış
+- Event/Listener sistemi kapsamlı (28 event, 19 listener, queued)
+- Mass assignment koruması (fillable) tüm modellerde var
+- TypeScript ve Vue 3 best practices'e uygun
+- Composable'lar modüler ve single responsibility
+- UUID birincil anahtar tutarlı kullanılmış

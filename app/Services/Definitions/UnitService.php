@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Gate;
 
 class UnitService
 {
+    private const CACHE_KEY_ACTIVE = 'units_active';
 
     /**
      * @return LengthAwarePaginator
@@ -28,6 +29,20 @@ class UnitService
             ->orderBy('sort_order')
             ->orderBy('name')
             ->paginate(config('otomasyon.pagination.per_page', 15));
+    }
+
+    /**
+     * @return Collection<int, Unit>
+     */
+    public function allActive(): Collection
+    {
+        return Cache::rememberForever(self::CACHE_KEY_ACTIVE, function () {
+            return Unit::query()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get();
+        });
     }
 
     /**
@@ -101,7 +116,7 @@ class UnitService
      */
     private function clearCache(): void
     {
-        // ...
+        Cache::forget(self::CACHE_KEY_ACTIVE);
     }
 }
 

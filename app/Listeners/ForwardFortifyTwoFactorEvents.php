@@ -29,11 +29,11 @@ class ForwardFortifyTwoFactorEvents
         $ipAddress = Request::ip() ?? '127.0.0.1';
         $userAgent = Request::userAgent() ?? 'unknown';
 
-        event(new TwoFactorEnabled(
+        TwoFactorEnabled::dispatch(
             $event->user,
             $ipAddress,
             $userAgent
-        ));
+        );
     }
 
     /**
@@ -47,11 +47,11 @@ class ForwardFortifyTwoFactorEvents
         $ipAddress = Request::ip() ?? '127.0.0.1';
         $userAgent = Request::userAgent() ?? 'unknown';
 
-        event(new TwoFactorDisabled(
+        TwoFactorDisabled::dispatch(
             $event->user,
             $ipAddress,
             $userAgent
-        ));
+        );
     }
 
     /**

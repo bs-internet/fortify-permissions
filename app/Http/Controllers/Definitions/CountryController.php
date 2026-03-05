@@ -15,18 +15,14 @@ use Inertia\Response;
 
 class CountryController extends Controller
 {
-    /**
-     * CountryController constructor.
-     */
     public function __construct(
         protected CountryService $countryService
-    ) {
-    }
+    ) {}
 
     /**
-     * Display a listing of countries.
+     * Ülke listeleme sayfası.
      */
-    public function index(): Response|RedirectResponse
+    public function index(): Response
     {
         return Inertia::render('app/definitions/Country/Index', [
             'countries' => $this->countryService->all(),
@@ -35,7 +31,7 @@ class CountryController extends Controller
     }
 
     /**
-     * Store a newly created country.
+     * Yeni ülke kaydetme işlemi.
      */
     public function store(CountryCreateRequest $request): RedirectResponse
     {
@@ -50,7 +46,7 @@ class CountryController extends Controller
     }
 
     /**
-     * Update the specified country.
+     * Ülke güncelleme işlemi.
      */
     public function update(CountryUpdateRequest $request, Country $country): RedirectResponse
     {
@@ -66,7 +62,7 @@ class CountryController extends Controller
     }
 
     /**
-     * Remove the specified country.
+     * Ülke silme işlemi.
      */
     public function destroy(Country $country): RedirectResponse
     {

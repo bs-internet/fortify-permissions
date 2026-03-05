@@ -8,6 +8,8 @@ use App\Events\TwoFactorDisabled;
 use App\Events\TwoFactorEnabled;
 use App\Notifications\Profile\TwoFactorChangedNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Listener for sending panel two-factor authentication notifications.
@@ -17,6 +19,18 @@ use Illuminate\Contracts\Queue\ShouldQueue;
  */
 class SendTwoFactorNotification implements ShouldQueue
 {
+    public int $tries = 3;
+
+    public array $backoff = [10, 60, 300];
+
+    public function failed(mixed $event, Throwable $exception): void
+    {
+        Log::error('SendTwoFactorNotification failed', [
+            'event' => get_class($event),
+            'error' => $exception->getMessage(),
+        ]);
+    }
+
     /**
      * Handle the panel two-factor enabled event.
      *

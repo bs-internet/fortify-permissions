@@ -13,27 +13,14 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Controller for panel notification operations.
- *
- * Manages notification listing, reading, and archiving
- * for panel users.
- */
 class NotificationController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @param NotificationService $notificationService Service for notification operations
-     */
     public function __construct(
-        private readonly NotificationService $notificationService
+        protected NotificationService $notificationService
     ) {}
 
     /**
-     * Display a listing of the user's notifications.
-     *
-     * @return Response
+     * Bildirim listeleme sayfası.
      */
     public function index(): Response
     {
@@ -47,9 +34,7 @@ class NotificationController extends Controller
     }
 
     /**
-     * Display a listing of the user's archived notifications.
-     *
-     * @return Response
+     * Arşivlenmiş bildirim listeleme sayfası.
      */
     public function archived(): Response
     {
@@ -61,10 +46,7 @@ class NotificationController extends Controller
     }
 
     /**
-     * Mark a notification as read.
-     *
-     * @param MarkAsReadRequest $request
-     * @return RedirectResponse
+     * Bildirimi okundu olarak işaretle.
      */
     public function markAsRead(MarkAsReadRequest $request): RedirectResponse
     {
@@ -77,9 +59,7 @@ class NotificationController extends Controller
     }
 
     /**
-     * Mark all notifications as read.
-     *
-     * @return RedirectResponse
+     * Tüm bildirimleri okundu olarak işaretle.
      */
     public function markAllAsRead(): RedirectResponse
     {
@@ -89,10 +69,7 @@ class NotificationController extends Controller
     }
 
     /**
-     * Archive a single notification.
-     *
-     * @param ArchiveNotificationRequest $request
-     * @return RedirectResponse
+     * Bildirimi arşivle.
      */
     public function archive(ArchiveNotificationRequest $request): RedirectResponse
     {
@@ -105,9 +82,7 @@ class NotificationController extends Controller
     }
 
     /**
-     * Archive all read notifications.
-     *
-     * @return RedirectResponse
+     * Okunan tüm bildirimleri arşivle.
      */
     public function archiveAllRead(): RedirectResponse
     {

@@ -9,6 +9,8 @@ use App\Events\UserCreated;
 use App\Notifications\Users\UserUpdatedNotification;
 use App\Notifications\Users\UserCreatedNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Listener for sending user update notifications.
@@ -17,6 +19,18 @@ use Illuminate\Contracts\Queue\ShouldQueue;
  */
 class SendUserNotification implements ShouldQueue
 {
+    public int $tries = 3;
+
+    public array $backoff = [10, 60, 300];
+
+    public function failed(mixed $event, Throwable $exception): void
+    {
+        Log::error('SendUserNotification failed', [
+            'event' => get_class($event),
+            'error' => $exception->getMessage(),
+        ]);
+    }
+
     /**
      * Handle the panel user updated event.
      *

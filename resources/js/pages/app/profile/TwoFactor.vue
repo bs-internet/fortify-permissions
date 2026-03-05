@@ -24,7 +24,7 @@ withDefaults(defineProps<Props>(), {
     twoFactorEnabled: false,
 });
 
-const breadcrumbs: BreadcrumbItem[] = [
+const breadcrumbItems: BreadcrumbItem[] = [
     {
         title: 'İki Faktörlü Doğrulama',
         href: show.url(),
@@ -40,7 +40,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <AppLayout :breadcrumbs="breadcrumbs">
+    <AppLayout :breadcrumbs="breadcrumbItems">
         <Head title="İki Faktörlü Doğrulama" />
 
         <h1 class="sr-only">İki Faktörlü Doğrulama Ayarları</h1>

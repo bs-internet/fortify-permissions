@@ -35,8 +35,9 @@ class PermissionUpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.unique' => 'Bu yetki adı zaten kullanılıyor.',
             'label.required' => 'Yetki görünen adı zorunludur.',
+            'label.max' => 'Yetki görünen adı en fazla 255 karakter olabilir.',
+            'description.max' => 'Açıklama en fazla 500 karakter olabilir.',
         ];
     }
 }
