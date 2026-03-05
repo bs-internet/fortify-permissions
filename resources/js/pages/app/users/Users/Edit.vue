@@ -224,21 +224,21 @@ const submit = () => {
                                 <p v-if="isSelf" class="text-xs text-muted-foreground">Kendi hesabınızın durumunu değiştiremezsiniz.</p>
                                 <InputError :message="form.errors.status" />
                             </div>
-                        </div>
 
-                        <div v-if="showLanguageField" class="space-y-2">
-                            <Label for="language_id">Dil</Label>
-                            <Select v-model="form.language_id">
-                                <SelectTrigger class="shadow-none focus:ring-1">
-                                    <SelectValue placeholder="Dil seçin" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem v-for="lang in languages" :key="lang.id" :value="lang.id">
-                                        {{ lang.name }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <InputError :message="form.errors.language_id" />
+                            <div v-if="showLanguageField" class="space-y-2">
+                                <Label for="language_id">Dil</Label>
+                                <Select v-model="form.language_id">
+                                    <SelectTrigger class="shadow-none focus:ring-1">
+                                        <SelectValue placeholder="Dil seçin" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem v-for="lang in languages" :key="lang.id" :value="lang.id">
+                                            {{ lang.name }}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <InputError :message="form.errors.language_id" />
+                            </div>
                         </div>
                     </div>
 

@@ -27,7 +27,6 @@ export type Unit = {
     id: string;
     name: string;
     abbreviation: string;
-    type: string;
     is_active: boolean;
     sort_order: number;
     created_at: string;

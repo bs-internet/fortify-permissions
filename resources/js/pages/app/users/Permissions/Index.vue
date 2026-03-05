@@ -147,7 +147,7 @@ onUnmounted(() => { offStart(); offFinish(); });
                             <strong>{{ permissions.from }}-{{ permissions.to }}</strong> arası gösteriliyor.
                         </div>
                         <Pagination :total="permissions.total" :items-per-page="permissions.per_page"
-                            :default-page="permissions.current_page" @update:page="handlePageChange">
+                            :default-page="permissions.current_page" class="mx-0 justify-end" @update:page="handlePageChange">
                             <PaginationContent>
                                 <PaginationPrevious class="cursor-pointer">
                                     <ChevronLeft class="h-4 w-4" />

@@ -1,17 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Shield } from 'lucide-vue-next';
+import { Plus, Pencil, ChevronLeft, ChevronRight, Shield } from 'lucide-vue-next';
 import { ref, onUnmounted } from 'vue';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import Heading from '@/components/app/common/Heading.vue';
 import TableSkeleton from '@/components/app/common/TableSkeleton.vue';
 import { Button } from '@/components/ui/button';
@@ -35,7 +25,6 @@ import { usePermission } from '@/composables/usePermission';
 import AppLayout from '@/layouts/AppLayout.vue';
 import UsersLayout from '@/pages/app/users/partials/Layout.vue';
 import { index as roleRoute, create as createRoute, edit as editRoute } from '@/routes/users/roles';
-import { destroy as destroyRole } from '@/actions/App/Http/Controllers/Users/RoleController';
 import { type BreadcrumbItem, type Role, type PaginationResponse } from '@/types';
 
 defineProps<{
@@ -56,29 +45,11 @@ function handlePageChange(page: number) {
     });
 }
 
-const deleteDialogOpen = ref(false);
-const roleToDelete = ref<Role | null>(null);
-
-function openDeleteDialog(role: Role) {
-    roleToDelete.value = role;
-    deleteDialogOpen.value = true;
-}
-
 const tableLoading = ref(false);
 const offStart = router.on('start', () => { tableLoading.value = true; });
 const offFinish = router.on('finish', () => { tableLoading.value = false; });
 onUnmounted(() => { offStart(); offFinish(); });
 
-function confirmDelete() {
-    if (!roleToDelete.value) return;
-    router.delete(destroyRole(roleToDelete.value).url, {
-        preserveScroll: true,
-        onFinish: () => {
-            deleteDialogOpen.value = false;
-            roleToDelete.value = null;
-        },
-    });
-}
 </script>
 
 <template>
@@ -108,8 +79,8 @@ function confirmDelete() {
                                 <TableRow>
                                     <TableHead class="w-[250px]">Rol Adı</TableHead>
                                     <TableHead>Açıklama</TableHead>
-                                    <TableHead v-if="can('role.update') || can('role.delete')"
-                                        class="text-right w-[180px]">İşlemler</TableHead>
+                                    <TableHead v-if="can('role.update')"
+                                        class="text-right w-[120px]">İşlemler</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -124,21 +95,13 @@ function confirmDelete() {
                                     <TableCell class="text-muted-foreground italic">
                                         {{ role.description || 'Açıklama belirtilmemiş.' }}
                                     </TableCell>
-                                    <TableCell v-if="can('role.update') || can('role.delete')" class="text-right">
-                                        <div class="flex items-center justify-end gap-2">
-                                            <Link v-if="can('role.update')" :href="editRoute(role).url">
-                                                <Button variant="outline" size="sm" class="h-8">
-                                                    <Pencil class="mr-2 h-3.5 w-3.5" />
-                                                    Düzenle
-                                                </Button>
-                                            </Link>
-                                            <Button v-if="can('role.delete')" variant="outline" size="sm"
-                                                class="h-8 text-destructive hover:text-destructive"
-                                                @click="openDeleteDialog(role)">
-                                                <Trash2 class="mr-2 h-3.5 w-3.5" />
-                                                Sil
+                                    <TableCell v-if="can('role.update')" class="text-right">
+                                        <Link :href="editRoute(role).url">
+                                            <Button variant="outline" size="sm" class="h-8">
+                                                <Pencil class="mr-2 h-3.5 w-3.5" />
+                                                Düzenle
                                             </Button>
-                                        </div>
+                                        </Link>
                                     </TableCell>
                                 </TableRow>
                             </TableBody>
@@ -181,25 +144,6 @@ function confirmDelete() {
                 </div>
             </div>
 
-            <!-- Silme Onay Dialogu -->
-            <AlertDialog v-model:open="deleteDialogOpen">
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Rolü Sil</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            <strong>{{ roleToDelete?.label }}</strong> rolünü silmek istediğinize emin misiniz?
-                            Bu işlem geri alınamaz. Role atanmış kullanıcılar varsa silme işlemi engellenecektir.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>İptal</AlertDialogCancel>
-                        <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            @click="confirmDelete">
-                            Evet, Sil
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </UsersLayout>
     </AppLayout>
 </template>

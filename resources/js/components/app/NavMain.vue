@@ -33,7 +33,11 @@ defineProps<{
     }[];
 }>();
 
-const { isCurrentUrl } = useCurrentUrl();
+const { currentUrl, isCurrentUrl } = useCurrentUrl();
+
+function isGroupActive(subItems: { url: string }[]): boolean {
+    return subItems.some((sub) => currentUrl.value.startsWith(sub.url));
+}
 </script>
 
 <template>
@@ -45,7 +49,7 @@ const { isCurrentUrl } = useCurrentUrl();
                 <Collapsible
                     v-if="item.items?.length"
                     as-child
-                    :default-open="item.isActive"
+                    :default-open="item.isActive || isGroupActive(item.items ?? [])"
                     class="group/collapsible"
                 >
                     <SidebarMenuItem>

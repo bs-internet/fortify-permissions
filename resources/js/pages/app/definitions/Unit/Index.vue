@@ -27,13 +27,6 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from '@/components/ui/pagination';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -46,7 +39,6 @@ import { type BreadcrumbItem, type Unit, type PaginationResponse } from '@/types
 
 const props = defineProps<{
     units: PaginationResponse<Unit>;
-    unitTypes: Record<string, string>;
 }>();
 
 const { can } = usePermission();
@@ -63,7 +55,6 @@ const editingUnit = ref<Unit | null>(null);
 const form = useForm({
     name: '',
     abbreviation: '',
-    type: '',
     is_active: true,
     sort_order: 0,
 });
@@ -81,7 +72,6 @@ function openEditSheet(unit: Unit) {
     editingUnit.value = unit;
     form.name = unit.name;
     form.abbreviation = unit.abbreviation;
-    form.type = unit.type;
     form.is_active = unit.is_active;
     form.sort_order = unit.sort_order;
     form.clearErrors();
@@ -113,10 +103,6 @@ function confirmDelete() {
             editingUnit.value = null;
         },
     });
-}
-
-function getTypeLabel(type: string): string {
-    return props.unitTypes[type] ?? type;
 }
 
 function handlePageChange(page: number) {
@@ -152,7 +138,6 @@ function handlePageChange(page: number) {
                                 <TableRow>
                                     <TableHead>Ad</TableHead>
                                     <TableHead>Kısaltma</TableHead>
-                                    <TableHead>Tip</TableHead>
                                     <TableHead class="text-center">Durum</TableHead>
                                     <TableHead v-if="can('unit.update')" class="text-right w-[100px]">İşlemler
                                     </TableHead>
@@ -163,9 +148,6 @@ function handlePageChange(page: number) {
                                     class="hover:bg-muted/50 transition-colors">
                                     <TableCell class="font-medium">{{ unit.name }}</TableCell>
                                     <TableCell>{{ unit.abbreviation }}</TableCell>
-                                    <TableCell>
-                                        <Badge variant="outline">{{ getTypeLabel(unit.type) }}</Badge>
-                                    </TableCell>
                                     <TableCell class="text-center">
                                         <Badge :variant="unit.is_active ? 'default' : 'secondary'">
                                             {{ unit.is_active ? 'Aktif' : 'Pasif' }}
@@ -236,30 +218,18 @@ function handlePageChange(page: number) {
                             <Input id="name" v-model="form.name" placeholder="Kilogram" class="h-11" />
                             <InputError :message="form.errors.name" />
                         </div>
-                        <div class="space-y-2">
-                            <Label for="abbreviation" class="text-sm font-bold">Kısaltma</Label>
-                            <Input id="abbreviation" v-model="form.abbreviation" placeholder="kg" class="h-11" />
-                            <InputError :message="form.errors.abbreviation" />
-                        </div>
-                        <div class="space-y-2">
-                            <Label for="type" class="text-sm font-bold">Birim Tipi</Label>
-                            <Select v-model="form.type">
-                                <SelectTrigger class="h-11">
-                                    <SelectValue placeholder="Tip seçin" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem v-for="(label, value) in unitTypes" :key="value" :value="value">
-                                        {{ label }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <InputError :message="form.errors.type" />
-                        </div>
-                        <div class="space-y-2">
-                            <Label for="sort_order" class="text-sm font-bold">Sıralama</Label>
-                            <Input id="sort_order" v-model.number="form.sort_order" type="number" min="0"
-                                class="h-11" />
-                            <InputError :message="form.errors.sort_order" />
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <Label for="abbreviation" class="text-sm font-bold">Kısaltma</Label>
+                                <Input id="abbreviation" v-model="form.abbreviation" placeholder="kg" class="h-11" />
+                                <InputError :message="form.errors.abbreviation" />
+                            </div>
+                            <div class="space-y-2">
+                                <Label for="sort_order" class="text-sm font-bold">Sıralama</Label>
+                                <Input id="sort_order" v-model.number="form.sort_order" type="number" min="0"
+                                    class="h-11" />
+                                <InputError :message="form.errors.sort_order" />
+                            </div>
                         </div>
                         <div class="flex items-center gap-2">
                             <Switch id="is_active" :checked="form.is_active"

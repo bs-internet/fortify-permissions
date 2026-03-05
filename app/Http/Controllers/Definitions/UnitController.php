@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Definitions;
 
-use App\Enums\UnitType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Definitions\UnitCreateRequest;
 use App\Http\Requests\Definitions\UnitUpdateRequest;
@@ -27,7 +26,6 @@ class UnitController extends Controller
     {
         return Inertia::render('app/definitions/Unit/Index', [
             'units' => $this->unitService->all(),
-            'unitTypes' => UnitType::options(),
         ]);
     }
 
@@ -77,4 +75,3 @@ class UnitController extends Controller
         return back()->with('success', 'Birim başarıyla silindi.');
     }
 }
-

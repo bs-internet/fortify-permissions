@@ -12,10 +12,13 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Laravel\Fortify\Features;
 
+/**
+ * İki faktörlü doğrulama yönetimi controller'ı.
+ */
 class TwoFactorAuthenticationController extends Controller implements HasMiddleware
 {
     /**
-     * Get the middleware that should be assigned to the controller.
+     * Controller'a atanacak middleware tanımları.
      */
     public static function middleware(): array
     {
@@ -25,10 +28,7 @@ class TwoFactorAuthenticationController extends Controller implements HasMiddlew
     }
 
     /**
-     * Show the user's two-factor authentication profile page.
-     *
-     * @param TwoFactorAuthenticationRequest $request
-     * @return Response
+     * İki faktörlü doğrulama ayarları sayfası.
      */
     public function show(TwoFactorAuthenticationRequest $request): Response
     {

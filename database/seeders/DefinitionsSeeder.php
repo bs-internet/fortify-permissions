@@ -9,8 +9,6 @@ use App\Models\Currency;
 use App\Models\Language;
 use App\Models\Tax;
 use App\Models\Unit;
-use App\Models\Setting;
-use App\Enums\UnitType;
 use Illuminate\Database\Seeder;
 
 class DefinitionsSeeder extends Seeder
@@ -80,7 +78,6 @@ class DefinitionsSeeder extends Seeder
             ['name' => 'Adet'],
             [
                 'abbreviation' => 'Ad',
-                'type' => UnitType::Piece->value,
                 'is_active' => true,
                 'sort_order' => 1,
             ]

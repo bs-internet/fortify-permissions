@@ -118,13 +118,6 @@ function getStatusBadgeVariant(status: number): 'default' | 'secondary' | 'destr
     }
 }
 
-function formatDate(date: string): string {
-    return new Intl.DateTimeFormat('tr-TR', {
-        day: '2-digit', month: '2-digit', year: 'numeric',
-        hour: '2-digit', minute: '2-digit',
-    }).format(new Date(date));
-}
-
 const tableLoading = ref(false);
 
 const offStart = router.on('start', () => { tableLoading.value = true; });
@@ -183,7 +176,7 @@ onUnmounted(() => { offStart(); offFinish(); });
 
                 <!-- Table -->
                 <div v-if="tableLoading" class="mx-2">
-                    <TableSkeleton :rows="5" :columns="8" />
+                    <TableSkeleton :rows="5" :columns="7" />
                 </div>
                 <template v-else-if="users.data.length > 0">
                     <div class="rounded-md border border-border bg-card shadow-none mx-2">
@@ -195,7 +188,6 @@ onUnmounted(() => { offStart(); offFinish(); });
                                     <TableHead>E-posta</TableHead>
                                     <TableHead>Ünvan</TableHead>
                                     <TableHead>Roller</TableHead>
-                                    <TableHead>Son Giriş</TableHead>
                                     <TableHead v-if="can('user.update')" class="text-right w-[120px]">İşlemler
                                     </TableHead>
                                 </TableRow>
@@ -226,9 +218,6 @@ onUnmounted(() => { offStart(); offFinish(); });
                                             <span v-if="user.roles.length === 0"
                                                 class="text-sm text-muted-foreground">-</span>
                                         </div>
-                                    </TableCell>
-                                    <TableCell class="text-sm text-muted-foreground">
-                                        {{ user.last_login_at ? formatDate(user.last_login_at) : 'Hiç giriş yapmadı' }}
                                     </TableCell>
                                     <TableCell v-if="can('user.update')" class="text-right">
                                         <Link
